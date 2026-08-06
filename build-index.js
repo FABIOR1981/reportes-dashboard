@@ -4,9 +4,9 @@ const path = require('path');
 const dirPath = path.join(__dirname, 'html_externos');
 const outputPath = path.join(__dirname, 'index.json');
 
-// Si no existe la carpeta, la crea
+// Crear la carpeta si no existe
 if (!fs.existsSync(dirPath)) {
-  fs.mkdirSync(dirPath);
+  fs.mkdirSync(dirPath, { recursive: true });
 }
 
 const files = fs.readdirSync(dirPath);
@@ -16,10 +16,10 @@ const reportes = files
   .map(file => {
     const filePath = path.join(dirPath, file);
     const content = fs.readFileSync(filePath, 'utf8');
-    
-    // Intenta extraer el <title> del HTML. Si no lo encuentra, usa el nombre del archivo.
+
+    // Intenta extraer el título del HTML o usa el nombre del archivo formateado
     const titleMatch = content.match(/<title>(.*?)<\/title>/i);
-    const title = titleMatch ? titleMatch[1] : file.replace('.html', '').replace(/[-_]/g, ' ');
+    const title = titleMatch ? titleMatch[1].trim() : file.replace('.html', '').replace(/[-_]/g, ' ');
 
     return {
       filename: file,
@@ -29,4 +29,4 @@ const reportes = files
   });
 
 fs.writeFileSync(outputPath, JSON.stringify(reportes, null, 2));
-console.log(`✅ Índice generado con éxito: ${reportes.length} reportes encontrados.`);
+console.log(`✅ Índice de reportes generado con éxito: ${reportes.length} reportes encontrados.`);
