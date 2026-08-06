@@ -1,0 +1,9 @@
+{
+  "name": "reportes-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard dinámico para reportes HTML",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build-index.js"
+  }
+}

@@ -1,127 +1,89 @@
-(() => {
-  const AUTO_REFRESH_MS = 6000;
-
-  const grid = document.getElementById('grid');
-  const emptyState = document.getElementById('empty-state');
-  const statusLine = document.getElementById('status-line');
+document.addEventListener('DOMContentLoaded', () => {
+  const reportList = document.getElementById('report-list');
   const searchInput = document.getElementById('search-input');
-  const refreshBtn = document.getElementById('refresh-btn');
-  const cardTemplate = document.getElementById('card-template');
+  const reportFrame = document.getElementById('report-frame');
+  const welcomeMessage = document.getElementById('welcome-message');
+  const currentReportTitle = document.getElementById('current-report-title');
+  const reloadBtn = document.getElementById('reload-btn');
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
 
-  const overlay = document.getElementById('preview-overlay');
-  const previewFrame = document.getElementById('preview-frame');
-  const previewTitle = document.getElementById('preview-title');
-  const previewOpenNew = document.getElementById('preview-open-new');
-  const previewClose = document.getElementById('preview-close');
+  let reportsData = [];
 
-  let allReportes = [];
-  let currentFilter = '';
+  // 1. Cargar el JSON generado dinámicamente
+  fetch('index.json')
+    .then(response => {
+      if (!response.ok) throw new Error('No se pudo cargar el índice de reportes.');
+      return response.json();
+    })
+    .then(data => {
+      reportsData = data;
+      renderReportList(reportsData);
+    })
+    .catch(error => {
+      console.error(error);
+      reportList.innerHTML = `<li class="loading">Error al cargar reportes. Asegúrate de compilar con "npm run build".</li>`;
+    });
 
-  function formatSize(bytes) {
-    if (!bytes) return '0 KB';
-    const kb = bytes / 1024;
-    if (kb < 1024) return kb.toFixed(kb < 10 ? 1 : 0) + ' KB';
-    return (kb / 1024).toFixed(1) + ' MB';
-  }
-
-  function formatDate(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) +
-      ' · ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  function render(list) {
-    grid.innerHTML = '';
-
-    if (list.length === 0) {
-      emptyState.hidden = false;
-      grid.hidden = true;
+  // 2. Renderizar lista en la barra lateral
+  function renderReportList(reports) {
+    if (reports.length === 0) {
+      reportList.innerHTML = `<li class="loading">No hay HTMLs en 'html_externos'</li>`;
       return;
     }
-    emptyState.hidden = true;
-    grid.hidden = false;
 
-    list.forEach((reporte, i) => {
-      const node = cardTemplate.content.cloneNode(true);
+    reportList.innerHTML = '';
+    reports.forEach((report, index) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <a href="#" data-path="${report.path}" data-title="${report.title}">
+          <i class="fa-regular fa-file-code"></i>
+          <span>${report.title}</span>
+        </a>
+      `;
 
-      node.querySelector('.card-index').textContent = 'N.º ' + String(i + 1).padStart(2, '0');
-      node.querySelector('.card-title').textContent = reporte.title;
-      node.querySelector('.card-file').textContent = reporte.file;
-      node.querySelector('.card-modified').textContent = formatDate(reporte.modified);
-      node.querySelector('.card-size').textContent = formatSize(reporte.size);
+      li.querySelector('a').addEventListener('click', (e) => {
+        e.preventDefault();
+        loadReport(report.path, report.title, li);
+      });
 
-      const openLink = node.querySelector('.card-open');
-      openLink.href = reporte.url;
-
-      const previewBtn = node.querySelector('.card-preview');
-      previewBtn.addEventListener('click', () => openPreview(reporte));
-
-      grid.appendChild(node);
+      reportList.appendChild(li);
     });
   }
 
-  function applyFilter() {
-    const q = currentFilter.trim().toLowerCase();
-    const filtered = !q
-      ? allReportes
-      : allReportes.filter(r =>
-          r.title.toLowerCase().includes(q) || r.file.toLowerCase().includes(q)
-        );
-    render(filtered);
+  // 3. Cargar reporte seleccionado en el IFRAME
+  function loadReport(path, title, activeLi) {
+    document.querySelectorAll('.sidebar-nav li').forEach(el => el.classList.remove('active'));
+    if (activeLi) activeLi.classList.add('active');
+
+    welcomeMessage.classList.add('hidden');
+    reportFrame.classList.remove('hidden');
+    reportFrame.src = path;
+    currentReportTitle.textContent = title;
   }
 
-  function setStatus(text, tone) {
-    statusLine.textContent = text;
-    statusLine.className = 'status-line' + (tone ? ' ' + tone : '');
-  }
-
-  async function fetchReportes({ silent } = {}) {
-    if (!silent) setStatus('Consultando html_externos…');
-    try {
-      const res = await fetch('/api/reportes', { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = await res.json();
-
-      allReportes = data;
-      applyFilter();
-
-      const n = data.length;
-      setStatus(
-        n === 0
-          ? 'html_externos está vacía por ahora.'
-          : n + (n === 1 ? ' reporte disponible' : ' reportes disponibles') + ' · actualizado ' +
-            new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        'ok'
-      );
-    } catch (err) {
-      setStatus('No se pudo leer la carpeta (¿el servidor está corriendo?).', 'err');
-    }
-  }
-
-  function openPreview(reporte) {
-    previewTitle.textContent = reporte.title;
-    previewFrame.src = reporte.url;
-    previewOpenNew.href = reporte.url;
-    overlay.hidden = false;
-  }
-
-  function closePreview() {
-    overlay.hidden = true;
-    previewFrame.src = 'about:blank';
-  }
-
+  // 4. Búsqueda en tiempo real
   searchInput.addEventListener('input', (e) => {
-    currentFilter = e.target.value;
-    applyFilter();
+    const query = e.target.value.toLowerCase();
+    const filtered = reportsData.filter(r => 
+      r.title.toLowerCase().includes(query) || r.filename.toLowerCase().includes(query)
+    );
+    renderReportList(filtered);
   });
 
-  refreshBtn.addEventListener('click', () => fetchReportes());
-  previewClose.addEventListener('click', closePreview);
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) closePreview(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !overlay.hidden) closePreview(); });
+  // 5. Botones de acción (Recargar y Pantalla Completa)
+  reloadBtn.addEventListener('click', () => {
+    if (reportFrame.src) {
+      reportFrame.contentWindow.location.reload();
+    }
+  });
 
-  // primera carga + polling silencioso para detectar archivos nuevos solos
-  fetchReportes();
-  setInterval(() => fetchReportes({ silent: true }), AUTO_REFRESH_MS);
-})();
+  fullscreenBtn.addEventListener('click', () => {
+    if (!reportFrame.classList.contains('hidden')) {
+      if (reportFrame.requestFullscreen) {
+        reportFrame.requestFullscreen();
+      } else if (reportFrame.webkitRequestFullscreen) {
+        reportFrame.webkitRequestFullscreen();
+      }
+    }
+  });
+});
