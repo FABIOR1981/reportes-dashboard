@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel de Reportes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+
+  <div class="grain"></div>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        <div class="brand-text">
+          <p class="eyebrow">Archivo interno &middot; auto&#8209;indexado</p>
+          <h1>Panel de Reportes</h1>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <label class="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-5.6-5.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input id="search-input" type="text" placeholder="Buscar un reporte…" autocomplete="off" />
+        </label>
+        <button id="refresh-btn" class="btn-ghost" title="Volver a leer la carpeta html_externos">
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Releer carpeta
+        </button>
+      </div>
+    </div>
+    <div class="status-line" id="status-line">Consultando <code>html_externos</code>…</div>
+  </header>
+
+  <main class="content">
+
+    <section id="empty-state" class="empty-state" hidden>
+      <div class="empty-card">
+        <p class="empty-kicker">Carpeta vacía</p>
+        <h2>Todavía no hay reportes cargados</h2>
+        <p>
+          Colocá cualquier archivo <code>.html</code> dentro de la carpeta
+          <code>html_externos/</code> del proyecto. El panel vuelve a leer esa
+          carpeta solo, y el acceso aparece acá sin tocar código.
+        </p>
+        <p class="empty-hint">Tip: si el HTML tiene una etiqueta &lt;title&gt;, esa será el nombre de la tarjeta.</p>
+      </div>
+    </section>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+
+    <template id="card-template">
+      <article class="card">
+        <div class="card-top">
+          <span class="card-index"></span>
+          <span class="card-stamp">HTML</span>
+        </div>
+        <h3 class="card-title"></h3>
+        <p class="card-file"></p>
+        <div class="card-meta">
+          <span class="card-modified"></span>
+          <span class="card-size"></span>
+        </div>
+        <div class="card-actions">
+          <a class="btn-primary card-open" target="_blank" rel="noopener">Abrir reporte</a>
+          <button class="btn-secondary card-preview">Vista previa</button>
+        </div>
+      </article>
+    </template>
+
+  </main>
+
+  <div id="preview-overlay" class="preview-overlay" hidden>
+    <div class="preview-panel">
+      <div class="preview-header">
+        <span id="preview-title"></span>
+        <div class="preview-header-actions">
+          <a id="preview-open-new" target="_blank" rel="noopener" class="btn-ghost small">Abrir en pestaña nueva</a>
+          <button id="preview-close" class="btn-ghost small">Cerrar ✕</button>
+        </div>
+      </div>
+      <iframe id="preview-frame" title="Vista previa del reporte"></iframe>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>html_externos/ se lee automáticamente — no hace falta editar el dashboard.</span>
+  </footer>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
