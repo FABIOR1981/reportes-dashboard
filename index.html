@@ -4,305 +4,55 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Reportes</title>
-  <style>
-    :root {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --card-hover: #334155;
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --border: #334155;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background-color: var(--card-bg);
-      border-bottom: 1px solid var(--border);
-      padding: 1.5rem 2rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .brand-icon {
-      width: 36px;
-      height: 36px;
-      background-color: var(--accent);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #0f172a;
-      font-weight: bold;
-    }
-
-    h1 { font-size: 1.35rem; font-weight: 600; }
-
-    .search-box {
-      position: relative;
-      width: 100%;
-      max-width: 320px;
-    }
-
-    .search-box input {
-      width: 100%;
-      padding: 0.6rem 1rem;
-      background-color: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .search-box input:focus {
-      border-color: var(--accent);
-    }
-
-    main {
-      flex: 1;
-      padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-      width: 100%;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-    }
-
-    .card {
-      background-color: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, border-color 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-    }
-
-    .card-title {
-      font-size: 1.05rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--text);
-    }
-
-    .card-filename {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      font-family: monospace;
-      margin-bottom: 1.25rem;
-      word-break: break-all;
-    }
-
-    .card-actions {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      font-weight: 500;
-      text-decoration: none;
-      text-align: center;
-      cursor: pointer;
-      border: none;
-      transition: background-color 0.2s;
-    }
-
-    .btn-primary {
-      background-color: var(--accent);
-      color: #0f172a;
-    }
-
-    .btn-primary:hover {
-      background-color: var(--accent-hover);
-      color: #fff;
-    }
-
-    .btn-secondary {
-      background-color: var(--card-hover);
-      color: var(--text);
-    }
-
-    .btn-secondary:hover {
-      background-color: var(--border);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--text-muted);
-      grid-column: 1 / -1;
-    }
-
-    /* Modal para Vista Previa */
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      z-index: 1000;
-      flex-direction: column;
-    }
-
-    .modal.active { display: flex; }
-
-    .modal-header {
-      background-color: var(--card-bg);
-      padding: 0.8rem 1.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: var(--text);
-      font-size: 1.5rem;
-      cursor: pointer;
-    }
-
-    .modal-body {
-      flex: 1;
-      background: #fff;
-    }
-
-    .modal-body iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-  </style>
+  <!-- CSS Externo -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- FontAwesome (si usas iconos en la barra lateral) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-  <header>
-    <div class="brand">
-      <div class="brand-icon">📊</div>
-      <h1>Panel de Reportes</h1>
-    </div>
-    <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Buscar reporte por nombre...">
-    </div>
-  </header>
+  <div class="dashboard-container">
+    <!-- Barra Lateral -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <i class="fa-solid fa-chart-line logo-icon"></i>
+        <h2>Reportes <span class="badge">v1.0</span></h2>
+      </div>
 
-  <main>
-    <div class="grid" id="reportGrid"></div>
-  </main>
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" placeholder="Buscar reporte...">
+      </div>
 
-  <!-- Modal Iframe para Previsualización -->
-  <div class="modal" id="previewModal">
-    <div class="modal-header">
-      <span id="modalTitle" style="font-weight: 600;"></span>
-      <button class="modal-close" onclick="closePreview()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <iframe id="previewFrame" src=""></iframe>
-    </div>
+      <nav class="sidebar-nav">
+        <ul id="report-list">
+          <li class="loading">Cargando reportes...</li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Área Principal de Contenido -->
+    <main class="main-content">
+      <header class="top-bar">
+        <h1 id="current-report-title">Selecciona un reporte</h1>
+        <div class="actions">
+          <button id="reload-btn" title="Recargar"><i class="fa-solid fa-rotate-right"></i> Recargar</button>
+          <button id="fullscreen-btn" title="Pantalla Completa"><i class="fa-solid fa-expand"></i> Pantalla Completa</button>
+        </div>
+      </header>
+
+      <section class="content-body">
+        <div id="welcome-message" class="welcome-card">
+          <i class="fa-regular fa-folder-open welcome-icon"></i>
+          <h3>Panel de Control</h3>
+          <p>Selecciona cualquier reporte de la barra lateral para visualizarlo.</p>
+        </div>
+        <iframe id="report-frame" class="report-frame hidden" src=""></iframe>
+      </section>
+    </main>
   </div>
 
-  <script>
-    let reportesData = [];
-
-    async function loadReports() {
-      const container = document.getElementById('reportGrid');
-      try {
-        const res = await fetch('index.json');
-        if (!res.ok) throw new Error('No se encontró index.json');
-        reportesData = await res.json();
-        renderReports(reportesData);
-      } catch (err) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <p>No se encontraron reportes generados o hubo un error al cargar.</p>
-            <p><small>Asegúrate de colocar archivos .html en <code>html_externos/</code> y ejecutar el script de compilación.</small></p>
-          </div>
-        `;
-      }
-    }
-
-    function renderReports(items) {
-      const container = document.getElementById('reportGrid');
-      if (items.length === 0) {
-        container.innerHTML = `<div class="empty-state"><p>No se encontraron reportes con ese criterio de búsqueda.</p></div>`;
-        return;
-      }
-
-      container.innerHTML = items.map(rep => `
-        <div class="card">
-          <div>
-            <div class="card-title">${escapeHtml(rep.title)}</div>
-            <div class="card-filename">${escapeHtml(rep.filename)}</div>
-          </div>
-          <div class="card-actions">
-            <button class="btn btn-secondary" onclick="openPreview('${escapeHtml(rep.path)}', '${escapeHtml(rep.title)}')">Vista Previa</button>
-            <a class="btn btn-primary" href="${escapeHtml(rep.path)}" target="_blank">Abrir ↗</a>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const term = e.target.value.toLowerCase();
-      const filtered = reportesData.filter(r => 
-        r.title.toLowerCase().includes(term) || r.filename.toLowerCase().includes(term)
-      );
-      renderReports(filtered);
-    });
-
-    function openPreview(path, title) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('previewFrame').src = path;
-      document.getElementById('previewModal').classList.add('active');
-    }
-
-    function closePreview() {
-      document.getElementById('previewModal').classList.remove('active');
-      document.getElementById('previewFrame').src = '';
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, match => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[match]));
-    }
-
-    loadReports();
-  </script>
+  <!-- JavaScript Externo -->
+  <script src="js/main.js"></script>
 </body>
 </html>

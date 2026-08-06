@@ -21,23 +21,27 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(error => {
       console.error(error);
-      reportList.innerHTML = `<li class="loading">Error al cargar reportes. Asegúrate de compilar con "npm run build".</li>`;
+      if (reportList) {
+        reportList.innerHTML = `<li class="loading">Error al cargar reportes. Asegúrate de compilar el proyecto.</li>`;
+      }
     });
 
   // 2. Renderizar lista en la barra lateral
   function renderReportList(reports) {
+    if (!reportList) return;
+
     if (reports.length === 0) {
-      reportList.innerHTML = `<li class="loading">No hay HTMLs en 'html_externos'</li>`;
+      reportList.innerHTML = `<li class="loading">No se encontraron reportes.</li>`;
       return;
     }
 
     reportList.innerHTML = '';
-    reports.forEach((report, index) => {
+    reports.forEach((report) => {
       const li = document.createElement('li');
       li.innerHTML = `
-        <a href="#" data-path="${report.path}" data-title="${report.title}">
+        <a href="#" data-path="${escapeHtml(report.path)}" data-title="${escapeHtml(report.title)}">
           <i class="fa-regular fa-file-code"></i>
-          <span>${report.title}</span>
+          <span>${escapeHtml(report.title)}</span>
         </a>
       `;
 
@@ -55,35 +59,50 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.sidebar-nav li').forEach(el => el.classList.remove('active'));
     if (activeLi) activeLi.classList.add('active');
 
-    welcomeMessage.classList.add('hidden');
-    reportFrame.classList.remove('hidden');
-    reportFrame.src = path;
-    currentReportTitle.textContent = title;
+    if (welcomeMessage) welcomeMessage.classList.add('hidden');
+    if (reportFrame) {
+      reportFrame.classList.remove('hidden');
+      reportFrame.src = path;
+    }
+    if (currentReportTitle) currentReportTitle.textContent = title;
   }
 
   // 4. Búsqueda en tiempo real
-  searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    const filtered = reportsData.filter(r => 
-      r.title.toLowerCase().includes(query) || r.filename.toLowerCase().includes(query)
-    );
-    renderReportList(filtered);
-  });
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = reportsData.filter(r => 
+        r.title.toLowerCase().includes(query) || r.filename.toLowerCase().includes(query)
+      );
+      renderReportList(filtered);
+    });
+  }
 
   // 5. Botones de acción (Recargar y Pantalla Completa)
-  reloadBtn.addEventListener('click', () => {
-    if (reportFrame.src) {
-      reportFrame.contentWindow.location.reload();
-    }
-  });
-
-  fullscreenBtn.addEventListener('click', () => {
-    if (!reportFrame.classList.contains('hidden')) {
-      if (reportFrame.requestFullscreen) {
-        reportFrame.requestFullscreen();
-      } else if (reportFrame.webkitRequestFullscreen) {
-        reportFrame.webkitRequestFullscreen();
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', () => {
+      if (reportFrame && reportFrame.src) {
+        reportFrame.contentWindow.location.reload();
       }
-    }
-  });
+    });
+  }
+
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      if (reportFrame && !reportFrame.classList.contains('hidden')) {
+        if (reportFrame.requestFullscreen) {
+          reportFrame.requestFullscreen();
+        } else if (reportFrame.webkitRequestFullscreen) {
+          reportFrame.webkitRequestFullscreen();
+        }
+      }
+    });
+  }
+
+  // Función auxiliar para escapar texto HTML
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, match => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[match]));
+  }
 });
