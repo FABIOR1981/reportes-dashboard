@@ -67,14 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
       } else if (item.type === 'file') {
+        li.classList.add('file-item');
         li.innerHTML = `
-          <a href="#" data-path="${escapeHtml(item.path)}" data-title="${escapeHtml(item.title)}">
-            <i class="fa-regular fa-file-code"></i>
-            <span>${escapeHtml(item.title)}</span>
-          </a>
+          <div class="menu-item-wrapper">
+            <a href="#" class="report-link" data-path="${escapeHtml(item.path)}" data-title="${escapeHtml(item.title)}">
+              <i class="fa-regular fa-file-code"></i>
+              <span class="report-title">${escapeHtml(item.title)}</span>
+            </a>
+            <a href="${escapeHtml(item.path)}" target="_blank" class="external-btn" title="Abrir en pestaña nueva">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
         `;
 
-        li.querySelector('a').addEventListener('click', (e) => {
+        li.querySelector('.report-link').addEventListener('click', (e) => {
           e.preventDefault();
           loadReport(item.path, item.title, li);
         });
@@ -99,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentReportTitle) currentReportTitle.textContent = title;
   }
 
-  // 4. Búsqueda
+  // 4. Búsqueda en tiempo real
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase().trim();
@@ -109,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const filtered = filterData(reportsData, query);
       renderReportList(filtered);
-      // Abrir todas las carpetas automáticamente al buscar
       document.querySelectorAll('.submenu').forEach(s => s.classList.remove('hidden'));
     });
   }
@@ -129,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }).filter(Boolean);
   }
 
-  // 5. Botones Acción
+  // 5. Botones de Acción
   if (reloadBtn) {
     reloadBtn.addEventListener('click', () => {
       if (reportFrame && reportFrame.src) reportFrame.contentWindow.location.reload();
