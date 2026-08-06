@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let reportsData = [];
 
-  // 1. Cargar el JSON generado dinámicamente
+  // 1. Cargar el JSON generado
   fetch('index.json')
     .then(response => {
-      if (!response.ok) throw new Error('No se pudo cargar el índice de reportes.');
+      if (!response.ok) throw new Error('No se pudo cargar el índice.');
       return response.json();
     })
     .then(data => {
@@ -22,39 +22,71 @@ document.addEventListener('DOMContentLoaded', () => {
     .catch(error => {
       console.error(error);
       if (reportList) {
-        reportList.innerHTML = `<li class="loading">Error al cargar reportes. Asegúrate de compilar el proyecto.</li>`;
+        reportList.innerHTML = `<li class="loading">Error al cargar reportes.</li>`;
       }
     });
 
-  // 2. Renderizar lista en la barra lateral
-  function renderReportList(reports) {
+  // 2. Renderizar menú y submenús
+  function renderReportList(data) {
     if (!reportList) return;
 
-    if (reports.length === 0) {
-      reportList.innerHTML = `<li class="loading">No se encontraron reportes.</li>`;
+    if (!data || data.length === 0) {
+      reportList.innerHTML = `<li class="loading">No hay archivos ni carpetas.</li>`;
       return;
     }
 
     reportList.innerHTML = '';
-    reports.forEach((report) => {
-      const li = document.createElement('li');
-      li.innerHTML = `
-        <a href="#" data-path="${escapeHtml(report.path)}" data-title="${escapeHtml(report.title)}">
-          <i class="fa-regular fa-file-code"></i>
-          <span>${escapeHtml(report.title)}</span>
-        </a>
-      `;
-
-      li.querySelector('a').addEventListener('click', (e) => {
-        e.preventDefault();
-        loadReport(report.path, report.title, li);
-      });
-
-      reportList.appendChild(li);
-    });
+    const fragment = createMenuTree(data);
+    reportList.appendChild(fragment);
   }
 
-  // 3. Cargar reporte seleccionado en el IFRAME
+  function createMenuTree(items) {
+    const fragment = document.createDocumentFragment();
+
+    items.forEach(item => {
+      const li = document.createElement('li');
+
+      if (item.type === 'folder') {
+        li.classList.add('folder-item');
+        li.innerHTML = `
+          <div class="folder-header">
+            <i class="fa-solid fa-folder folder-icon"></i>
+            <span>${escapeHtml(item.name)}</span>
+            <i class="fa-solid fa-chevron-down arrow-icon"></i>
+          </div>
+          <ul class="submenu hidden"></ul>
+        `;
+
+        const folderHeader = li.querySelector('.folder-header');
+        const submenu = li.querySelector('.submenu');
+        submenu.appendChild(createMenuTree(item.items));
+
+        folderHeader.addEventListener('click', () => {
+          submenu.classList.toggle('hidden');
+          folderHeader.classList.toggle('open');
+        });
+
+      } else if (item.type === 'file') {
+        li.innerHTML = `
+          <a href="#" data-path="${escapeHtml(item.path)}" data-title="${escapeHtml(item.title)}">
+            <i class="fa-regular fa-file-code"></i>
+            <span>${escapeHtml(item.title)}</span>
+          </a>
+        `;
+
+        li.querySelector('a').addEventListener('click', (e) => {
+          e.preventDefault();
+          loadReport(item.path, item.title, li);
+        });
+      }
+
+      fragment.appendChild(li);
+    });
+
+    return fragment;
+  }
+
+  // 3. Cargar reporte en el Iframe
   function loadReport(path, title, activeLi) {
     document.querySelectorAll('.sidebar-nav li').forEach(el => el.classList.remove('active'));
     if (activeLi) activeLi.classList.add('active');
@@ -67,39 +99,51 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentReportTitle) currentReportTitle.textContent = title;
   }
 
-  // 4. Búsqueda en tiempo real
+  // 4. Búsqueda
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      const filtered = reportsData.filter(r => 
-        r.title.toLowerCase().includes(query) || r.filename.toLowerCase().includes(query)
-      );
+      const query = e.target.value.toLowerCase().trim();
+      if (!query) {
+        renderReportList(reportsData);
+        return;
+      }
+      const filtered = filterData(reportsData, query);
       renderReportList(filtered);
+      // Abrir todas las carpetas automáticamente al buscar
+      document.querySelectorAll('.submenu').forEach(s => s.classList.remove('hidden'));
     });
   }
 
-  // 5. Botones de acción (Recargar y Pantalla Completa)
+  function filterData(items, query) {
+    return items.map(item => {
+      if (item.type === 'file') {
+        const matches = item.title.toLowerCase().includes(query) || item.filename.toLowerCase().includes(query);
+        return matches ? item : null;
+      } else if (item.type === 'folder') {
+        const subFiltered = filterData(item.items, query);
+        if (subFiltered.length > 0) {
+          return { ...item, items: subFiltered };
+        }
+      }
+      return null;
+    }).filter(Boolean);
+  }
+
+  // 5. Botones Acción
   if (reloadBtn) {
     reloadBtn.addEventListener('click', () => {
-      if (reportFrame && reportFrame.src) {
-        reportFrame.contentWindow.location.reload();
-      }
+      if (reportFrame && reportFrame.src) reportFrame.contentWindow.location.reload();
     });
   }
 
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', () => {
       if (reportFrame && !reportFrame.classList.contains('hidden')) {
-        if (reportFrame.requestFullscreen) {
-          reportFrame.requestFullscreen();
-        } else if (reportFrame.webkitRequestFullscreen) {
-          reportFrame.webkitRequestFullscreen();
-        }
+        if (reportFrame.requestFullscreen) reportFrame.requestFullscreen();
       }
     });
   }
 
-  // Función auxiliar para escapar texto HTML
   function escapeHtml(str) {
     return str.replace(/[&<>"']/g, match => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
