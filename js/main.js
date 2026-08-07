@@ -6,8 +6,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentReportTitle = document.getElementById('current-report-title');
   const reloadBtn = document.getElementById('reload-btn');
   const fullscreenBtn = document.getElementById('fullscreen-btn');
+  const sidebar = document.querySelector('.sidebar');
+  const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
 
   let reportsData = [];
+
+  // 0. Colapsar/expandir sidebar (con preferencia guardada)
+  if (sidebar && sidebarToggleBtn) {
+    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+    }
+
+    sidebarToggleBtn.addEventListener('click', () => {
+      const isCollapsed = sidebar.classList.toggle('collapsed');
+      localStorage.setItem('sidebarCollapsed', isCollapsed);
+      sidebarToggleBtn.title = isCollapsed ? 'Expandir menú' : 'Colapsar menú';
+    });
+  }
 
   // 1. Cargar el JSON generado
   fetch('index.json')
