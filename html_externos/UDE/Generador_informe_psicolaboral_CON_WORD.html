@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Generador de Informe Psicotecnico</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<style>
+:root{--primary:#1a5276;--primary-light:#d6eaf8;--primary-dark:#154360;--accent:#2874a6;--ink:#2c3e50;--muted:#5d6d7e;--border:#aed6f1;--bg:#f4f6f7;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);display:flex;min-height:100vh;}
+#panel{width:520px;min-width:520px;background:#fff;padding:24px;overflow-y:auto;height:100vh;box-shadow:2px 0 12px rgba(0,0,0,0.08);}
+#panel h1{font-size:20px;color:var(--primary-dark);margin:0 0 4px 0;}
+#panel p.sub{font-size:12.5px;color:var(--muted);margin:0 0 20px 0;}
+fieldset{border:1px solid var(--border);border-radius:8px;margin-bottom:16px;padding:14px 16px 16px 16px;}
+legend{font-weight:600;font-size:13px;color:var(--primary-dark);padding:0 6px;}
+label{display:block;font-size:12px;color:var(--muted);margin-top:10px;margin-bottom:3px;}
+input[type=text],input[type=date],input[type=number],textarea,select{width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:5px;font-size:13px;font-family:inherit;color:var(--ink);background:#fcfcfc;}
+textarea{resize:vertical;min-height:90px;}
+.row2{display:flex;gap:10px;}
+.row2>div{flex:1;}
+.radio-group{display:flex;gap:16px;margin-top:6px;flex-wrap:wrap;}
+.radio-group label{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink);margin:0;cursor:pointer;}
+.radio-group input{width:auto;margin:0;}
+#actions{position:sticky;bottom:0;background:#fff;padding-top:14px;border-top:1px solid var(--border);margin-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+#actions button{width:100%;padding:10px 6px;font-size:12.5px;line-height:1.25;border:none;border-radius:6px;cursor:pointer;font-weight:600;white-space:nowrap;}
+#downloadBtn{background:var(--primary-dark);color:#fff;grid-column:1/-1;padding:12px;font-size:14px;}
+#downloadBtn:hover{background:var(--accent);}
+#wordBtn{background:#2b579a;color:#fff;grid-column:1/-1;padding:12px;font-size:14px;}
+#wordBtn:hover{background:#1e3f73;}
+#saveBtn{background:#2d7a4f;color:#fff;}
+#saveBtn:hover{background:#256b44;}
+#loadBtn{background:#eef2f6;color:#333;border:1px solid #d3dce2;}
+#loadBtn:hover{background:#e2e8ee;}
+#spellBtn{background:#f4ede0;color:#7a5a1e;border:1px solid #e6d6b8;}
+#spellBtn:hover{background:#efe2c8;}
+#resetBtn{background:#f1f1f1;color:#555;}
+#resetBtn:hover{background:#e2e8ee;}
+#status{font-size:12px;color:var(--muted);text-align:center;min-height:16px;grid-column:1/-1;}
+#spellPanel{font-size:12.5px;color:#444;text-align:left;max-height:260px;overflow-y:auto;margin-top:6px;grid-column:1/-1;}
+#spellPanel:empty{display:none;}
+#spellPanel .spell-field{background:#fffaf0;border:1px solid #eee0c4;border-radius:6px;padding:6px 10px;margin-bottom:6px;}
+#spellPanel .spell-field b{display:block;margin-bottom:2px;color:#8a6d1e;}
+#spellPanel ul{margin:4px 0 0 16px;padding:0;}
+#spellPanel li{margin-bottom:4px;display:flex;align-items:center;flex-wrap:wrap;gap:6px;}
+.dic-ignore{font-size:10.5px;color:#888;background:#fff;border:1px solid #ddd;border-radius:10px;padding:1px 7px;cursor:pointer;}
+.dic-ignore:hover{background:#f0f0f0;}
+#dicPanel{grid-column:1/-1;display:grid;grid-template-columns:1fr;gap:4px;margin-top:4px;}
+#dicAddRow{display:flex;gap:6px;}
+#dicAddRow input{flex:1;padding:7px 8px;font-size:12px;border:1px solid var(--border);border-radius:6px;}
+#dicAddRow button{padding:7px 10px;font-size:12px;border:none;border-radius:6px;background:#e6efe9;color:#2d7a4f;cursor:pointer;font-weight:600;white-space:nowrap;}
+#dicAddRow button:hover{background:#d7e8dd;}
+#dicList{font-size:11.5px;color:#555;line-height:2;}
+.dic-chip{display:inline-flex;align-items:center;gap:4px;background:#eef2f6;border:1px solid #d3dce2;border-radius:12px;padding:2px 4px 2px 9px;margin:0 5px 5px 0;}
+.dic-del{border:none;background:none;color:#999;cursor:pointer;font-size:11px;padding:2px 5px;}
+.dic-del:hover{color:#c0392b;}
+#previewWrap{flex:1;padding:30px;display:flex;flex-direction:column;align-items:center;gap:24px;overflow-y:auto;height:100vh;}
+.page{width:794px;min-height:1123px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,0.15);padding:50px 60px;position:relative;font-family:'Segoe UI',Arial,sans-serif;font-size:12.5px;line-height:1.7;color:var(--ink);}
+.page-number{position:absolute;bottom:28px;left:0;right:0;text-align:center;font-size:10px;color:var(--muted);}
+.doc-header{text-align:right;margin-bottom:30px;padding-bottom:15px;border-bottom:2px solid var(--primary);}
+.doc-header .date{font-size:12px;color:var(--muted);margin-bottom:4px;}
+.doc-header .institution{font-size:22px;font-weight:700;color:var(--primary-dark);text-transform:uppercase;letter-spacing:1px;}
+.doc-header .subtitle{font-size:14px;color:var(--accent);font-weight:600;margin-top:2px;}
+.doc-title{text-align:center;font-size:18px;font-weight:700;color:var(--primary-dark);margin:30px 0 25px 0;text-transform:uppercase;letter-spacing:0.5px;}
+.doc-body p{text-align:justify;margin-bottom:14px;}
+.doc-section{margin-top:25px;}
+.doc-section-title{font-size:14px;font-weight:700;color:var(--primary-dark);margin-bottom:8px;text-transform:uppercase;border-left:4px solid var(--accent);padding-left:10px;}
+.recom-table{width:100%;border-collapse:collapse;margin:20px 0;}
+.recom-table td{border:1px solid var(--border);padding:10px 14px;font-size:12.5px;}
+.recom-table td:first-child{background:var(--primary-light);font-weight:600;color:var(--primary-dark);width:55%;}
+.recom-table td:last-child{text-align:center;font-weight:700;color:var(--primary-dark);}
+.firma-block{margin-top:50px;text-align:center;}
+.firma-line{width:280px;border-top:1px solid var(--ink);margin:0 auto 8px auto;padding-top:8px;}
+.firma-nombre{font-size:13px;font-weight:700;color:var(--ink);}
+.firma-cargo{font-size:11px;color:var(--muted);margin-top:2px;}
+.firma-mat{font-size:10px;color:#95a5a6;margin-top:1px;}
+.info-box{background:#f8f9f9;border:1px solid var(--border);border-radius:6px;padding:16px 20px;margin-bottom:25px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;}
+.info-item{display:flex;gap:6px;}
+.info-label{font-weight:600;color:var(--primary-dark);}
+.info-value{color:var(--ink);}
+.check-box{display:inline-block;width:14px;height:14px;border:1.5px solid var(--primary);margin-left:8px;vertical-align:middle;position:relative;}
+.check-box.checked::after{content:"\2713";position:absolute;top:-4px;left:1px;font-size:14px;font-weight:700;color:var(--primary-dark);}
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>Generador de Informe Psicolaboral</h1>
+  <p class="sub">Completá los datos de la entrevista. La vista previa se actualiza en tiempo real.</p>
+
+  <fieldset>
+    <legend>Datos del encabezado</legend>
+    <div class="row2">
+      <div><label>Ciudad</label><input type="text" id="ciudad" value="Montevideo"></div>
+      <div><label>Fecha del informe</label><input type="date" id="fechaInforme" value="2026-08-06"></div>
+    </div>
+    <label>Institución / Cliente</label>
+    <input type="text" id="institucion" value="Universidad de la Empresa" spellcheck="true">
+    <div class="row2">
+      <div><label>Título del informe</label><input type="text" id="tituloInforme" value="Informe de Evaluación Psicolaboral" spellcheck="true"></div>
+      <div><label>Prefijo</label><input type="text" id="prefijo" value="al" placeholder="Ej: al / a la"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Datos del postulante</legend>
+    <div class="row2">
+      <div><label>Apellidos</label><input type="text" id="apellidos" value="Pérez"></div>
+      <div><label>Nombres</label><input type="text" id="nombres" value="María"></div>
+    </div>
+    <div class="row2">
+      <div><label>Cargo al que postula</label><input type="text" id="cargo" value="Auxiliar Administrativo"></div>
+      <div><label>CI</label><input type="text" id="ci" placeholder="Ej: 1.234.567-8"></div>
+    </div>
+    <div class="row2">
+      <div><label>Fecha de nacimiento</label><input type="date" id="fechaNacimiento"></div>
+      <div><label>Contacto</label><input type="text" id="contacto" placeholder="Ej: 099 123 456"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Desarrollo del informe</legend>
+    <label>Texto de evaluación (desarrollo)</label>
+    <textarea id="evaluacion" style="min-height:160px;" placeholder="Describí la entrevista, percepciones, competencias observadas, trayectoria laboral, ajuste al perfil del cargo..." spellcheck="true"></textarea>
+    <label>Conclusión</label>
+    <textarea id="conclusion" style="min-height:100px;" placeholder="Ej: A partir de los datos relevados y analizados, se concluye que..." spellcheck="true"></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Recomendación final</legend>
+    <div class="radio-group">
+      <label><input type="radio" name="recom" value="Recomendable" checked> Recomendable</label>
+      <label><input type="radio" name="recom" value="Recomendable con Observación"> Recomendable con Observación</label>
+      <label><input type="radio" name="recom" value="No Recomendable"> No Recomendable</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Datos del profesional</legend>
+    <div class="row2">
+      <div><label>Nombre completo</label><input type="text" id="profNombre" value="Lic. Psic. Rita Morales"></div>
+      <div><label>Celular</label><input type="text" id="profCel" value="099140274"></div>
+    </div>
+    <label>Especialidad / Cargo</label>
+    <input type="text" id="profCargo" value="Licenciada en Psicología - Especializada en Selección de Personal" spellcheck="true">
+  </fieldset>
+
+  <div id="actions">
+    <button id="downloadBtn" onclick="downloadPDF()">📄 Descargar informe como PDF</button>
+    <button id="wordBtn" onclick="downloadWord()">📝 Descargar informe como Word</button>
+    <button id="saveBtn" type="button">💾 Guardar datos</button>
+    <button id="loadBtn" type="button">📂 Cargar datos</button>
+    <input type="file" id="loadInput" accept="application/json,.json" style="display:none;">
+    <button id="spellBtn" type="button">🔤 Revisar ortografía</button>
+    <button id="resetBtn" onclick="resetForm()">🔄 Limpiar formulario</button>
+    <div id="status"></div>
+    <div id="spellPanel"></div>
+    <div id="dicPanel">
+      <label style="grid-column:1/-1;font-size:11.5px;color:#888;margin:4px 0 2px;">Diccionario técnico personalizado (palabras que nunca se marcan como error)</label>
+      <div id="dicAddRow">
+        <input type="text" id="dicInput" placeholder="Agregar palabra... ej: psicolaboral">
+        <button type="button" id="dicAddBtn">+ Agregar</button>
+      </div>
+      <div id="dicList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="previewWrap">
+  <div class="page" id="page1">
+    <div class="doc-header">
+      <div class="date" id="prevCiudadFecha">Montevideo, fecha</div>
+      <div class="institution" id="prevInstitucion">Lic. Psic. Rita Morales</div>
+      <div class="subtitle" id="prevTitulo">Informe de Evaluación Psicolaboral</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-grid">
+        <div class="info-item"><span class="info-label">Postulante:</span><span class="info-value" id="prevNombre">Pérez, María</span></div>
+        <div class="info-item"><span class="info-label">Cargo:</span><span class="info-value" id="prevCargo">Auxiliar Administrativo</span></div>
+        <div class="info-item"><span class="info-label">Edad:</span><span class="info-value" id="prevEdad">28</span></div>
+        <div class="info-item"><span class="info-label">CI:</span><span class="info-value" id="prevCI">--</span></div>
+        <div class="info-item"><span class="info-label">Fecha de nacimiento:</span><span class="info-value" id="prevFechaNac">--</span></div>
+        <div class="info-item"><span class="info-label">Contacto:</span><span class="info-value" id="prevContacto">--</span></div>
+      </div>
+    </div>
+
+    <div class="doc-body" id="prevBody">
+      <p>A solicitud de <strong id="prevInstBody">Universidad de la Empresa</strong>, se realizó entrevista psicolaboral al postulante <strong id="prevNomBody">Pérez, María</strong>.</p>
+      <!-- El "al" de arriba se recalcula dinámicamente con el campo Prefijo al cargar la vista previa -->
+      <p>La misma tuvo como finalidad evaluar competencias transversales en instancia de entrevista, a los efectos de desempeñar tareas como <strong id="prevCargoBody">Auxiliar Administrativo</strong>.</p>
+      <p style="color:#aaa;font-style:italic;">[Aquí se desarrolla el texto de evaluación con las observaciones de la entrevista...]</p>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-section-title">Conclusión</div>
+      <p id="prevConclusion"><span style="color:#aaa;font-style:italic;">[Conclusión del informe...]</span></p>
+    </div>
+
+    <table class="recom-table">
+      <tr><td>Recomendable</td><td id="prevRec1"><span class="check-box checked"></span></td></tr>
+      <tr><td>Recomendable con Observación</td><td id="prevRec2"><span class="check-box"></span></td></tr>
+      <tr><td>No Recomendable</td><td id="prevRec3"><span class="check-box"></span></td></tr>
+    </table>
+
+    <p style="margin-top:20px;font-size:11px;white-space:nowrap;">Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de UDE.</p>
+
+    <div class="firma-block">
+      <div class="firma-line"></div>
+      <div class="firma-nombre" id="prevProfNombre">Lic. Psic. Rita Morales</div>
+      <div class="firma-cargo" id="prevProfCargo">Licenciada en Psicología</div>
+      <div class="firma-mat" id="prevProfMat">Especializada en Selección de Personal - Cel. 099140274</div>
+    </div>
+
+    <div class="page-number">1</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function fmtFecha(iso){
+    if(!iso) return '';
+    var p = iso.split('-');
+    return parseInt(p[2],10) + ' de ' + meses[parseInt(p[1],10)-1] + ' de ' + p[0];
+  }
+
+  function calcularEdad(fechaNacIso, fechaRefIso){
+    if(!fechaNacIso) return '';
+    var nac = fechaNacIso.split('-').map(Number);
+    var refIso = fechaRefIso || new Date().toISOString().slice(0,10);
+    var ref = refIso.split('-').map(Number);
+    var edad = ref[0] - nac[0];
+    if(ref[1] < nac[1] || (ref[1] === nac[1] && ref[2] < nac[2])) edad--;
+    return edad >= 0 ? edad : '';
+  }
+
+  function updatePreview(){
+    var ciudad = document.getElementById('ciudad').value;
+    var fecha = document.getElementById('fechaInforme').value;
+    var institucion = document.getElementById('institucion').value;
+    var titulo = document.getElementById('tituloInforme').value;
+    var prefijo = document.getElementById('prefijo').value;
+    var apellidos = document.getElementById('apellidos').value;
+    var nombres = document.getElementById('nombres').value;
+    var cargo = document.getElementById('cargo').value;
+    var ci = document.getElementById('ci').value;
+    var fechaNacimiento = document.getElementById('fechaNacimiento').value;
+    var contacto = document.getElementById('contacto').value;
+    var edad = calcularEdad(fechaNacimiento, fecha);
+    var evaluacion = document.getElementById('evaluacion').value;
+    var conclusion = document.getElementById('conclusion').value;
+    var profNombre = document.getElementById('profNombre').value;
+    var profCel = document.getElementById('profCel').value;
+    var profCargo = document.getElementById('profCargo').value;
+
+    var nombreCompleto = (apellidos + ' ' + nombres).trim() || '[Nombre del postulante]';
+    var fechaStr = fecha ? fmtFecha(fecha) : '';
+
+    // Encabezado
+    document.getElementById('prevCiudadFecha').textContent = ciudad + (fechaStr ? ', ' + fechaStr : '');
+    document.getElementById('prevInstitucion').textContent = profNombre || '[Nombre del profesional]';
+    document.getElementById('prevTitulo').textContent = titulo || 'Informe de Evaluación Psicolaboral';
+
+    // Info-box
+    document.getElementById('prevNombre').textContent = nombreCompleto;
+    document.getElementById('prevCargo').textContent = cargo || '[Cargo]';
+    document.getElementById('prevEdad').textContent = (edad !== '' ? edad : '--');
+    document.getElementById('prevCI').textContent = ci || '--';
+    document.getElementById('prevFechaNac').textContent = fechaNacimiento ? fmtFecha(fechaNacimiento) : '--';
+    document.getElementById('prevContacto').textContent = contacto || '--';
+    // Cuerpo (el texto se reconstruye completo más abajo en bodyHTML)
+    var bodyHTML = '';
+    bodyHTML += '<p>A solicitud de <strong>' + (institucion || 'la institución') + '</strong>, se realizó entrevista psicolaboral ' + (prefijo || 'al') + ' postulante <strong>' + nombreCompleto + '</strong>.</p>';
+    bodyHTML += '<p>La misma tuvo como finalidad evaluar competencias transversales en instancia de entrevista, a los efectos de desempeñar tareas como <strong>' + (cargo || 'el cargo postulado') + '</strong>.</p>';
+
+    if(evaluacion){
+      var parrafos = evaluacion.split(/\r?\n/);
+      for(var i=0;i<parrafos.length;i++){
+        if(parrafos[i].trim()) bodyHTML += '<p>' + parrafos[i] + '</p>';
+      }
+    } else {
+      bodyHTML += '<p style="color:#aaa;font-style:italic;">[Aquí se desarrolla el texto de evaluación con las observaciones de la entrevista...]</p>';
+    }
+
+    document.getElementById('prevBody').innerHTML = bodyHTML;
+
+    // Conclusión
+    if(conclusion){
+      document.getElementById('prevConclusion').innerHTML = conclusion.replace(/\r?\n/g,'<br>');
+    } else {
+      document.getElementById('prevConclusion').innerHTML = '<span style="color:#aaa;font-style:italic;">[Conclusión del informe...]</span>';
+    }
+
+    // Recomendación
+    var rec = document.querySelector('input[name="recom"]:checked');
+    var recVal = rec ? rec.value : 'Recomendable';
+    document.getElementById('prevRec1').innerHTML = '<span class="check-box' + (recVal==='Recomendable'?' checked':'') + '"></span>';
+    document.getElementById('prevRec2').innerHTML = '<span class="check-box' + (recVal==='Recomendable con Observación'?' checked':'') + '"></span>';
+    document.getElementById('prevRec3').innerHTML = '<span class="check-box' + (recVal==='No Recomendable'?' checked':'') + '"></span>';
+
+    // Firma
+    document.getElementById('prevProfNombre').textContent = profNombre || '[Nombre del evaluador]';
+    document.getElementById('prevProfCargo').textContent = profCargo || '[Cargo del evaluador]';
+    document.getElementById('prevProfMat').textContent = (profCargo ? profCargo + ' - ' : '') + (profCel ? 'Cel. ' + profCel : '');
+  }
+
+  // Listeners robustos para CADA tipo de campo
+  var camposTexto = ['ciudad','institucion','tituloInforme','prefijo','apellidos','nombres','cargo','ci','contacto','profNombre','profCel','profCargo'];
+  for(var i=0;i<camposTexto.length;i++){
+    var el = document.getElementById(camposTexto[i]);
+    if(el){
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('keyup', updatePreview);
+    }
+  }
+
+  var camposFecha = ['fechaNacimiento'];
+  for(var i=0;i<camposFecha.length;i++){
+    var el = document.getElementById(camposFecha[i]);
+    if(el){
+      el.addEventListener('change', updatePreview);
+      el.addEventListener('input', updatePreview);
+    }
+  }
+
+  var camposTextarea = ['evaluacion','conclusion'];
+  for(var i=0;i<camposTextarea.length;i++){
+    var el = document.getElementById(camposTextarea[i]);
+    if(el){
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('keyup', updatePreview);
+    }
+  }
+
+  var fechaEl = document.getElementById('fechaInforme');
+  if(fechaEl){
+    fechaEl.addEventListener('change', updatePreview);
+    fechaEl.addEventListener('input', updatePreview);
+  }
+
+  var radios = document.querySelectorAll('input[name="recom"]');
+  for(var i=0;i<radios.length;i++){
+    radios[i].addEventListener('change', updatePreview);
+  }
+
+  window.resetForm = function(){
+    if(!confirm('¿Estás seguro de que querés limpiar los datos del postulante y la evaluación?')) return;
+    document.getElementById('apellidos').value = '';
+    document.getElementById('nombres').value = '';
+    document.getElementById('cargo').value = '';
+    document.getElementById('ci').value = '';
+    document.getElementById('fechaNacimiento').value = '';
+    document.getElementById('contacto').value = '';
+    document.getElementById('prefijo').value = 'al';
+    document.getElementById('evaluacion').value = '';
+    document.getElementById('conclusion').value = '';
+    document.getElementById('fechaInforme').value = new Date().toISOString().slice(0,10);
+    document.querySelector('input[name="recom"][value="Recomendable"]').checked = true;
+    updatePreview();
+  };
+
+  window.downloadPDF = async function(){
+    var btn = document.getElementById('downloadBtn');
+    var originalText = btn.textContent;
+    btn.textContent = 'Generando PDF...';
+    btn.disabled = true;
+
+    try {
+      if(document.fonts && document.fonts.ready){
+        await document.fonts.ready;
+      }
+      var page = document.getElementById('page1');
+      var canvas = await html2canvas(page, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+      var imgData = canvas.toDataURL('image/png');
+      var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+      var pdfWidth = pdf.internal.pageSize.getWidth();
+      var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      var nombre = (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_');
+      pdf.save('Informe_Psicolaboral_' + nombre + '.pdf');
+    } catch(e){
+      alert('Error al generar PDF: ' + e.message);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  };
+
+  // ---------- Descargar como Word (.docx nativo, sin imagen) ----------
+  window.downloadWord = async function(){
+    var btn = document.getElementById('wordBtn');
+    var originalText = btn.textContent;
+    btn.textContent = 'Generando Word...';
+    btn.disabled = true;
+
+    try {
+      var docx = window.docx;
+      var Document = docx.Document, Packer = docx.Packer, Paragraph = docx.Paragraph,
+          TextRun = docx.TextRun, Table = docx.Table, TableRow = docx.TableRow,
+          TableCell = docx.TableCell, WidthType = docx.WidthType, BorderStyle = docx.BorderStyle,
+          AlignmentType = docx.AlignmentType, VerticalAlign = docx.VerticalAlign,
+          ShadingType = docx.ShadingType;
+
+      var NAVY = '154360', BLUE = '2874A6', GRAY = '5D6D7E', INK = '2C3E50';
+      var BORDER_COLOR = 'AED6F1', BOX_BG = 'F8F9F9', LIGHTBLUE = 'D6EAF8';
+
+      // ----- Recolectar los mismos datos que usa la vista previa -----
+      var ciudad = document.getElementById('ciudad').value;
+      var fecha = document.getElementById('fechaInforme').value;
+      var institucion = document.getElementById('institucion').value;
+      var titulo = document.getElementById('tituloInforme').value || 'Informe de Evaluación Psicolaboral';
+      var prefijo = document.getElementById('prefijo').value || 'al';
+      var apellidos = document.getElementById('apellidos').value;
+      var nombres = document.getElementById('nombres').value;
+      var cargo = document.getElementById('cargo').value;
+      var ci = document.getElementById('ci').value;
+      var fechaNacimiento = document.getElementById('fechaNacimiento').value;
+      var contacto = document.getElementById('contacto').value;
+      var edad = calcularEdad(fechaNacimiento, fecha);
+      var evaluacion = document.getElementById('evaluacion').value;
+      var conclusion = document.getElementById('conclusion').value;
+      var profNombre = document.getElementById('profNombre').value;
+      var profCel = document.getElementById('profCel').value;
+      var profCargo = document.getElementById('profCargo').value;
+      var recEl = document.querySelector('input[name="recom"]:checked');
+      var recVal = recEl ? recEl.value : 'Recomendable';
+
+      var nombreCompleto = (apellidos + ' ' + nombres).trim() || '[Nombre del postulante]';
+      var fechaStr = fecha ? fmtFecha(fecha) : '';
+
+      function noBorders(){
+        var n = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+        return { top:n, bottom:n, left:n, right:n };
+      }
+
+      // ----- Encabezado -----
+      var headerParagraphs = [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          children: [new TextRun({ text: ciudad + (fechaStr ? ', ' + fechaStr : ''), color: GRAY, size: 20 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 120 },
+          children: [new TextRun({ text: (profNombre || '[Nombre del profesional]').toUpperCase(), bold: true, color: NAVY, size: 36 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 40, after: 200 },
+          border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: NAVY, space: 8 } },
+          children: [new TextRun({ text: titulo, bold: true, color: BLUE, size: 24 })]
+        })
+      ];
+
+      // ----- Caja de datos (tabla 2 columnas x 3 filas) -----
+      function infoCell(label, value){
+        return new TableCell({
+          verticalAlign: VerticalAlign.CENTER,
+          shading: { type: ShadingType.CLEAR, fill: BOX_BG },
+          margins: { top: 120, bottom: 120, left: 160, right: 160 },
+          borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR} },
+          children: [new Paragraph({ children: [
+            new TextRun({ text: label, bold: true, color: INK, size: 21 }),
+            new TextRun({ text: value, color: INK, size: 21 })
+          ]})]
+        });
+      }
+      var infoTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [ infoCell('Postulante  ', nombreCompleto), infoCell('Cargo:  ', cargo || '[Cargo]') ] }),
+          new TableRow({ children: [ infoCell('Edad:  ', String(edad !== '' ? edad : '--')), infoCell('CI:  ', ci || '--') ] }),
+          new TableRow({ children: [ infoCell('Fecha de nacimiento:  ', fechaNacimiento ? fmtFecha(fechaNacimiento) : '--'), infoCell('Contacto:  ', contacto || '--') ] })
+        ]
+      });
+
+      // ----- Cuerpo -----
+      var bodyParagraphs = [];
+      bodyParagraphs.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED, spacing: { after: 160 },
+        children: [
+          new TextRun({ text: 'A solicitud de ', color: INK, size: 21 }),
+          new TextRun({ text: institucion || 'la institución', bold: true, color: INK, size: 21 }),
+          new TextRun({ text: ', se realizó entrevista psicolaboral ' + prefijo + ' postulante ', color: INK, size: 21 }),
+          new TextRun({ text: nombreCompleto, bold: true, color: INK, size: 21 }),
+          new TextRun({ text: '.', color: INK, size: 21 })
+        ]
+      }));
+      bodyParagraphs.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED, spacing: { after: 160 },
+        children: [
+          new TextRun({ text: 'La misma tuvo como finalidad evaluar competencias transversales en instancia de entrevista, a los efectos de desempeñar tareas como ', color: INK, size: 21 }),
+          new TextRun({ text: cargo || 'el cargo postulado', bold: true, color: INK, size: 21 }),
+          new TextRun({ text: '.', color: INK, size: 21 })
+        ]
+      }));
+      (evaluacion || '').split(/\r?\n/).forEach(function(p){
+        if(p.trim()){
+          bodyParagraphs.push(new Paragraph({
+            alignment: AlignmentType.JUSTIFIED, spacing: { after: 160 },
+            children: [new TextRun({ text: p.trim(), color: INK, size: 21 })]
+          }));
+        }
+      });
+
+      // ----- Conclusión -----
+      var conclusionHeading = new Paragraph({
+        spacing: { before: 200, after: 160 },
+        border: { left: { style: BorderStyle.SINGLE, size: 24, color: BLUE, space: 8 } },
+        children: [new TextRun({ text: 'CONCLUSIÓN', bold: true, color: NAVY, size: 25 })]
+      });
+      var conclusionParagraphs = [];
+      (conclusion || '').split(/\r?\n/).forEach(function(p){
+        if(p.trim()){
+          conclusionParagraphs.push(new Paragraph({
+            alignment: AlignmentType.JUSTIFIED, spacing: { after: 160 },
+            children: [new TextRun({ text: p.trim(), color: INK, size: 21 })]
+          }));
+        }
+      });
+
+      // ----- Tabla de recomendación -----
+      function recCell(label, checked){
+        return [
+          new TableCell({
+            width: { size: 75, type: WidthType.PERCENTAGE },
+            verticalAlign: VerticalAlign.CENTER,
+            shading: { type: ShadingType.CLEAR, fill: LIGHTBLUE },
+            margins: { top: 140, bottom: 140, left: 200, right: 120 },
+            borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR} },
+            children: [new Paragraph({ children: [new TextRun({ text: label, bold: true, color: NAVY, size: 21 })] })]
+          }),
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            verticalAlign: VerticalAlign.CENTER,
+            margins: { top: 140, bottom: 140, left: 120, right: 120 },
+            borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER_COLOR} },
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: checked ? '☑' : '☐', bold: true, color: NAVY, size: 26 })] })]
+          })
+        ];
+      }
+      var recTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: recCell('Recomendable', recVal === 'Recomendable') }),
+          new TableRow({ children: recCell('Recomendable con Observación', recVal === 'Recomendable con Observación') }),
+          new TableRow({ children: recCell('No Recomendable', recVal === 'No Recomendable') })
+        ]
+      });
+
+      // ----- Pie y firma -----
+      var footerParagraphs = [
+        new Paragraph({
+          spacing: { before: 200, after: 400 },
+          children: [new TextRun({ text: 'Dicho informe debe mantener la reserva confidencial, como es habitual, siendo de uso exclusivo del directorio de UDE.', color: GRAY, size: 18 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 400 },
+          border: { top: { style: BorderStyle.SINGLE, size: 6, color: '7F8C8D', space: 4 } },
+          children: [new TextRun({ text: '\u00A0' })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 100 },
+          children: [new TextRun({ text: profNombre || '[Nombre del evaluador]', bold: true, color: NAVY, size: 22 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: (profCargo ? profCargo + ' - ' : '') + (profCel ? 'Cel. ' + profCel : ''), color: GRAY, size: 17 })]
+        })
+      ];
+
+      var doc = new Document({
+        sections: [{
+          properties: {},
+          children: [].concat(
+            headerParagraphs,
+            [infoTable, new Paragraph({ text: '', spacing: { after: 160 } })],
+            bodyParagraphs,
+            [conclusionHeading],
+            conclusionParagraphs,
+            [new Paragraph({ text: '', spacing: { after: 100 } }), recTable],
+            footerParagraphs
+          )
+        }]
+      });
+
+      var blob = await Packer.toBlob(doc);
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var nombre = (apellidos || 'informe').replace(/\s+/g,'_');
+      a.href = url;
+      a.download = 'Informe_Psicolaboral_' + nombre + '.docx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch(e){
+      console.error(e);
+      alert('Error al generar el Word: ' + e.message);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  };
+
+  // ---------- Guardar datos (JSON) ----------
+  var CAMPOS_GUARDABLES = ['ciudad','fechaInforme','institucion','tituloInforme','prefijo',
+    'apellidos','nombres','cargo','ci','fechaNacimiento','contacto','evaluacion','conclusion',
+    'profNombre','profCel','profCargo'];
+
+  function gatherFormData(){
+    var data = {};
+    for(var i=0;i<CAMPOS_GUARDABLES.length;i++){
+      var el = document.getElementById(CAMPOS_GUARDABLES[i]);
+      if(el) data[CAMPOS_GUARDABLES[i]] = el.value;
+    }
+    var rec = document.querySelector('input[name="recom"]:checked');
+    data.recom = rec ? rec.value : '';
+    return data;
+  }
+
+  var statusEl = document.getElementById('status');
+  function mostrarStatus(msg){
+    statusEl.textContent = msg;
+    setTimeout(function(){ statusEl.textContent=''; }, 5000);
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', function(){
+    try{
+      var data = gatherFormData();
+      var blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var nombreArchivo = ((document.getElementById('apellidos').value || 'informe') + '_' + (document.getElementById('nombres').value || '')).trim().replace(/\s+/g,'_');
+      a.href = url;
+      a.download = 'DATOS_INFORME_' + nombreArchivo + '.json';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      mostrarStatus('✔ Datos guardados. Guardá ese archivo para continuar luego.');
+    }catch(err){
+      console.error(err);
+      mostrarStatus('⚠ No se pudieron guardar los datos.');
+    }
+  });
+
+  // ---------- Cargar datos (JSON) ----------
+  document.getElementById('loadBtn').addEventListener('click', function(){
+    document.getElementById('loadInput').click();
+  });
+
+  document.getElementById('loadInput').addEventListener('change', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try{
+        var data = JSON.parse(ev.target.result);
+        Object.keys(data).forEach(function(key){
+          if(key === 'recom') return;
+          var el = document.getElementById(key);
+          if(el) el.value = data[key];
+        });
+        if(data.recom){
+          var radio = document.querySelector('input[name="recom"][value="' + data.recom + '"]');
+          if(radio) radio.checked = true;
+        }
+        updatePreview();
+        mostrarStatus('✔ Datos cargados. Podés continuar editando.');
+      }catch(err){
+        console.error(err);
+        alert('El archivo elegido no es un JSON válido generado por esta herramienta.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  });
+
+  // ---------- Diccionario técnico personalizado ----------
+  var DICCIONARIO_BASE = ['psic', 'psicolaboral', 'ansiógeno', 'ansiógenos', 'ansiógena', 'ansiógenas',
+    'resiliencia', 'resiliente', 'proactividad', 'adaptabilidad'];
+
+  function getDiccionarioPersonalizado(){
+    try{ return JSON.parse(localStorage.getItem('correctorDiccionarioUDE') || '[]'); }
+    catch(e){ return []; }
+  }
+  function setDiccionarioPersonalizado(arr){
+    localStorage.setItem('correctorDiccionarioUDE', JSON.stringify(arr));
+  }
+  function palabraEnDiccionario(palabra){
+    var p = palabra.toLowerCase().replace(/[.,;:!?"']/g, '');
+    var dic = DICCIONARIO_BASE.concat(getDiccionarioPersonalizado()).map(function(w){ return w.toLowerCase(); });
+    return dic.indexOf(p) !== -1;
+  }
+
+  function renderDiccionarioPanel(){
+    var cont = document.getElementById('dicList');
+    var custom = getDiccionarioPersonalizado();
+    if(!custom.length){
+      cont.innerHTML = '<span style="color:#999;">Sin palabras agregadas todavía.</span>';
+      return;
+    }
+    cont.innerHTML = custom.map(function(w){
+      return '<span class="dic-chip">' + w + ' <button type="button" class="dic-del" data-w="' + w + '">✕</button></span>';
+    }).join('');
+    var delBtns = cont.querySelectorAll('.dic-del');
+    for(var i=0;i<delBtns.length;i++){
+      (function(btn){
+        btn.addEventListener('click', function(){
+          var palabra = btn.dataset.w;
+          var updated = getDiccionarioPersonalizado().filter(function(w){ return w !== palabra; });
+          setDiccionarioPersonalizado(updated);
+          renderDiccionarioPanel();
+        });
+      })(delBtns[i]);
+    }
+  }
+  renderDiccionarioPanel();
+
+  document.getElementById('dicAddBtn').addEventListener('click', function(){
+    var input = document.getElementById('dicInput');
+    var palabra = input.value.trim();
+    if(!palabra) return;
+    var custom = getDiccionarioPersonalizado();
+    if(custom.map(function(w){return w.toLowerCase();}).indexOf(palabra.toLowerCase()) === -1){
+      custom.push(palabra);
+      setDiccionarioPersonalizado(custom);
+      renderDiccionarioPanel();
+    }
+    input.value = '';
+  });
+  document.getElementById('dicInput').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('dicAddBtn').click(); }
+  });
+
+  // ---------- Revisar ortografía y gramática ----------
+  async function checkSpellingText(text){
+    if(!text || !text.trim()) return [];
+    var resp = await fetch('https://api.languagetool.org/v2/check', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({ text: text, language: 'es' })
+    });
+    if(!resp.ok) throw new Error('Error de API: ' + resp.status);
+    var json = await resp.json();
+    return json.matches || [];
+  }
+
+  document.getElementById('spellBtn').addEventListener('click', async function(){
+    var panel = document.getElementById('spellPanel');
+    var btn = document.getElementById('spellBtn');
+    btn.disabled = true;
+    panel.innerHTML = 'Revisando ortografía y gramática, un momento...';
+
+    try{
+      var fields = [
+        {label: 'Título del informe', text: document.getElementById('tituloInforme').value},
+        {label: 'Cargo al que postula', text: document.getElementById('cargo').value},
+        {label: 'Texto de evaluación', text: document.getElementById('evaluacion').value},
+        {label: 'Conclusión', text: document.getElementById('conclusion').value},
+        {label: 'Especialidad / Cargo profesional', text: document.getElementById('profCargo').value},
+      ];
+
+      var html = '';
+      var totalIssues = 0;
+      for(var i=0;i<fields.length;i++){
+        var f = fields[i];
+        if(!f.text || !f.text.trim()) continue;
+        var matches = await checkSpellingText(f.text);
+        var items = [];
+        matches.forEach(function(m){
+          var bad = f.text.substring(m.offset, m.offset + m.length);
+          if(palabraEnDiccionario(bad)) return;
+          var suggestion = (m.replacements && m.replacements[0]) ? m.replacements[0].value : null;
+          items.push(suggestion
+            ? '<li>"' + bad + '" → <b>' + suggestion + '</b> <button type="button" class="dic-ignore" data-w="' + bad + '">no es un error, ignorar siempre</button></li>'
+            : '<li>"' + bad + '": ' + m.message + ' <button type="button" class="dic-ignore" data-w="' + bad + '">no es un error, ignorar siempre</button></li>');
+        });
+        if(items.length){
+          totalIssues += items.length;
+          html += '<div class="spell-field"><b>' + f.label + '</b><ul>' + items.join('') + '</ul></div>';
+        }
+      }
+      panel.innerHTML = totalIssues ? html : '✔ No se encontraron errores ortográficos ni gramaticales.';
+      var ignoreBtns = panel.querySelectorAll('.dic-ignore');
+      for(var j=0;j<ignoreBtns.length;j++){
+        ignoreBtns[j].addEventListener('click', function(){
+          var custom = getDiccionarioPersonalizado();
+          if(custom.map(function(w){return w.toLowerCase();}).indexOf(this.dataset.w.toLowerCase()) === -1){
+            custom.push(this.dataset.w);
+            setDiccionarioPersonalizado(custom);
+            renderDiccionarioPanel();
+          }
+          document.getElementById('spellBtn').click();
+        });
+      }
+    }catch(err){
+      console.error(err);
+      panel.innerHTML = '⚠ No se pudo conectar con el corrector ortográfico. Verificá tu conexión a internet e intentá de nuevo.';
+    }finally{
+      btn.disabled = false;
+    }
+  });
+
+  // Inicializar
+  updatePreview();
+})();
+</script>
+</body>
+</html>
