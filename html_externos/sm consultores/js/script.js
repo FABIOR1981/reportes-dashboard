@@ -737,4 +737,573 @@ window.downloadWord = async function() {
 };
 // ============================================================
 //  FIN EXPORTACIÓN WORD
+
+// ============================================================
+//  EXPORTACIÓN A WORD (.docx) – SM Consultores
+//  Diseño fiel a la vista previa del informe psicotécnico
+//  Agregar al final de script.js
+// ============================================================
+
+window.downloadWord = async function() {
+  const btn = document.getElementById('wordBtn');
+  if (!btn) return;
+  const originalText = btn.textContent;
+  btn.textContent = 'Generando Word…';
+  btn.disabled = true;
+
+  try {
+    const docx = window.docx;
+    if (!docx) {
+      alert('La librería docx no está cargada. Verificá la etiqueta <script> en el HTML.');
+      return;
+    }
+    const {
+      Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+      WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType,
+      ImageRun, PageBreak
+    } = docx;
+
+    // ---------- Helpers ----------
+    const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+    function fmtDateLong(iso) {
+      if (!iso) return '-';
+      const [y, m, d] = iso.split('-');
+      if (!y) return iso;
+      return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
+    }
+    function fmtDate(iso) {
+      if (!iso) return '-';
+      const [y, m, d] = iso.split('-');
+      if (!y) return iso;
+      return `${d}/${m}/${y}`;
+    }
+    function v(id) {
+      const el = document.getElementById(id);
+      return el ? el.value.trim() : '';
+    }
+
+    // ---------- Colores ----------
+    const TEAL    = '1a7a7a';
+    const TEAL_LT = '2c8a8a';
+    const WHITE   = 'FFFFFF';
+    const INK     = '2C3E50';
+    const GRAY    = '5D6D7E';
+    const GRAY_BG = 'f0f4f8';
+    const BORDER  = 'd0d7de';
+
+    function noBorders() {
+      const n = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+      return { top: n, bottom: n, left: n, right: n };
+    }
+    function thinBorders(color) {
+      const b = { style: BorderStyle.SINGLE, size: 4, color: color || BORDER };
+      return { top: b, bottom: b, left: b, right: b };
+    }
+
+    // ---------- Imágenes del DOM ----------
+    async function getImageData(selector, maxW) {
+      const el = document.querySelector(selector);
+      if (!el || !el.src) return null;
+      try {
+        const img = new Image();
+        img.src = el.src;
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+        const ratio = img.height / img.width;
+        const w = Math.min(img.width, maxW);
+        const h = Math.round(w * ratio);
+        const resp = await fetch(el.src);
+        const buf = await resp.arrayBuffer();
+        return { buf, w, h };
+      } catch (e) { return null; }
+    }
+
+    const bannerImg = await getImageData('#page1 .header-right img', 260);
+    const firmaImg  = await getImageData('#out-firmaImg', 140);
+
+    // ---------- Datos del formulario ----------
+    const fechaInforme     = v('fechaInforme');
+    const elaboradoPor     = v('elaboradoPor');
+    const consultoria      = v('consultoria');
+    const logoNombre       = v('logoNombre') || 'Shalon Morales';
+    const logoLeyenda      = v('logoLeyenda') || 'CONSULTORES';
+    const nombre           = v('nombre');
+    const cargoPostulacion = v('cargoPostulacion');
+    const fechaNac         = v('fechaNac');
+    const edad             = v('edad');
+    const ci               = v('ci');
+    const contacto         = v('contacto');
+    const fechaEval        = v('fechaEval');
+    const horaEval         = v('horaEval');
+    const solicitante      = v('solicitante');
+    const cargoEvaluado    = v('cargoEvaluado');
+    const enfoqueTexto     = v('enfoqueTexto');
+    const conclusionTexto  = v('conclusionTexto');
+    const oportunidadTexto = v('oportunidadadTexto');
+
+    let fechaHoraEval = fmtDateLong(fechaEval);
+    if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
+
+    const clasifEl = document.querySelector('input[name="clasif"]:checked');
+    const clasif = clasifEl ? clasifEl.value : 'RECOMENDABLE';
+
+    // Competencias
+    const compBlocks = document.querySelectorAll('#compContainer .comp-block');
+    const competencias = [];
+    compBlocks.forEach(block => {
+      const n = block.querySelector('.c-nombre');
+      const p = block.querySelector('.c-puntaje');
+      const m = block.querySelector('.c-maximo');
+      const d = block.querySelector('.c-desc');
+      competencias.push({
+        nombre: n ? n.value.trim() : '',
+        puntaje: p ? p.value.trim() : '',
+        maximo: m ? m.value.trim() : '',
+        desc: d ? d.value.trim() : ''
+      });
+    });
+
+    // ---------- Construcción del documento ----------
+
+    // 1. HEADER BANNER
+    const bannerLeft = new TableCell({
+      width: { size: bannerImg ? 65 : 100, type: WidthType.PERCENTAGE },
+      shading: { type: ShadingType.CLEAR, fill: TEAL },
+      margins: { top: 280, bottom: 280, left: 240, right: 200 },
+      borders: noBorders(),
+      children: [
+        new Paragraph({ spacing: { after: 80 }, children: [
+          new TextRun({ text: 'Informe:', color: WHITE, size: 18, font: 'Calibri' })
+        ]}),
+        new Paragraph({ children: [
+          new TextRun({ text: 'Resultados de Evaluación', bold: true, color: WHITE, size: 36, font: 'Calibri' })
+        ]}),
+        new Paragraph({ children: [
+          new TextRun({ text: 'Psicotécnica', bold: true, color: WHITE, size: 36, font: 'Calibri' })
+        ]})
+      ]
+    });
+
+    const bannerRowChildren = [bannerLeft];
+    if (bannerImg) {
+      bannerRowChildren.push(new TableCell({
+        width: { size: 35, type: WidthType.PERCENTAGE },
+        shading: { type: ShadingType.CLEAR, fill: TEAL },
+        margins: { top: 120, bottom: 120, left: 120, right: 120 },
+        borders: noBorders(),
+        verticalAlign: VerticalAlign.CENTER,
+        children: [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new ImageRun({ data: bannerImg.buf, transformation: { width: bannerImg.w, height: bannerImg.h } })]
+        })]
+      }));
+    }
+
+    const bannerTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [new TableRow({ children: bannerRowChildren })]
+    });
+
+    // 2. Logo + Fecha
+    const logoParagraphs = [
+      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 160, after: 40 }, children: [
+        new TextRun({ text: logoNombre, bold: true, color: TEAL, size: 28, font: 'Calibri' })
+      ]}),
+      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 80 }, children: [
+        new TextRun({ text: logoLeyenda.toUpperCase(), color: GRAY, size: 16, font: 'Calibri' })
+      ]}),
+      new Paragraph({ spacing: { after: 60 }, children: [
+        new TextRun({ text: 'Fecha: ', color: INK, size: 20, font: 'Calibri' }),
+        new TextRun({ text: fmtDateLong(fechaInforme), bold: true, color: TEAL, size: 20, font: 'Calibri' })
+      ]})
+    ];
+
+    // 3. Línea separadora
+    const separator = new Paragraph({
+      spacing: { before: 60, after: 120 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: BORDER, space: 4 } },
+      children: [new TextRun({ text: '\u00A0' })]
+    });
+
+    // 4. Elaborado por / Consultoría
+    const metaRow = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [new TableRow({ children: [
+        new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
+          borders: noBorders(),
+          children: [new Paragraph({ children: [
+            new TextRun({ text: 'Elaborado por: ', color: INK, size: 19, font: 'Calibri' }),
+            new TextRun({ text: elaboradoPor || '–', bold: true, color: INK, size: 19, font: 'Calibri' })
+          ]})]
+        }),
+        new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
+          borders: noBorders(),
+          children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [
+            new TextRun({ text: 'Consultoría ', color: INK, size: 19, font: 'Calibri' }),
+            new TextRun({ text: consultoria || '–', bold: true, color: INK, size: 19, font: 'Calibri' })
+          ]})]
+        })
+      ]})]
+    });
+
+    // 5. Tabla DATOS / POSTULANTE
+    function dataCell(label, value, isLabel) {
+      return new TableCell({
+        width: { size: 50, type: WidthType.PERCENTAGE },
+        shading: { type: ShadingType.CLEAR, fill: isLabel ? GRAY_BG : WHITE },
+        margins: { top: 100, bottom: 100, left: 160, right: 160 },
+        borders: thinBorders(),
+        verticalAlign: VerticalAlign.CENTER,
+        children: [new Paragraph({
+          alignment: isLabel ? AlignmentType.LEFT : AlignmentType.CENTER,
+          children: [
+            new TextRun({ text: isLabel ? label : (value || '–'), bold: isLabel, color: isLabel ? INK : INK, size: 19, font: 'Calibri' })
+          ]
+        })]
+      });
+    }
+
+    const datosRows = [
+      new TableRow({ children: [
+        new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
+          shading: { type: ShadingType.CLEAR, fill: TEAL },
+          margins: { top: 100, bottom: 100, left: 160, right: 160 },
+          borders: thinBorders(),
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+            new TextRun({ text: 'DATOS', bold: true, color: WHITE, size: 20, font: 'Calibri' })
+          ]})]
+        }),
+        new TableCell({
+          width: { size: 50, type: WidthType.PERCENTAGE },
+          shading: { type: ShadingType.CLEAR, fill: TEAL },
+          margins: { top: 100, bottom: 100, left: 160, right: 160 },
+          borders: thinBorders(),
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+            new TextRun({ text: 'POSTULANTE', bold: true, color: WHITE, size: 20, font: 'Calibri' })
+          ]})]
+        })
+      ]})
+    ];
+    [
+      ['NOMBRE', nombre],
+      ['CARGO POSTULACIÓN:', cargoPostulacion],
+      ['FECHA DE NAC.:', fmtDate(fechaNac)],
+      ['EDAD', edad],
+      ['C.I.', ci],
+      ['CONTACTO.', contacto],
+      ['FECHA DE EVALUACIÓN:', fechaHoraEval]
+    ].forEach(([label, value]) => {
+      datosRows.push(new TableRow({ children: [
+        dataCell(label, null, true),
+        dataCell(null, value, false)
+      ]}));
+    });
+
+    const datosTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: datosRows
+    });
+
+    // 6. Texto introductorio
+    const introParagraphs = [
+      new Paragraph({ spacing: { before: 240, after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
+        new TextRun({ text: 'A solicitud de ', color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: solicitante || 'la empresa', bold: true, color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: ', se realizó una evaluación psicotécnica a la Sra./Sr. ', color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: nombre || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: '.', color: INK, size: 21, font: 'Calibri' })
+      ]}),
+      new Paragraph({ spacing: { after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
+        new TextRun({ text: 'El presente informe tiene como objetivo evaluar las competencias de la/el postulante, para lo cual se llevó a cabo una entrevista psicolaboral. Dicha instancia tuvo como finalidad analizar las competencias necesarias para el adecuado desempeño de las tareas correspondientes al cargo ', color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: cargoEvaluado || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: '. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.', color: INK, size: 21, font: 'Calibri' })
+      ]})
+    ];
+
+    // 7. Sección Objetivo (banner teal)
+    function sectionBanner(title, icon) {
+      return new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [new TableRow({ children: [
+          new TableCell({
+            width: { size: icon ? 90 : 100, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: TEAL },
+            margins: { top: 160, bottom: 160, left: 200, right: 160 },
+            borders: noBorders(),
+            children: [new Paragraph({ children: [
+              new TextRun({ text: title, bold: true, color: WHITE, size: 26, font: 'Calibri' })
+            ]})]
+          }),
+          icon ? new TableCell({
+            width: { size: 10, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: TEAL },
+            margins: { top: 160, bottom: 160, left: 60, right: 160 },
+            borders: noBorders(),
+            verticalAlign: VerticalAlign.CENTER,
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+              new TextRun({ text: icon, color: WHITE, size: 24 })
+            ]})]
+          }) : null
+        ].filter(Boolean) })]
+      });
+    }
+
+    // Texto del objetivo (del preview o del input enfoqueTexto)
+    const objetivoParagraphs = [];
+    const objText = enfoqueTexto || v('objetivoTexto');
+    if (objText) {
+      objText.split(/\r?\n/).forEach(p => {
+        if (p.trim()) objetivoParagraphs.push(new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 120, before: 120 },
+          children: [new TextRun({ text: p.trim(), color: INK, size: 21, font: 'Calibri' })]
+        }));
+      });
+    }
+
+    // ---------- PÁGINA 2 ----------
+
+    // Escala de valoración
+    const escalaHeading = new Paragraph({
+      alignment: AlignmentType.RIGHT,
+      spacing: { before: 200, after: 120 },
+      children: [new TextRun({ text: 'Escala de Valoración.', bold: true, color: TEAL, size: 21, font: 'Calibri' })]
+    });
+    const escalaParagraphs = [];
+    [
+      '1 (Insuficiente): No alcanza los estándares mínimos.',
+      '2 (Bajo): Cumple parcialmente; requiere supervisión.',
+      '3 (Adecuado): Cumple de manera correcta; puede mejorar en algunos aspectos.',
+      '4 (Muy Bueno): Desempeño sólido, cercano al nivel máximo.',
+      '5 (Excelente): Supera los estándares esperados.'
+    ].forEach(line => {
+      escalaParagraphs.push(new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { after: 60 },
+        children: [new TextRun({ text: line, color: INK, size: 19, font: 'Calibri' })]
+      }));
+    });
+
+    // Competencias
+    const compParagraphs = [];
+    competencias.forEach((c, i) => {
+      if (i > 0) compParagraphs.push(new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: '' })] }));
+      compParagraphs.push(new Paragraph({ spacing: { after: 40 }, children: [
+        new TextRun({ text: c.nombre || '–', bold: true, color: TEAL, size: 22, font: 'Calibri' })
+      ]}));
+      compParagraphs.push(new Paragraph({ spacing: { after: 60 }, children: [
+        new TextRun({ text: 'Puntaje obtenido: ', bold: true, color: TEAL, size: 19, font: 'Calibri' }),
+        new TextRun({ text: c.puntaje || '–', color: TEAL, size: 19, font: 'Calibri' }),
+        new TextRun({ text: '    Puntaje máximo: ', bold: true, color: TEAL, size: 19, font: 'Calibri' }),
+        new TextRun({ text: c.maximo || '–', color: TEAL, size: 19, font: 'Calibri' })
+      ]}));
+      if (c.desc) {
+        compParagraphs.push(new Paragraph({ spacing: { after: 80 }, children: [
+          new TextRun({ text: c.desc, color: INK, size: 20, font: 'Calibri' })
+        ]}));
+      }
+    });
+
+    // ---------- PÁGINA 3 ----------
+
+    // Sección Evaluación de Competencias
+    const evalBanner = sectionBanner('Evaluación de Competencias', '🎯');
+
+    // Enfoque
+    const enfoqueParagraphs = [];
+    if (enfoqueTexto) {
+      enfoqueTexto.split(/\r?\n/).forEach(p => {
+        if (p.trim()) enfoqueParagraphs.push(new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 120, before: 120 },
+          children: [new TextRun({ text: p.trim(), color: INK, size: 21, font: 'Calibri' })]
+        }));
+      });
+    }
+
+    // Sección Conclusión
+    const concBanner = sectionBanner('Conclusión', '🎯');
+
+    // Conclusión
+    const conclusionParagraphs = [];
+    if (conclusionTexto) {
+      conclusionTexto.split(/\r?\n/).forEach(p => {
+        if (p.trim()) conclusionParagraphs.push(new Paragraph({
+          alignment: AlignmentType.JUSTIFIED,
+          spacing: { after: 120, before: 120 },
+          children: [new TextRun({ text: p.trim(), color: INK, size: 21, font: 'Calibri' })]
+        }));
+      });
+    }
+
+    // Oportunidad de mejora
+    const oportunidadParagraphs = [];
+    if (oportunidadTexto && oportunidadTexto.trim()) {
+      oportunidadParagraphs.push(new Paragraph({
+        spacing: { before: 160, after: 120 },
+        alignment: AlignmentType.JUSTIFIED,
+        children: [
+          new TextRun({ text: 'Como oportunidad de mejora', bold: true, color: INK, size: 21, font: 'Calibri' }),
+          new TextRun({ text: ', ', color: INK, size: 21, font: 'Calibri' })
+        ]
+      }));
+      // El resto del texto
+      const resto = oportunidadTexto.trim();
+      // Quitar "Como oportunidad de mejora" si está al inicio
+      const cleanText = resto.replace(/^Como oportunidad de mejora[,\s]*/i, '');
+      oportunidadParagraphs.push(new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        spacing: { after: 120 },
+        children: [new TextRun({ text: cleanText, color: INK, size: 21, font: 'Calibri' })]
+      }));
+    }
+
+    // Tabla Clasificación
+    function clasifRow(label, checked) {
+      return new TableRow({ children: [
+        new TableCell({
+          width: { size: 75, type: WidthType.PERCENTAGE },
+          shading: { type: ShadingType.CLEAR, fill: GRAY_BG },
+          margins: { top: 120, bottom: 120, left: 200, right: 160 },
+          borders: thinBorders(),
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({ children: [
+            new TextRun({ text: label, bold: true, color: INK, size: 20, font: 'Calibri' })
+          ]})]
+        }),
+        new TableCell({
+          width: { size: 25, type: WidthType.PERCENTAGE },
+          shading: { type: ShadingType.CLEAR, fill: WHITE },
+          margins: { top: 120, bottom: 120, left: 120, right: 120 },
+          borders: thinBorders(),
+          verticalAlign: VerticalAlign.CENTER,
+          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+            new TextRun({ text: checked ? '✓' : '☐', bold: true, color: TEAL, size: 26 })
+          ]})]
+        })
+      ]});
+    }
+
+    const clasifTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [
+          new TableCell({
+            width: { size: 75, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: TEAL },
+            margins: { top: 100, bottom: 100, left: 200, right: 160 },
+            borders: thinBorders(),
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+              new TextRun({ text: 'CLASIFICACIÓN', bold: true, color: WHITE, size: 20, font: 'Calibri' })
+            ]})]
+          }),
+          new TableCell({
+            width: { size: 25, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: TEAL },
+            margins: { top: 100, bottom: 100, left: 120, right: 120 },
+            borders: thinBorders(),
+            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+              new TextRun({ text: 'RESULTADO', bold: true, color: WHITE, size: 20, font: 'Calibri' })
+            ]})]
+          })
+        ]}),
+        clasifRow('RECOMENDABLE', clasif === 'RECOMENDABLE'),
+        clasifRow('RECOMENDABLE CON OBSERVACIÓN', clasif === 'RECOMENDABLE CON OBSERVACIÓN'),
+        clasifRow('NO RECOMENDABLE', clasif === 'NO RECOMENDABLE')
+      ]
+    });
+
+    // Firma
+    const firmaParagraphs = [
+      new Paragraph({
+        spacing: { before: 300, after: 200 },
+        alignment: AlignmentType.JUSTIFIED,
+        children: [new TextRun({
+          text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (consultoria || 'la consultoría') + '.',
+          color: GRAY, size: 18, font: 'Calibri'
+        })]
+      })
+    ];
+
+    if (firmaImg) {
+      firmaParagraphs.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 200 },
+        children: [new ImageRun({ data: firmaImg.buf, transformation: { width: firmaImg.w, height: firmaImg.h } })]
+      }));
+    }
+
+    firmaParagraphs.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 100 },
+      border: { top: { style: BorderStyle.SINGLE, size: 6, color: '7F8C8D', space: 4 } },
+      children: [new TextRun({ text: '\u00A0' })]
+    }));
+    firmaParagraphs.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 80 },
+      children: [new TextRun({ text: elaboradoPor || '[Nombre del evaluador]', bold: true, color: TEAL, size: 22, font: 'Calibri' })]
+    }));
+    firmaParagraphs.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [new TextRun({ text: consultoria || '[Consultoría]', color: GRAY, size: 17, font: 'Calibri' })]
+    }));
+    firmaParagraphs.push(new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 300 },
+      children: [new TextRun({ text: 'Página 3/3', color: GRAY, size: 16, font: 'Calibri' })]
+    }));
+
+    // ---------- Ensamblar documento ----------
+    const children = [].concat(
+      [bannerTable],
+      logoParagraphs,
+      [separator, metaRow, datosTable],
+      introParagraphs,
+      [sectionBanner('Objetivo', '🋶')],
+      objetivoParagraphs,
+      [new Paragraph({ children: [new PageBreak()] })],
+      [escalaHeading],
+      escalaParagraphs,
+      compParagraphs,
+      [new Paragraph({ children: [new PageBreak()] })],
+      [evalBanner],
+      enfoqueParagraphs,
+      [concBanner],
+      conclusionParagraphs,
+      oportunidadParagraphs,
+      [clasifTable],
+      firmaParagraphs
+    );
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: children
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const nombreArchivo = (nombre || 'postulante').replace(/\s+/g, '_');
+    a.href = url;
+    a.download = 'Informe_Psicotecnico_' + nombreArchivo + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+
+  } catch (e) {
+    console.error(e);
+    alert('Error al generar el Word: ' + e.message);
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+};
+// ============================================================
+//  FIN EXPORTACIÓN WORD
 // ============================================================
