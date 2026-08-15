@@ -5,6 +5,7 @@
 <title>Generador de Informe Psicotecnico</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -95,6 +96,7 @@
 
   <div id="actions">
     <button id="downloadBtn">⬇ Descargar PDF</button>
+    <button id="wordBtn" onclick="downloadWord()">📄 Descargar informe como Word</button>
     <button id="saveBtn" type="button">💾 Guardar datos</button>
     <button id="loadBtn" type="button">📂 Cargar datos</button>
     <input type="file" id="loadInput" accept="application/json,.json" style="display:none;">
