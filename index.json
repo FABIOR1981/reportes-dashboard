@@ -1,0 +1,26 @@
+[
+  {
+    "type": "folder",
+    "name": "SM Consultores",
+    "items": [
+      {
+        "type": "file",
+        "filename": "Generador_informe_psicotecnico.html",
+        "title": "Generador de Informe Psicotecnico",
+        "path": "html_externos/SM Consultores/Generador_informe_psicotecnico.html"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "name": "UDE",
+    "items": [
+      {
+        "type": "file",
+        "filename": "Generador_informe_psicolaboral.html",
+        "title": "Generador de Informe Psicotecnico",
+        "path": "html_externos/UDE/Generador_informe_psicolaboral.html"
+      }
+    ]
+  }
+]
