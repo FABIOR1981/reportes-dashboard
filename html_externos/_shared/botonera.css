@@ -84,7 +84,8 @@
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s ease;
+  user-select: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
   z-index: 100;
   font-family: 'Segoe UI', system-ui, sans-serif;
   font-weight: 500;
