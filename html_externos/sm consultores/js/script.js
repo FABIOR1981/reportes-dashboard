@@ -113,20 +113,20 @@ document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
 });
 document.querySelectorAll('input[name=clasif]').forEach(el => el.addEventListener('change', renderPreview));
 
-document.getElementById('resetBtn').addEventListener('click', () => {
-  if(confirm('¿Limpiar todos los campos del formulario?')){
-    document.querySelectorAll('#panel input[type=text], #panel input[type=date], #panel input[type=number], #panel textarea').forEach(el => {
-      if(!cabezalFieldIds.includes(el.id)) el.value = '';
-    });
-    compContainer.innerHTML = '';
-    defaultComps.forEach(addCompBlock);
-    renderPreview();
-  }
+
+const cabezalFieldIds = ['consultoria', 'elaboradoPor', 'logoNombre', 'logoLeyenda'];
+document.getElementById('editCabezal').addEventListener('change', (e) => {
+  const unlocked = e.target.checked;
+  cabezalFieldIds.forEach(id => {
+    document.getElementById(id).readOnly = !unlocked;
+  });
 });
 
-// ---------- Descarga de PDF ----------
-document.getElementById('downloadBtn').addEventListener('click', async () => {
-  const status = document.getElementById('status');
+
+
+// ---------- Descargar PDF ----------
+window.downloadPDF = async function() {
+const status = document.getElementById('status');
   const btn = document.getElementById('downloadBtn');
   btn.disabled = true;
   status.textContent = 'Generando PDF, por favor espera...';
@@ -170,244 +170,7 @@ document.getElementById('downloadBtn').addEventListener('click', async () => {
     btn.disabled = false;
     setTimeout(()=>{ status.textContent=''; }, 4000);
   }
-});
-
-// ---------- Cabezal: bloqueo/edición de datos fijos ----------
-const cabezalFieldIds = ['consultoria', 'elaboradoPor', 'logoNombre', 'logoLeyenda'];
-document.getElementById('editCabezal').addEventListener('change', (e) => {
-  const unlocked = e.target.checked;
-  cabezalFieldIds.forEach(id => {
-    document.getElementById(id).readOnly = !unlocked;
-  });
-});
-
-// ---------- Guardar datos (JSON) ----------
-function gatherFormData(){
-  const data = {};
-  document.querySelectorAll('#panel > fieldset input[id], #panel > fieldset textarea[id]').forEach(el => {
-    data[el.id] = el.value;
-  });
-  const clasifEl = document.querySelector('input[name=clasif]:checked');
-  data.clasif = clasifEl ? clasifEl.value : '';
-  data.competencias = [];
-  compContainer.querySelectorAll('.comp-block').forEach(block => {
-    data.competencias.push({
-      nombre: block.querySelector('.c-nombre').value,
-      puntaje: block.querySelector('.c-puntaje').value,
-      maximo: block.querySelector('.c-maximo').value,
-      desc: block.querySelector('.c-desc').value
-    });
-  });
-  return data;
-}
-
-document.getElementById('saveBtn').addEventListener('click', () => {
-  const status = document.getElementById('status');
-  try{
-    const data = gatherFormData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const nombreArchivo = (val('nombre') || 'informe').trim().replace(/\s+/g,'_');
-    a.href = url;
-    a.download = `DATOS_INFORME_${nombreArchivo}.json`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    status.textContent = '✔ Datos guardados. Guardá ese archivo para continuar luego.';
-  }catch(err){
-    console.error(err);
-    status.textContent = '⚠ No se pudieron guardar los datos.';
-  }
-  setTimeout(()=>{ status.textContent=''; }, 5000);
-});
-
-// ---------- Cargar datos (JSON) ----------
-document.getElementById('loadBtn').addEventListener('click', () => {
-  document.getElementById('loadInput').click();
-});
-
-document.getElementById('loadInput').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  const status = document.getElementById('status');
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    try{
-      const data = JSON.parse(ev.target.result);
-      Object.keys(data).forEach(key => {
-        if(key === 'clasif' || key === 'competencias') return;
-        const el = document.getElementById(key);
-        if(el) el.value = data[key];
-      });
-      if(data.clasif){
-        const radio = document.querySelector(`input[name=clasif][value="${data.clasif}"]`);
-        if(radio) radio.checked = true;
-      }
-      if(Array.isArray(data.competencias) && data.competencias.length){
-        compContainer.innerHTML = '';
-        data.competencias.forEach(c => addCompBlock(c));
-      }
-      renderPreview();
-      status.textContent = '✔ Datos cargados. Podés continuar editando.';
-    }catch(err){
-      console.error(err);
-      alert('El archivo elegido no es un JSON válido generado por esta herramienta.');
-    }
-    setTimeout(()=>{ status.textContent=''; }, 5000);
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-});
-
-// ---------- Revisar ortografía y gramática ----------
-
-// Diccionario técnico: palabras que NO deben marcarse como error.
-// Incluye términos propios de psicología laboral que el corrector no conoce.
-const DICCIONARIO_BASE = [
-  'psic', 'psicolaboral', 'ansiógeno', 'ansiógenos', 'ansiógena', 'ansiógenas',
-  'resiliencia', 'resiliente', 'proactividad', 'adaptabilidad'
-];
-
-function getDiccionarioPersonalizado(){
-  try{
-    return JSON.parse(localStorage.getItem('correctorDiccionario') || '[]');
-  }catch(e){ return []; }
-}
-function setDiccionarioPersonalizado(arr){
-  localStorage.setItem('correctorDiccionario', JSON.stringify(arr));
-}
-function palabraEnDiccionario(palabra){
-  const p = palabra.toLowerCase().replace(/[.,;:!?"']/g, '');
-  const dic = [...DICCIONARIO_BASE, ...getDiccionarioPersonalizado()].map(w => w.toLowerCase());
-  return dic.includes(p);
-}
-
-function renderDiccionarioPanel(){
-  const cont = document.getElementById('dicList');
-  const custom = getDiccionarioPersonalizado();
-  cont.innerHTML = custom.length
-    ? custom.map(w => `<span class="dic-chip">${w} <button type="button" class="dic-del" data-w="${w}">✕</button></span>`).join('')
-    : '<span style="color:#999;">Sin palabras agregadas todavía.</span>';
-  cont.querySelectorAll('.dic-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const updated = getDiccionarioPersonalizado().filter(w => w !== btn.dataset.w);
-      setDiccionarioPersonalizado(updated);
-      renderDiccionarioPanel();
-    });
-  });
-}
-renderDiccionarioPanel();
-
-document.getElementById('dicAddBtn').addEventListener('click', () => {
-  const input = document.getElementById('dicInput');
-  const palabra = input.value.trim();
-  if(!palabra) return;
-  const custom = getDiccionarioPersonalizado();
-  if(!custom.map(w=>w.toLowerCase()).includes(palabra.toLowerCase())){
-    custom.push(palabra);
-    setDiccionarioPersonalizado(custom);
-    renderDiccionarioPanel();
-  }
-  input.value = '';
-});
-document.getElementById('dicInput').addEventListener('keydown', (e) => {
-  if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('dicAddBtn').click(); }
-});
-
-async function checkSpellingText(text){
-  if(!text || !text.trim()) return [];
-  const resp = await fetch('https://api.languagetool.org/v2/check', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-    body: new URLSearchParams({ text: text, language: 'es' })
-  });
-  if(!resp.ok) throw new Error('Error de API: ' + resp.status);
-  const json = await resp.json();
-  return json.matches || [];
-}
-
-document.getElementById('spellBtn').addEventListener('click', async () => {
-  const panel = document.getElementById('spellPanel');
-  const btn = document.getElementById('spellBtn');
-  btn.disabled = true;
-  panel.innerHTML = 'Revisando ortografía y gramática, un momento...';
-
-  try{
-    const fields = [
-      {label: 'Solicitado por (empresa)', text: val('solicitante')},
-      {label: 'Objetivo (cargo evaluado)', text: val('cargoEvaluado')},
-      {label: 'Texto: Enfoque', text: val('enfoqueTexto')},
-      {label: 'Texto: Conclusión', text: val('conclusionTexto')},
-      // Se agrega el inicio de la frase ("Como oportunidad de mejora, ") solo para
-      // el análisis, así el corrector no cree que el texto empieza ahí y no pide
-      // mayúscula inicial. Ese prefijo se descuenta después con offsetAjuste.
-      {label: 'Texto: Oportunidad de mejora', text: 'Como oportunidad de mejora, ' + val('oportunidadTexto'), offsetAjuste: 'Como oportunidad de mejora, '.length, original: val('oportunidadTexto')},
-    ];
-    compContainer.querySelectorAll('.comp-block').forEach((block, idx) => {
-      const nombreC = block.querySelector('.c-nombre').value || `Competencia ${idx+1}`;
-      fields.push({label: `${nombreC} (descripción)`, text: block.querySelector('.c-desc').value});
-    });
-
-    let html = '';
-    let totalIssues = 0;
-    for(const f of fields){
-      if(!f.text || !f.text.trim()) continue;
-      const matches = await checkSpellingText(f.text);
-      const textoOriginal = f.original !== undefined ? f.original : f.text;
-      const ajuste = f.offsetAjuste || 0;
-      const items = [];
-      matches.forEach(m => {
-        const bad = f.text.substring(m.offset, m.offset + m.length);
-        if(palabraEnDiccionario(bad)) return; // ignorar palabras del diccionario técnico
-        if(ajuste && m.offset < ajuste) return; // ignorar coincidencias dentro del prefijo agregado
-        const suggestion = (m.replacements && m.replacements[0]) ? m.replacements[0].value : null;
-        items.push(suggestion
-          ? `<li>"${bad}" → <b>${suggestion}</b> <button type="button" class="dic-ignore" data-w="${bad}">no es un error, ignorar siempre</button></li>`
-          : `<li>"${bad}": ${m.message} <button type="button" class="dic-ignore" data-w="${bad}">no es un error, ignorar siempre</button></li>`);
-      });
-      if(items.length){
-        totalIssues += items.length;
-        html += `<div class="spell-field"><b>${f.label}</b><ul>${items.join('')}</ul></div>`;
-      }
-    }
-    panel.innerHTML = totalIssues
-      ? html
-      : '✔ No se encontraron errores ortográficos ni gramaticales.';
-    panel.querySelectorAll('.dic-ignore').forEach(b => {
-      b.addEventListener('click', () => {
-        const custom = getDiccionarioPersonalizado();
-        if(!custom.map(w=>w.toLowerCase()).includes(b.dataset.w.toLowerCase())){
-          custom.push(b.dataset.w);
-          setDiccionarioPersonalizado(custom);
-          renderDiccionarioPanel();
-        }
-        document.getElementById('spellBtn').click();
-      });
-    });
-  }catch(err){
-    console.error(err);
-    panel.innerHTML = '⚠ No se pudo conectar con el corrector ortográfico. Verificá tu conexión a internet e intentá de nuevo.';
-  }finally{
-    btn.disabled = false;
-  }
-});
-
-// Inicializar
-(function setDefaultDates(){
-  const today = new Date().toISOString().slice(0,10);
-  const fi = document.getElementById('fechaInforme');
-  const fe = document.getElementById('fechaEval');
-  if(!fi.value) fi.value = today;
-  if(!fe.value) fe.value = today;
-})();
-renderPreview();
-
-// ============================================================
-//  EXPORTACIÓN A WORD (.docx) – SM Consultores
-//  Código independiente. Agregado al final de script.js
-// ============================================================
+};
 
 window.downloadWord = async function() {
   const btn = document.getElementById('wordBtn');
@@ -1307,3 +1070,27 @@ window.downloadWord = async function() {
 // ============================================================
 //  FIN EXPORTACIÓN WORD
 // ============================================================
+
+  // ---------- Inicializar botonera compartida ----------
+  Botonera.init({
+    camposGuardables: ['fechaInforme','elaboradoPor','consultoria','logoNombre','logoLeyenda',
+      'nombre','cargoPostulacion','fechaNac','edad','ci','contacto',
+      'fechaEval','horaEval','solicitante','cargoEvaluado',
+      'enfoqueTexto','conclusionTexto','oportunidadadTexto'],
+    camposNoLimpiar: ['logoNombre','logoLeyenda'],
+    camposOrtografia: [
+      {id:'enfoqueTexto', label:'Enfoque / Objetivo'},
+      {id:'conclusionTexto', label:'Conclusión'},
+      {id:'oportunidadadTexto', label:'Oportunidad de mejora'}
+    ],
+    nombreArchivoBase: 'Informe_Psicotecnico',
+    onResetExtra: function() {
+      document.getElementById('compContainer').innerHTML = '';
+      renderPreview();
+    },
+    onLoadExtra: function() {
+      renderPreview();
+    }
+  });
+
+})();

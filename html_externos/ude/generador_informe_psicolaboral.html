@@ -7,6 +7,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 <link rel="stylesheet" href="css/style.css">
+
+  <link rel="stylesheet" href="../_shared/botonera.css">
+  <script src="../_shared/botonera.js"></script>
 </head>
 <body>
 
@@ -71,24 +74,24 @@
     <input type="text" id="profCargo" value="Licenciada en Psicología - Especializada en Selección de Personal" spellcheck="true">
   </fieldset>
 
-  <div id="actions">
-    <button id="downloadBtn" onclick="downloadPDF()">📄 Descargar informe como PDF</button>
-    <button id="wordBtn" onclick="downloadWord()">📝 Descargar informe como Word</button>
-    <button id="saveBtn" type="button">💾 Guardar datos</button>
-    <button id="loadBtn" type="button">📂 Cargar datos</button>
-    <input type="file" id="loadInput" accept="application/json,.json" style="display:none;">
-    <button id="spellBtn" type="button">🔤 Revisar ortografía</button>
-    <button id="resetBtn" onclick="resetForm()">🔄 Limpiar formulario</button>
-    <div id="status"></div>
-    <div id="spellPanel"></div>
-    <div id="dicPanel">
-      <label style="grid-column:1/-1;font-size:11.5px;color:#888;margin:4px 0 2px;">Diccionario técnico personalizado (palabras que nunca se marcan como error)</label>
-      <div id="dicAddRow">
-        <input type="text" id="dicInput" placeholder="Agregar palabra... ej: psicolaboral">
-        <button type="button" id="dicAddBtn">+ Agregar</button>
-      </div>
-      <div id="dicList"></div>
+  <div class="btn-toolbar" id="actions">
+    <button class="btn btn-primary" data-action="pdf">📄 Descargar informe como PDF</button>
+    <button class="btn btn-primary" data-action="word">📝 Descargar informe como Word</button>
+    <button class="btn btn-secondary" data-action="save">💾 Guardar datos</button>
+    <button class="btn btn-secondary" data-action="load">📂 Cargar datos</button>
+    <input type="file" id="loadInput" accept="application/json,.json" hidden>
+    <button class="btn btn-tertiary" data-action="spellcheck">🔤 Revisar ortografía</button>
+    <button class="btn btn-danger" data-action="reset">🔄 Limpiar formulario</button>
+  </div>
+  <div id="status"></div>
+  <div id="spellPanel"></div>
+  <div id="dicPanel">
+    <label>Diccionario técnico personalizado (palabras que nunca se marcan como error)</label>
+    <div id="dicAddRow">
+      <input type="text" id="dicInput" placeholder="Agregar palabra... ej: psicolaboral">
+      <button type="button" id="dicAddBtn">+ Agregar</button>
     </div>
+    <div id="dicList"></div>
   </div>
 </div>
 
