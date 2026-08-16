@@ -40,6 +40,10 @@
   text-overflow: clip;
   white-space: normal;
   line-height: 1;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 #actions.btn-toolbar .btn:hover {
