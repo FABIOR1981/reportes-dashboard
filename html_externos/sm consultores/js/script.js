@@ -1092,5 +1092,3 @@ window.downloadWord = async function() {
       renderPreview();
     }
   });
-
-})();
