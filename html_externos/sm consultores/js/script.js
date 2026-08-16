@@ -172,335 +172,6 @@ window.downloadPDF = async function() {
   }
 };
 
-window.downloadWord = async function() {
-  const btn = document.querySelector('[data-action="word"]');
-  if (!btn) return;
-  const originalText = btn.textContent;
-  btn.textContent = 'Generando Word…';
-  btn.disabled = true;
-
-  try {
-    // --- Helpers de formato ---
-    const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-    function fmtDateLong(iso) {
-      if (!iso) return '-';
-      const [y, m, d] = iso.split('-');
-      if (!y) return iso;
-      return `${parseInt(d)} de ${meses[parseInt(m)-1]} de ${y}`;
-    }
-    function fmtDate(iso) {
-      if (!iso) return '-';
-      const [y, m, d] = iso.split('-');
-      if (!y) return iso;
-      return `${d}/${m}/${y}`;
-    }
-    function v(id) {
-      const el = document.getElementById(id);
-      return el ? el.value.trim() : '';
-    }
-
-    // --- Recolección de datos ---
-    const fechaInforme     = v('fechaInforme');
-    const elaboradoPor     = v('elaboradoPor');
-    const consultoria      = v('consultoria');
-    const logoNombre       = v('logoNombre') || 'Shalon Morales';
-    const logoLeyenda      = v('logoLeyenda') || 'CONSULTORES';
-    const nombre           = v('nombre');
-    const cargoPostulacion = v('cargoPostulacion');
-    const fechaNac         = v('fechaNac');
-    const edad             = v('edad');
-    const ci               = v('ci');
-    const contacto         = v('contacto');
-    const fechaEval        = v('fechaEval');
-    const horaEval         = v('horaEval');
-    const solicitante      = v('solicitante');
-    const cargoEvaluado    = v('cargoEvaluado');
-    const enfoqueTexto     = v('enfoqueTexto');
-    const conclusionTexto  = v('conclusionTexto');
-    const oportunidadTexto = v('oportunidadadTexto');
-
-    let fechaHoraEval = fmtDateLong(fechaEval);
-    if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
-
-    const clasifEl = document.querySelector('input[name="clasif"]:checked');
-    const clasif = clasifEl ? clasifEl.value : 'RECOMENDABLE';
-
-    // Competencias dinámicas
-    const compBlocks = document.querySelectorAll('#compContainer .comp-block');
-    const competencias = [];
-    compBlocks.forEach(block => {
-      const nombreC = block.querySelector('.c-nombre');
-      const puntaje = block.querySelector('.c-puntaje');
-      const maximo  = block.querySelector('.c-maximo');
-      const desc    = block.querySelector('.c-desc');
-      competencias.push({
-        nombre: nombreC ? nombreC.value.trim() : '',
-        puntaje: puntaje ? puntaje.value.trim() : '',
-        maximo: maximo ? maximo.value.trim() : '',
-        desc: desc ? desc.value.trim() : ''
-      });
-    });
-
-    // --- API docx ---
-    const docx = window.docx;
-    if (!docx) {
-      alert('La librería docx no está cargada. Verificá la etiqueta <script> en el HTML.');
-      return;
-    }
-    const {
-      Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-      WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType
-    } = docx;
-
-    // --- Estilos ---
-    const NAVY   = '154360';
-    const BLUE   = '2874A6';
-    const GRAY   = '5D6D7E';
-    const INK    = '2C3E50';
-    const BORDER = 'AED6F1';
-    const BOX_BG = 'F8F9F9';
-    const LBLUE  = 'D6EAF8';
-
-    // --- Encabezado ---
-    const headerParagraphs = [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 100 },
-        children: [new TextRun({ text: logoNombre.toUpperCase(), bold: true, color: NAVY, size: 36 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { after: 200 },
-        children: [new TextRun({ text: (logoLeyenda || 'CONSULTORES').toUpperCase(), color: GRAY, size: 20 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.RIGHT,
-        spacing: { after: 300 },
-        children: [new TextRun({ text: fmtDateLong(fechaInforme), color: GRAY, size: 20 })]
-      })
-    ];
-
-    // --- Tabla datos postulante ---
-    function infoCell(label, value) {
-      return new TableCell({
-        verticalAlign: VerticalAlign.CENTER,
-        shading: { type: ShadingType.CLEAR, fill: BOX_BG },
-        margins: { top: 100, bottom: 100, left: 140, right: 140 },
-        borders: {
-          top:    { style: BorderStyle.SINGLE, size: 4, color: BORDER },
-          bottom: { style: BorderStyle.SINGLE, size: 4, color: BORDER },
-          left:   { style: BorderStyle.SINGLE, size: 4, color: BORDER },
-          right:  { style: BorderStyle.SINGLE, size: 4, color: BORDER }
-        },
-        children: [new Paragraph({
-          children: [
-            new TextRun({ text: label + ' ', bold: true, color: INK, size: 20 }),
-            new TextRun({ text: value || '–', color: INK, size: 20 })
-          ]
-        })]
-      });
-    }
-
-    const infoTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [infoCell('Nombre:', nombre), infoCell('Cargo al que postula:', cargoPostulacion)] }),
-        new TableRow({ children: [infoCell('Fecha de nac.:', fmtDate(fechaNac)), infoCell('Edad:', edad)] }),
-        new TableRow({ children: [infoCell('C.I.:', ci), infoCell('Contacto:', contacto)] }),
-        new TableRow({ children: [infoCell('Fecha de evaluación:', fechaHoraEval), infoCell('Consultoría:', consultoria)] })
-      ]
-    });
-
-    // --- Cuerpo ---
-    const bodyParagraphs = [];
-
-    bodyParagraphs.push(new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 160 },
-      children: [
-        new TextRun({ text: 'A solicitud de ', color: INK, size: 21 }),
-        new TextRun({ text: solicitante || 'la empresa', bold: true, color: INK, size: 21 }),
-        new TextRun({ text: ', se realizó una evaluación psicotécnica a la Sra./Sr. ', color: INK, size: 21 }),
-        new TextRun({ text: nombre || '–', bold: true, color: INK, size: 21 }),
-        new TextRun({ text: '.', color: INK, size: 21 })
-      ]
-    }));
-
-    bodyParagraphs.push(new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 160 },
-      children: [
-        new TextRun({ text: 'El presente informe tiene como objetivo evaluar las competencias de la/el postulante, para lo cual se llevó a cabo una entrevista psicolaboral. Dicha instancia tuvo como finalidad analizar las competencias necesarias para el adecuado desempeño de las tareas correspondientes al cargo ', color: INK, size: 21 }),
-        new TextRun({ text: cargoEvaluado || '–', bold: true, color: INK, size: 21 }),
-        new TextRun({ text: '. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.', color: INK, size: 21 })
-      ]
-    }));
-
-    // Escala
-    bodyParagraphs.push(new Paragraph({
-      spacing: { before: 200, after: 120 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: BLUE, space: 6 } },
-      children: [new TextRun({ text: 'ESCALA DE VALORACIÓN', bold: true, color: NAVY, size: 22 })]
-    }));
-    [
-      '1 (Insuficiente): No alcanza los estándares mínimos.',
-      '2 (Bajo): Cumple parcialmente; requiere supervisión.',
-      '3 (Adecuado): Cumple de manera correcta; puede mejorar en algunos aspectos.',
-      '4 (Muy Bueno): Desempeño sólido, cercano al nivel máximo.',
-      '5 (Excelente): Supera los estándares esperados.'
-    ].forEach(line => {
-      bodyParagraphs.push(new Paragraph({ spacing: { after: 80 }, children: [new TextRun({ text: line, color: INK, size: 20 })] }));
-    });
-
-    // Competencias
-    bodyParagraphs.push(new Paragraph({
-      spacing: { before: 300, after: 120 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: BLUE, space: 6 } },
-      children: [new TextRun({ text: 'EVALUACIÓN DE COMPETENCIAS', bold: true, color: NAVY, size: 22 })]
-    }));
-
-    const compHeader = new TableRow({ children: [
-      new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { type: ShadingType.CLEAR, fill: LBLUE }, margins: { top: 100, bottom: 100, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ children: [new TextRun({ text: 'Competencia', bold: true, color: NAVY, size: 20 })] })] }),
-      new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { type: ShadingType.CLEAR, fill: LBLUE }, margins: { top: 100, bottom: 100, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Puntaje', bold: true, color: NAVY, size: 20 })] })] }),
-      new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, shading: { type: ShadingType.CLEAR, fill: LBLUE }, margins: { top: 100, bottom: 100, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Máximo', bold: true, color: NAVY, size: 20 })] })] }),
-      new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { type: ShadingType.CLEAR, fill: LBLUE }, margins: { top: 100, bottom: 100, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ children: [new TextRun({ text: 'Descripción / Observaciones', bold: true, color: NAVY, size: 20 })] })] })
-    ]});
-
-    const compRows = [compHeader];
-    competencias.forEach(c => {
-      compRows.push(new TableRow({ children: [
-        new TableCell({ margins: { top: 80, bottom: 80, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ children: [new TextRun({ text: c.nombre || '–', color: INK, size: 20 })] })] }),
-        new TableCell({ margins: { top: 80, bottom: 80, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: c.puntaje || '–', color: INK, size: 20 })] })] }),
-        new TableCell({ margins: { top: 80, bottom: 80, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: c.maximo || '–', color: INK, size: 20 })] })] }),
-        new TableCell({ margins: { top: 80, bottom: 80, left: 120, right: 120 }, borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} }, children: [new Paragraph({ children: [new TextRun({ text: c.desc || '–', color: INK, size: 20 })] })] })
-      ]}));
-    });
-    const compTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: compRows });
-
-    // Conclusión
-    const conclusionHeading = new Paragraph({
-      spacing: { before: 300, after: 120 },
-      border: { left: { style: BorderStyle.SINGLE, size: 24, color: BLUE, space: 8 } },
-      children: [new TextRun({ text: 'CONCLUSIÓN', bold: true, color: NAVY, size: 24 })]
-    });
-    const conclusionParagraphs = [];
-    if (conclusionTexto) {
-      conclusionTexto.split(/\r?\n/).forEach(p => {
-        if (p.trim()) conclusionParagraphs.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 120 }, children: [new TextRun({ text: p.trim(), color: INK, size: 21 })] }));
-      });
-    }
-
-    // Oportunidad de mejora
-    const oportunidadParagraphs = [];
-    if (oportunidadTexto && oportunidadTexto.trim()) {
-      oportunidadParagraphs.push(new Paragraph({
-        spacing: { before: 200, after: 120 },
-        border: { left: { style: BorderStyle.SINGLE, size: 24, color: BLUE, space: 8 } },
-        children: [new TextRun({ text: 'OPORTUNIDAD DE MEJORA', bold: true, color: NAVY, size: 24 })]
-      }));
-      oportunidadTexto.split(/\r?\n/).forEach(p => {
-        if (p.trim()) oportunidadParagraphs.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 120 }, children: [new TextRun({ text: p.trim(), color: INK, size: 21 })] }));
-      });
-    }
-
-    // Clasificación
-    const clasifHeading = new Paragraph({
-      spacing: { before: 300, after: 160 },
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: BLUE, space: 6 } },
-      children: [new TextRun({ text: 'CLASIFICACIÓN', bold: true, color: NAVY, size: 22 })]
-    });
-
-    function clasifCell(label, checked) {
-      return [
-        new TableCell({
-          width: { size: 75, type: WidthType.PERCENTAGE },
-          verticalAlign: VerticalAlign.CENTER,
-          shading: { type: ShadingType.CLEAR, fill: LBLUE },
-          margins: { top: 120, bottom: 120, left: 160, right: 120 },
-          borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} },
-          children: [new Paragraph({ children: [new TextRun({ text: label, bold: true, color: NAVY, size: 21 })] })]
-        }),
-        new TableCell({
-          width: { size: 25, type: WidthType.PERCENTAGE },
-          verticalAlign: VerticalAlign.CENTER,
-          margins: { top: 120, bottom: 120, left: 120, right: 120 },
-          borders: { top:{style:BorderStyle.SINGLE,size:4,color:BORDER}, bottom:{style:BorderStyle.SINGLE,size:4,color:BORDER}, left:{style:BorderStyle.SINGLE,size:4,color:BORDER}, right:{style:BorderStyle.SINGLE,size:4,color:BORDER} },
-          children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: checked ? '✓' : '☐', bold: true, color: NAVY, size: 26 })] })]
-        })
-      ];
-    }
-    const clasifTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: clasifCell('RECOMENDABLE', clasif === 'RECOMENDABLE') }),
-        new TableRow({ children: clasifCell('RECOMENDABLE CON OBSERVACIÓN', clasif === 'RECOMENDABLE CON OBSERVACIÓN') }),
-        new TableRow({ children: clasifCell('NO RECOMENDABLE', clasif === 'NO RECOMENDABLE') })
-      ]
-    });
-
-    // Firma
-    const footerParagraphs = [
-      new Paragraph({
-        spacing: { before: 400, after: 300 },
-        children: [new TextRun({ text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (consultoria || 'la consultoría') + '.', color: GRAY, size: 18 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 400 },
-        border: { top: { style: BorderStyle.SINGLE, size: 6, color: '7F8C8D', space: 4 } },
-        children: [new TextRun({ text: '\u00A0' })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        spacing: { before: 100 },
-        children: [new TextRun({ text: elaboradoPor || '[Nombre del evaluador]', bold: true, color: NAVY, size: 22 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: consultoria || '[Consultoría]', color: GRAY, size: 17 })]
-      })
-    ];
-
-    // --- Ensamblar documento ---
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: [].concat(
-          headerParagraphs,
-          [infoTable, new Paragraph({ text: '', spacing: { after: 160 } })],
-          bodyParagraphs,
-          [compTable],
-          [conclusionHeading],
-          conclusionParagraphs,
-          oportunidadParagraphs,
-          [clasifHeading, clasifTable],
-          footerParagraphs
-        )
-      }]
-    });
-
-    const blob = await Packer.toBlob(doc);
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const nombreArchivo = (nombre || 'postulante').replace(/\s+/g, '_');
-    a.href = url;
-    a.download = 'Informe_Psicotecnico_' + nombreArchivo + '.docx';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-
-  } catch (e) {
-    console.error(e);
-    alert('Error al generar el Word: ' + e.message);
-  } finally {
-    btn.textContent = originalText;
-    if (btn) btn.disabled = false;
-  }
-};
-// ============================================================
-//  FIN EXPORTACIÓN WORD
-
 // ============================================================
 //  EXPORTACIÓN A WORD (.docx) – SM Consultores
 //  Diseño fiel a la vista previa del informe psicotécnico
@@ -509,10 +180,14 @@ window.downloadWord = async function() {
 
 window.downloadWord = async function() {
   const btn = document.querySelector('[data-action="word"]');
+  const status = document.getElementById('status');
   if (!btn) return;
-  const originalText = btn.textContent;
-  btn.textContent = 'Generando Word…';
+  // IMPORTANTE: no usar btn.textContent para mostrar "Generando..." dentro del botón.
+  // El botón contiene un <span class="tooltip"> interno; asignar textContent lo
+  // reemplaza por un único nodo de texto plano y el tooltip desaparece para siempre.
+  // El feedback de progreso se muestra en el panel #status en su lugar.
   btn.disabled = true;
+  if (status) status.textContent = 'Generando Word, por favor espera...';
 
   try {
     const docx = window.docx;
@@ -1058,13 +733,15 @@ window.downloadWord = async function() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    if (status) status.textContent = '✔ Word descargado con éxito.';
 
   } catch (e) {
     console.error(e);
+    if (status) status.textContent = '⚠ Error al generar el Word. Revisá la consola.';
     alert('Error al generar el Word: ' + e.message);
   } finally {
-    btn.textContent = originalText;
     if (btn) btn.disabled = false;
+    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
   }
 };
 // ============================================================

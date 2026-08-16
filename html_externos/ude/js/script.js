@@ -144,10 +144,14 @@
 
   window.downloadPDF = async function(){
     var btn = document.querySelector('[data-action="pdf"]');
+    var status = document.getElementById('status');
     if(!btn) return;
-    var originalText = btn.textContent;
-    btn.textContent = 'Generando PDF...';
+    // IMPORTANTE: no usar btn.textContent para mostrar "Generando..." dentro del botón.
+    // El botón contiene un <span class="tooltip"> interno; asignar textContent lo
+    // reemplaza por un único nodo de texto plano y el tooltip desaparece para siempre.
+    // El feedback de progreso se muestra en el panel #status en su lugar.
     btn.disabled = true;
+    if (status) status.textContent = 'Generando PDF, por favor espera...';
 
     try {
       if(document.fonts && document.fonts.ready){
@@ -163,21 +167,27 @@
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       var nombre = (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_');
       pdf.save('Informe_Psicolaboral_' + nombre + '.pdf');
+      if (status) status.textContent = '✔ PDF descargado con éxito.';
     } catch(e){
+      if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
       alert('Error al generar PDF: ' + e.message);
     } finally {
-      btn.textContent = originalText;
       btn.disabled = false;
+      if (status) setTimeout(function(){ status.textContent = ''; }, 4000);
     }
   };
 
   // ---------- Descargar como Word (.docx nativo, sin imagen) ----------
   window.downloadWord = async function(){
     var btn = document.querySelector('[data-action="word"]');
+    var status = document.getElementById('status');
     if(!btn) return;
-    var originalText = btn.textContent;
-    btn.textContent = 'Generando Word...';
+    // IMPORTANTE: no usar btn.textContent para mostrar "Generando..." dentro del botón.
+    // El botón contiene un <span class="tooltip"> interno; asignar textContent lo
+    // reemplaza por un único nodo de texto plano y el tooltip desaparece para siempre.
+    // El feedback de progreso se muestra en el panel #status en su lugar.
     btn.disabled = true;
+    if (status) status.textContent = 'Generando Word, por favor espera...';
 
     try {
       var docx = window.docx;
@@ -382,12 +392,14 @@
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      if (status) status.textContent = '✔ Word descargado con éxito.';
     } catch(e){
       console.error(e);
+      if (status) status.textContent = '⚠ Error al generar el Word. Revisá la consola.';
       alert('Error al generar el Word: ' + e.message);
     } finally {
-      btn.textContent = originalText;
       btn.disabled = false;
+      if (status) setTimeout(function(){ status.textContent = ''; }, 4000);
     }
   };
 
