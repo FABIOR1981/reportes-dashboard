@@ -143,7 +143,8 @@
   };
 
   window.downloadPDF = async function(){
-    var btn = document.getElementById('downloadBtn');
+    var btn = document.querySelector('[data-action="pdf"]');
+    if(!btn) return;
     var originalText = btn.textContent;
     btn.textContent = 'Generando PDF...';
     btn.disabled = true;
@@ -172,7 +173,8 @@
 
   // ---------- Descargar como Word (.docx nativo, sin imagen) ----------
   window.downloadWord = async function(){
-    var btn = document.getElementById('wordBtn');
+    var btn = document.querySelector('[data-action="word"]');
+    if(!btn) return;
     var originalText = btn.textContent;
     btn.textContent = 'Generando Word...';
     btn.disabled = true;
