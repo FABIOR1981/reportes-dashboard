@@ -26,63 +26,7 @@ window.Botonera = (function() {
 
   // ---------- Inicialización ----------
   function init(userConfig) {
-      // ---------- Toggle entre vistas compacta/extendida ----------
-  (function setupToggle() {
-    const container = document.querySelector('.btn-toolbar');
-    if (!container) return;
-
-    // Crear botón de toggle
-    const toggleWrap = document.createElement('div');
-    toggleWrap.className = 'btn-toolbar-toggle';
-    toggleWrap.innerHTML = '<button type="button" class="btn-toggle-view" id="btnToggleView" title="Cambiar vista de botonera">' +
-      '<span class="view-icon">≡</span> <span class="view-label">Vista compacta</span></button>';
-    container.parentNode.insertBefore(toggleWrap, container);
-
-    // Crear botonera compacta clonando la extendida
-    const compact = container.cloneNode(true);
-    compact.id = 'actionsCompact';
-    compact.classList.remove('btn-toolbar');
-    compact.classList.add('btn-toolbar--compact', 'hidden');
-
-    // Convertir botones a icono + tooltip
-    compact.querySelectorAll('.btn').forEach(function(btn) {
-      const action = btn.dataset.action;
-      const label = btn.textContent.trim();
-      btn.innerHTML = btn.textContent.trim().split(' ')[0] + '<span class="tooltip">' + label + '</span>';
-      btn.setAttribute('aria-label', label);
-    });
-
-    container.parentNode.insertBefore(compact, container.nextSibling);
-    container.classList.add('btn-toolbar--extended');
-
-    // Toggle
-    const btnToggle = document.getElementById('btnToggleView');
-    const labelSpan = btnToggle.querySelector('.view-label');
-
-    function applyView(mode) {
-      if (mode === 'compact') {
-        container.classList.add('hidden');
-        compact.classList.remove('hidden');
-        labelSpan.textContent = 'Vista extendida';
-      } else {
-        container.classList.remove('hidden');
-        compact.classList.add('hidden');
-        labelSpan.textContent = 'Vista compacta';
-      }
-    }
-
-    const saved = localStorage.getItem('botoneraViewMode') || 'extended';
-    applyView(saved);
-
-    btnToggle.addEventListener('click', function() {
-      const isCompact = !compact.classList.contains('hidden');
-      const newMode = isCompact ? 'extended' : 'compact';
-      applyView(newMode);
-      localStorage.setItem('botoneraViewMode', newMode);
-    });
-  })();
-
-Object.assign(cfg, userConfig);
+    Object.assign(cfg, userConfig);
     cacheElements();
     bindEvents();
     renderDiccionarioPanel();

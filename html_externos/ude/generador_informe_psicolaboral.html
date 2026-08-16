@@ -75,13 +75,25 @@
   </fieldset>
 
   <div class="btn-toolbar" id="actions">
-    <button class="btn btn-primary" data-action="pdf">📄 Descargar PDF</button>
-    <button class="btn btn-primary" data-action="word">📝 Descargar Word</button>
-    <button class="btn btn-secondary" data-action="save">💾 Guardar datos</button>
-    <button class="btn btn-secondary" data-action="load">📂 Cargar datos</button>
+    <button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">
+      📄<span class="tooltip">Descargar PDF</span>
+    </button>
+    <button class="btn btn-primary" data-action="word" aria-label="Descargar Word">
+      📝<span class="tooltip">Descargar Word</span>
+    </button>
+    <button class="btn btn-secondary" data-action="save" aria-label="Guardar datos">
+      💾<span class="tooltip">Guardar datos</span>
+    </button>
+    <button class="btn btn-secondary" data-action="load" aria-label="Cargar datos">
+      📂<span class="tooltip">Cargar datos</span>
+    </button>
     <input type="file" id="loadInput" accept="application/json,.json" hidden>
-    <button class="btn btn-tertiary" data-action="spellcheck">🔤 Revisar ortografía</button>
-    <button class="btn btn-danger" data-action="reset">🗑 Limpiar formulario</button>
+    <button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografía">
+      🔤<span class="tooltip">Revisar ortografía</span>
+    </button>
+    <button class="btn btn-danger" data-action="reset" aria-label="Limpiar formulario">
+      🗑<span class="tooltip">Limpiar formulario</span>
+    </button>
   </div>
   <div id="status"></div>
   <div id="spellPanel"></div>
