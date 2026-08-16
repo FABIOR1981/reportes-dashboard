@@ -126,10 +126,10 @@ document.getElementById('editCabezal').addEventListener('change', (e) => {
 
 // ---------- Descargar PDF ----------
 window.downloadPDF = async function() {
-const status = document.getElementById('status');
-  const btn = document.getElementById('downloadBtn');
-  btn.disabled = true;
-  status.textContent = 'Generando PDF, por favor espera...';
+  const status = document.getElementById('status');
+  const btn = document.querySelector('[data-action="pdf"]');
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Generando PDF, por favor espera...';
 
   try{
     // Esperar a que las fuentes estén completamente cargadas antes de capturar.
@@ -162,18 +162,18 @@ const status = document.getElementById('status');
 
     const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
     pdf.save(`INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}.pdf`);
-    status.textContent = '✔ PDF descargado con éxito.';
+    if (status) status.textContent = '✔ PDF descargado con éxito.';
   }catch(err){
     console.error(err);
-    status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
+    if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
   }finally{
-    btn.disabled = false;
-    setTimeout(()=>{ status.textContent=''; }, 4000);
+    if (btn) btn.disabled = false;
+    setTimeout(()=>{ if (status) status.textContent=''; }, 4000);
   }
 };
 
 window.downloadWord = async function() {
-  const btn = document.getElementById('wordBtn');
+  const btn = document.querySelector('[data-action="word"]');
   if (!btn) return;
   const originalText = btn.textContent;
   btn.textContent = 'Generando Word…';
@@ -495,7 +495,7 @@ window.downloadWord = async function() {
     alert('Error al generar el Word: ' + e.message);
   } finally {
     btn.textContent = originalText;
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 };
 // ============================================================
@@ -508,7 +508,7 @@ window.downloadWord = async function() {
 // ============================================================
 
 window.downloadWord = async function() {
-  const btn = document.getElementById('wordBtn');
+  const btn = document.querySelector('[data-action="word"]');
   if (!btn) return;
   const originalText = btn.textContent;
   btn.textContent = 'Generando Word…';
@@ -1064,7 +1064,7 @@ window.downloadWord = async function() {
     alert('Error al generar el Word: ' + e.message);
   } finally {
     btn.textContent = originalText;
-    btn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 };
 // ============================================================
