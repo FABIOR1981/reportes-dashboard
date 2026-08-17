@@ -93,3 +93,179 @@ body {
   line-height: 1.6;
   white-space: pre-wrap;
 }
+
+/* ============================================================ */
+/*                    MEJORAS DE ACCESIBILIDAD                  */
+/* ============================================================ */
+
+/* Focus visible para teclado */
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Validación visual */
+.form-group input:invalid,
+.form-group textarea:invalid {
+  border-color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.05);
+}
+
+.form-group input:valid:not([type="date"]),
+.form-group textarea:valid {
+  border-color: #16a34a;
+}
+
+/* ============================================================ */
+/*                    MEDIA QUERIES - RESPONSIVE                */
+/* ============================================================ */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+  .container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 12px;
+  }
+  
+  .page-a4 {
+    width: 100%;
+    min-height: auto;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 15mm;
+  }
+}
+
+/* Móvil (hasta 768px) */
+@media (max-width: 768px) {
+  body {
+    padding: 8px;
+  }
+  
+  .container {
+    flex-direction: column;
+    gap: 12px;
+    max-width: 100%;
+  }
+  
+  .form-panel, .preview-panel {
+    padding: 16px;
+    border-radius: 6px;
+  }
+  
+  .page-a4 {
+    width: 100%;
+    min-height: auto;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 12mm;
+    margin: 0;
+    border: 1px solid #d1d5db;
+  }
+  
+  .form-group label {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 16px;
+    padding: 10px;
+  }
+  
+  .report-title {
+    font-size: 18px;
+  }
+  
+  .report-section h3 {
+    font-size: 14px;
+  }
+  
+  .report-body {
+    font-size: 12px;
+  }
+  
+  .report-meta {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+/* Móvil pequeño (hasta 480px) */
+@media (max-width: 480px) {
+  body {
+    padding: 4px;
+  }
+  
+  .container {
+    gap: 8px;
+  }
+  
+  .form-panel, .preview-panel {
+    padding: 12px;
+  }
+  
+  .page-a4 {
+    padding: 8mm;
+    max-height: 400px;
+  }
+  
+  .form-group {
+    margin-bottom: 12px;
+  }
+  
+  .report-title {
+    font-size: 16px;
+  }
+  
+  .report-section h3 {
+    font-size: 13px;
+  }
+}
+
+/* ============================================================ */
+/*                    ESTILOS DE IMPRESIÓN                      */
+/* ============================================================ */
+
+@media print {
+  body {
+    background: white;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    display: block;
+    max-width: 100%;
+  }
+  
+  .form-panel {
+    display: none;
+  }
+  
+  .preview-panel {
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+  
+  .page-a4 {
+    width: 210mm;
+    height: 297mm;
+    padding: 20mm;
+    margin: 0;
+    page-break-after: always;
+    box-shadow: none;
+    border: none;
+  }
+  
+  .report-body {
+    white-space: normal;
+  }
+}

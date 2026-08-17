@@ -1,5 +1,37 @@
-// Actualizar la vista previa ocultando secciones vacías
-function updatePreview() {
+// Sanitizar nombres de archivo
+function sanitizeFilename(str) {
+  return str
+    .replace(/[\/\\:?*"<>|]/g, '_') // Reemplazar caracteres inválidos
+    .replace(/\s+/g, '_')           // Reemplazar espacios
+    .substring(0, 100)              // Limitar longitud
+    .replace(/_+/g, '_')            // Limpiar múltiples guiones
+    .replace(/^_+|_+$/g, '');       // Quitar guiones de inicio/final
+}
+
+// Debounce helper
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Validar que hay contenido para descargar
+function hasContent() {
+  const titulo = document.getElementById('tituloInforme').value.trim();
+  const resumen = document.getElementById('resumen').value.trim();
+  const desarrollo = document.getElementById('desarrollo').value.trim();
+  const conclusion = document.getElementById('conclusion').value.trim();
+  return titulo || resumen || desarrollo || conclusion;
+}
+
+// Actualizar la vista previa ocultando secciones vacías (versión sin debounce)
+function updatePreviewFn() {
   const titulo = document.getElementById('tituloInforme').value.trim();
   const destinatario = document.getElementById('destinatario').value.trim();
   const fecha = document.getElementById('fechaInforme').value;
@@ -41,6 +73,9 @@ function updatePreview() {
   }
 }
 
+// Versión con debounce para eventos
+const updatePreview = debounce(updatePreviewFn, 300);
+
 // Contrato: window.downloadPDF
 window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
@@ -49,15 +84,29 @@ window.downloadPDF = async function() {
   if (status) status.textContent = 'Generando PDF, por favor espera...';
 
   try {
+    // Validar contenido
+    if (!hasContent()) {
+      if (status) status.textContent = '⚠ El documento está vacío. Agregá contenido antes de descargar.';
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    // Validar librerías disponibles
+    if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+      if (status) status.textContent = '⚠ Las librerías necesarias aún se están cargando. Intentá de nuevo en unos segundos.';
+      if (btn) btn.disabled = false;
+      return;
+    }
+
     const { jsPDF } = window.jspdf;
     const element = document.getElementById('pdfPreview');
-    const canvas = await html2canvas(element, { scale: 2 });
+    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     
-    const nombreArchivo = (document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.pdf';
+    const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.pdf';
     pdf.save(nombreArchivo);
 
     if (status) status.textContent = '✔ PDF descargado con éxito.';
@@ -78,6 +127,20 @@ window.downloadWord = async function() {
   if (status) status.textContent = 'Generando Word, por favor espera...';
 
   try {
+    // Validar contenido
+    if (!hasContent()) {
+      if (status) status.textContent = '⚠ El documento está vacío. Agregá contenido antes de descargar.';
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    // Validar librerías disponibles
+    if (typeof docx === 'undefined') {
+      if (status) status.textContent = '⚠ Las librerías necesarias aún se están cargando. Intentá de nuevo en unos segundos.';
+      if (btn) btn.disabled = false;
+      return;
+    }
+
     const children = [
       new docx.Paragraph({ text: document.getElementById('tituloInforme').value.trim() || 'INFORME GENERAL', heading: docx.HeadingLevel.HEADING_1 })
     ];
@@ -115,9 +178,14 @@ window.downloadWord = async function() {
 
     const blob = await docx.Packer.toBlob(doc);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = (document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.docx';
+    const blobUrl = URL.createObjectURL(blob);
+    link.href = blobUrl;
+    link.download = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.docx';
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    // Liberar memoria después de descargar
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
   } catch (e) {

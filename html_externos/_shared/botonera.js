@@ -24,6 +24,13 @@ window.Botonera = (function() {
 
   let els = {};
 
+  // Función para escapar HTML
+  function escapeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
   // ---------- Inicialización ----------
   function init(userConfig) {
     Object.assign(cfg, userConfig);
@@ -197,14 +204,18 @@ window.Botonera = (function() {
           const bad = el.value.substring(m.offset, m.offset + m.length);
           if (palabraEnDiccionario(bad)) return;
           const suggestion = (m.replacements && m.replacements[0]) ? m.replacements[0].value : null;
+          // SEGURIDAD: Escapar HTML para evitar XSS
+          const badEscaped = escapeHTML(bad);
+          const labelEscaped = escapeHTML(campo.label);
           items.push(suggestion
-            ? '<li>"' + bad + '" → <b>' + suggestion + '</b> <button type="button" class="dic-ignore" data-w="' + bad + '">no es un error, ignorar siempre</button></li>'
-            : '<li>"' + bad + '": ' + m.message + ' <button type="button" class="dic-ignore" data-w="' + bad + '">no es un error, ignorar siempre</button></li>'
+            ? '<li>"' + badEscaped + '" → <b>' + escapeHTML(suggestion) + '</b> <button type="button" class="dic-ignore" data-w="' + badEscaped + '">no es un error, ignorar siempre</button></li>'
+            : '<li>"' + badEscaped + '": ' + escapeHTML(m.message) + ' <button type="button" class="dic-ignore" data-w="' + badEscaped + '">no es un error, ignorar siempre</button></li>'
           );
         });
         if (items.length) {
           totalIssues += items.length;
-          html += '<div class="spell-field"><b>' + campo.label + '</b><ul>' + items.join('') + '</ul></div>';
+          const labelEscaped = escapeHTML(campo.label);
+          html += '<div class="spell-field"><b>' + labelEscaped + '</b><ul>' + items.join('') + '</ul></div>';
         }
       }
 
@@ -247,8 +258,10 @@ window.Botonera = (function() {
       els.dicList.innerHTML = '<span style="color:#999;">Sin palabras agregadas todavía.</span>';
       return;
     }
+    // SEGURIDAD: Escapar palabras para evitar XSS
     els.dicList.innerHTML = custom.map(function(w) {
-      return '<span class="dic-chip">' + w + ' <button type="button" class="dic-del" data-w="' + w + '">✕</button></span>';
+      const wEscaped = escapeHTML(w);
+      return '<span class="dic-chip">' + wEscaped + ' <button type="button" class="dic-del" data-w="' + wEscaped + '">✕</button></span>';
     }).join('');
 
     els.dicList.querySelectorAll('.dic-del').forEach(function(btnDel) {
@@ -264,6 +277,11 @@ window.Botonera = (function() {
     if (!els.dicInput) return;
     const palabra = els.dicInput.value.trim();
     if (!palabra) return;
+    // Validar que no tenga caracteres sospechosos
+    if (!/^[a-záéíóúñüA-ZÁÉÍÓÚÑÜ\s'-]+$/.test(palabra)) {
+      alert('La palabra solo puede contener letras, espacios, guiones y apóstrofos.');
+      return;
+    }
     const custom = getDiccionarioPersonalizado();
     if (custom.map(function(w) { return w.toLowerCase(); }).indexOf(palabra.toLowerCase()) === -1) {
       custom.push(palabra);
