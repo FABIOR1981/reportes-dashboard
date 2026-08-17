@@ -1,20 +1,21 @@
-// Actualización dinámica de vista previa
+// Función para actualizar la vista previa
 function updatePreview() {
-  document.getElementById('prevTitulo').textContent = document.getElementById('tituloInforme').value || 'INFORME GENERAL';
-  document.getElementById('prevDestinatario').textContent = 'Para: ' + (document.getElementById('destinatario').value || '-');
-  document.getElementById('prevFecha').textContent = 'Fecha: ' + (document.getElementById('fechaInforme').value || '-');
-  document.getElementById('prevResumen').textContent = document.getElementById('resumen').value || '-';
-  document.getElementById('prevDesarrollo').textContent = document.getElementById('desarrollo').value || '-';
-  document.getElementById('prevConclusion').textContent = document.getElementById('conclusion').value || '-';
+  const titulo = document.getElementById('tituloInforme');
+  const destinatario = document.getElementById('destinatario');
+  const fecha = document.getElementById('fechaInforme');
+  const resumen = document.getElementById('resumen');
+  const desarrollo = document.getElementById('desarrollo');
+  const conclusion = document.getElementById('conclusion');
+
+  if (titulo) document.getElementById('prevTitulo').textContent = titulo.value || 'INFORME GENERAL';
+  if (destinatario) document.getElementById('prevDestinatario').textContent = 'Para: ' + (destinatario.value || '-');
+  if (fecha) document.getElementById('prevFecha').textContent = 'Fecha: ' + (fecha.value || '-');
+  if (resumen) document.getElementById('prevResumen').textContent = resumen.value || '-';
+  if (desarrollo) document.getElementById('prevDesarrollo').textContent = desarrollo.value || '-';
+  if (conclusion) document.getElementById('prevConclusion').textContent = conclusion.value || '-';
 }
 
-// Event Listeners para input en tiempo real
-['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('input', updatePreview);
-});
-
-// Contrato window.downloadPDF
+// Implementación del contrato window.downloadPDF
 window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
   const status = document.getElementById('status');
@@ -29,7 +30,9 @@ window.downloadPDF = async function() {
 
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-    pdf.save((document.getElementById('tituloInforme').value || 'Informe') + '.pdf');
+    
+    const nombreArchivo = (document.getElementById('tituloInforme').value || 'Informe_Generico') + '.pdf';
+    pdf.save(nombreArchivo);
 
     if (status) status.textContent = '✔ PDF descargado con éxito.';
   } catch (e) {
@@ -41,7 +44,7 @@ window.downloadPDF = async function() {
   }
 };
 
-// Contrato window.downloadWord
+// Implementación del contrato window.downloadWord
 window.downloadWord = async function() {
   const btn = document.querySelector('[data-action="word"]');
   const status = document.getElementById('status');
@@ -70,7 +73,7 @@ window.downloadWord = async function() {
     const blob = await docx.Packer.toBlob(doc);
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = (document.getElementById('tituloInforme').value || 'Informe') + '.docx';
+    link.download = (document.getElementById('tituloInforme').value || 'Informe_Generico') + '.docx';
     link.click();
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
@@ -83,25 +86,52 @@ window.downloadWord = async function() {
   }
 };
 
-// Inicialización de la Botonera Compartida según contrato
-Botonera.init({
-  camposGuardables: ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion'],
-  camposOrtografia: [
-    { id: 'tituloInforme', label: 'Título del informe' },
-    { id: 'resumen', label: 'Resumen' },
-    { id: 'desarrollo', label: 'Desarrollo / Observaciones' },
-    { id: 'conclusion', label: 'Conclusión' }
-  ],
-  nombreArchivoBase: 'Informe_Generico',
-  onResetExtra: function() {
-    document.getElementById('fechaInforme').value = new Date().toISOString().slice(0, 10);
-    updatePreview();
-  },
-  onLoadExtra: function() {
-    updatePreview();
-  }
-});
+// Función de inicialización
+function initReporteGenerico() {
+  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion'];
 
-// Inicialización al cargar
-document.getElementById('fechaInforme').value = new Date().toISOString().slice(0, 10);
-updatePreview();
+  // Asignar listeners de cambios a los campos del formulario
+  campos.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', updatePreview);
+      el.addEventListener('change', updatePreview);
+    }
+  });
+
+  // Inicializar Botonera Compartida respetando el contrato
+  if (typeof Botonera !== 'undefined') {
+    Botonera.init({
+      camposGuardables: campos,
+      camposOrtografia: [
+        { id: 'tituloInforme', label: 'Título del informe' },
+        { id: 'resumen', label: 'Resumen' },
+        { id: 'desarrollo', label: 'Desarrollo / Observaciones' },
+        { id: 'conclusion', label: 'Conclusión' }
+      ],
+      nombreArchivoBase: 'Informe_Generico',
+      onResetExtra: function() {
+        document.getElementById('fechaInforme').value = new Date().toISOString().slice(0, 10);
+        updatePreview();
+      },
+      onLoadExtra: function() {
+        updatePreview();
+      }
+    });
+  }
+
+  // Establecer fecha por defecto y primera actualización
+  const fechaInput = document.getElementById('fechaInforme');
+  if (fechaInput && !fechaInput.value) {
+    fechaInput.value = new Date().toISOString().slice(0, 10);
+  }
+  
+  updatePreview();
+}
+
+// Ejecución segura según el estado del documento
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initReporteGenerico);
+} else {
+  initReporteGenerico();
+}

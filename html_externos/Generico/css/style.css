@@ -25,7 +25,6 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos Formulario */
 .form-group {
   margin-bottom: 16px;
 }
@@ -48,7 +47,6 @@ body {
   font-family: inherit;
 }
 
-/* Hoja A4 simulada para Preview */
 .page-a4 {
   width: 210mm;
   min-height: 297mm;
