@@ -276,7 +276,7 @@ window.downloadWord = async function() {
     const cargoEvaluado    = v('cargoEvaluado');
     const enfoqueTexto     = v('enfoqueTexto');
     const conclusionTexto  = v('conclusionTexto');
-    const oportunidadTexto = v('oportunidadadTexto');
+    const oportunidadTexto = v('oportunidadTexto');
 
     let fechaHoraEval = fmtDateLong(fechaEval);
     if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
@@ -753,12 +753,12 @@ window.downloadWord = async function() {
     camposGuardables: ['fechaInforme','elaboradoPor','consultoria','logoNombre','logoLeyenda',
       'nombre','cargoPostulacion','fechaNac','edad','ci','contacto',
       'fechaEval','horaEval','solicitante','cargoEvaluado',
-      'enfoqueTexto','conclusionTexto','oportunidadadTexto'],
+      'enfoqueTexto','conclusionTexto','oportunidadTexto'],
     camposNoLimpiar: ['logoNombre','logoLeyenda'],
     camposOrtografia: [
       {id:'enfoqueTexto', label:'Enfoque / Objetivo'},
       {id:'conclusionTexto', label:'Conclusión'},
-      {id:'oportunidadadTexto', label:'Oportunidad de mejora'}
+      {id:'oportunidadTexto', label:'Oportunidad de mejora'}
     ],
     nombreArchivoBase: 'Informe_Psicotecnico',
     onResetExtra: function() {
