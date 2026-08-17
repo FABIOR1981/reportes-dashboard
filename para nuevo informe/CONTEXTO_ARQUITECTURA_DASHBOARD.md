@@ -41,26 +41,33 @@ reportes-dashboard/
 ## 4. Arquitectura de la botonera compartida
 
 ### HTML de cada informe define:
+Los iconos son SVG inline (estilo outline, `class="btn-icon"`, `stroke="currentColor"`), no emojis. Se actualizó en agosto 2026 (ver sección 8).
 ```html
 <div class="btn-toolbar" id="actions">
   <button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">
-    📄<span class="tooltip">Descargar PDF</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    <span class="tooltip">Descargar PDF</span>
   </button>
   <button class="btn btn-primary" data-action="word" aria-label="Descargar Word">
-    📝<span class="tooltip">Descargar Word</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    <span class="tooltip">Descargar Word</span>
   </button>
   <button class="btn btn-secondary" data-action="save" aria-label="Guardar datos">
-    💾<span class="tooltip">Guardar datos</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span class="tooltip">Guardar datos</span>
   </button>
   <button class="btn btn-secondary" data-action="load" aria-label="Cargar datos">
-    📂<span class="tooltip">Cargar datos</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <span class="tooltip">Cargar datos</span>
   </button>
   <input type="file" id="loadInput" accept="application/json,.json" hidden>
   <button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografía">
-    🔤<span class="tooltip">Revisar ortografía</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <span class="tooltip">Revisar ortografía</span>
   </button>
   <button class="btn btn-danger" data-action="reset" aria-label="Limpiar formulario">
-    🗑<span class="tooltip">Limpiar formulario</span>
+    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+    <span class="tooltip">Limpiar formulario</span>
   </button>
 </div>
 <div id="status"></div>
@@ -78,7 +85,7 @@ reportes-dashboard/
 ### CSS (botonera.css)
 - Selectores con alta especificidad: `#actions.btn-toolbar` y `#actions.btn-toolbar .btn` para ganar sobre `#actions` de los CSS de los informes.
 - `position: fixed; top: 10px; right: 10px; z-index: 1000;` → botonera flotante arriba a la derecha del iframe.
-- Botones: 40×40px, solo iconos, border-radius 8px.
+- Botones: 40×40px, solo iconos, border-radius 8px, fondo blanco con borde gris claro (`#e5e7eb`) e ícono en el color semántico (`btn-primary` azul oscuro, `btn-secondary` azul, `btn-tertiary` gris oscuro, `btn-danger` rojo sobre fondo rojo claro `#fdecea`). Actualizado en agosto 2026: antes tenían fondo de color sólido.
 - Tooltip: aparece DEBAJO del botón (`top: calc(100% + 8px)`), usa `visibility: hidden` + `opacity: 0` para ser no-interactivo cuando no está en hover.
 - `user-select: none` en el botón completo para evitar selección de texto al hacer clic.
 - Status: fijo debajo de la botonera (`top: 56px; right: 10px`).
@@ -158,7 +165,7 @@ Botonera.init({
 |----------|-------|----------|
 | CSS de informe pisa botonera | `#actions` en style.css de cada informe | Selectores `#actions.btn-toolbar` (mayor especificidad) |
 | Botonera compacta no funcionaba | `cloneNode` no copia event listeners | Botonera definida directamente en HTML, no clonada |
-| Texto seleccionado al hacer clic en botón | Navegador selecciona emoji | `user-select: none` en botón + `visibility: hidden` en tooltip |
+| Texto seleccionado al hacer clic en botón | Navegador seleccionaba el emoji (ya no aplica: desde agosto 2026 los botones usan íconos SVG, no emoji) | `user-select: none` en botón + `visibility: hidden` en tooltip (se mantiene por robustez aunque el riesgo original de selección de texto desapareció al pasar a SVG) |
 | Tooltip tapado por header | Aparecía arriba del botón | Tooltip aparece DEBAJO (`top: calc(100% + 8px)`) |
 | Botones de PDF/Word no encontrados | Buscaban `id="downloadBtn"` | Cambiados a `document.querySelector('[data-action="pdf"]')` |
 | Tooltip del botón PDF/Word deja de aparecer después del primer clic | El handler hacía `btn.textContent = 'Generando...'` y luego `btn.textContent = originalText` para mostrar el estado de carga. `textContent` reemplaza TODOS los hijos del botón por un único nodo de texto plano, destruyendo el `<span class="tooltip">` interno de forma permanente (no se recupera ni recargando el JS, solo con un refresh completo de la página) | No tocar `textContent`/`innerHTML` del botón; usar `btn.disabled = true/false` para el estado visual y el `#status` compartido para el mensaje de progreso ("Generando PDF...", "✔ PDF descargado con éxito.", etc.) |
@@ -167,7 +174,8 @@ Botonera.init({
 
 - **Botonera en cada informe** (no en el dashboard): cada informe es autocontenido, más fácil de mantener individualmente.
 - **Posición fixed** dentro del iframe: visualmente parece parte del dashboard sin la complejidad de comunicación iframe-padre.
-- **Iconos unificados** en todos los informes: 📄 PDF, 📝 Word, 💾 Guardar, 📂 Cargar, 🔤 Ortografía, 🗑 Limpiar.
+- **Iconos unificados** en todos los informes: SVG inline estilo outline (no emoji, cambio hecho en agosto 2026) — documento (PDF), disco/guardar (Word), flecha abajo (Guardar), flecha arriba (Cargar), check (Ortografía), tacho de basura (Limpiar). Fondo blanco, ícono en color semántico; ver sección 4 para el markup de cada uno.
+- **Botonera alineada a la derecha** (`right: 10px`) del iframe — se probó una variante a la izquierda pero se revirtió a la derecha, que es la posición definitiva.
 - **Tooltip por debajo**: evita que quede tapado por el header del dashboard.
 - **Diccionario en localStorage**: palabras técnicas personalizadas persisten entre sesiones.
 

@@ -74,16 +74,16 @@ Cada informe en `html_externos/` es una aplicación HTML autocontenida que compa
 
 ### Botonera compartida (`_shared/`)
 
-Todos los informes incluyen los mismos botones con iconos unificados:
+Todos los informes incluyen los mismos botones con iconos unificados. Los iconos son SVG inline (estilo outline, `stroke="currentColor"`), no emojis — fondo blanco, ícono en el color semántico del botón (excepto "Limpiar", que usa fondo rojo claro):
 
-| Icono | Botón | Función |
+| Icono (SVG) | Botón | Función |
 |-------|-------|---------|
-| 📄 | Descargar PDF | Exporta el informe como PDF (cada informe define su propia lógica) |
-| 📝 | Descargar Word | Exporta el informe como documento Word `.docx` |
-| 💾 | Guardar datos | Descarga un archivo JSON con todos los campos del formulario |
-| 📂 | Cargar datos | Carga un archivo JSON previamente guardado para restaurar el formulario |
-| 🔤 | Revisar ortografía | Analiza el texto con LanguageTool y muestra sugerencias |
-| 🗑 | Limpiar formulario | Borra todos los campos del formulario |
+| Documento | Descargar PDF | Exporta el informe como PDF (cada informe define su propia lógica) |
+| Disco/guardar | Descargar Word | Exporta el informe como documento Word `.docx` |
+| Flecha abajo | Guardar datos | Descarga un archivo JSON con todos los campos del formulario |
+| Flecha arriba | Cargar datos | Carga un archivo JSON previamente guardado para restaurar el formulario |
+| Check | Revisar ortografía | Analiza el texto con LanguageTool y muestra sugerencias |
+| Tacho de basura | Limpiar formulario | Borra todos los campos del formulario |
 
 ### Paneles adicionales
 
