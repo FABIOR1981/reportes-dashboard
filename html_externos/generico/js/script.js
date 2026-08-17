@@ -1,3 +1,9 @@
+// ============================================================
+//  INFORME GENÉRICO – lógica propia del informe
+//  Contrato: define window.downloadPDF, window.downloadWord
+//  y llama a Botonera.init() al final (ver CONTEXTO_ARQUITECTURA_DASHBOARD.md)
+// ============================================================
+
 // Sanitizar nombres de archivo
 function sanitizeFilename(str) {
   return str
@@ -37,7 +43,7 @@ function hasContent() {
 function addAspectoBlock(data) {
   data = data || { nombre: '', descripcion: '' };
   const container = document.getElementById('aspectosContainer');
-  
+
   const div = document.createElement('div');
   div.className = 'aspecto-block';
   div.innerHTML = `
@@ -51,19 +57,17 @@ function addAspectoBlock(data) {
       <textarea class="asp-desc" rows="3" placeholder="Descripción de la evaluación...">${data.descripcion || ''}</textarea>
     </div>
   `;
-  
-  // Event listener para botón eliminar
+
   div.querySelector('.del-btn').addEventListener('click', () => {
     div.remove();
     updatePreview();
   });
-  
-  // Event listeners para actualizar preview
+
   div.querySelectorAll('input, textarea').forEach(el => {
     el.addEventListener('input', updatePreview);
     el.addEventListener('change', updatePreview);
   });
-  
+
   container.appendChild(div);
 }
 
@@ -72,7 +76,7 @@ function updatePreviewFn() {
   const titulo = document.getElementById('tituloInforme').value.trim();
   const destinatario = document.getElementById('destinatario').value.trim();
   const fecha = document.getElementById('fechaInforme').value;
-  
+
   const resumen = document.getElementById('resumen').value.trim();
   const desarrollo = document.getElementById('desarrollo').value.trim();
   const conclusion = document.getElementById('conclusion').value.trim();
@@ -112,7 +116,7 @@ function updatePreviewFn() {
   } else {
     secConclusion.style.display = 'none';
   }
-  
+
   // Clasificación
   const secClasificacion = document.getElementById('secClasificacion');
   const chkClasificacion = document.getElementById('chkClasificacion').checked;
@@ -122,19 +126,19 @@ function updatePreviewFn() {
   } else {
     secClasificacion.style.display = 'none';
   }
-  
+
   // Aspectos dinámicos
   const secAspectos = document.getElementById('secAspectos');
   const aspectosContainer = document.getElementById('aspectosContainer');
   const aspectosOutContainer = document.getElementById('aspectosOutContainer');
-  
+
   const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
   if (aspectosBlocks.length > 0) {
     aspectosOutContainer.innerHTML = '';
     aspectosBlocks.forEach(block => {
       const nombre = block.querySelector('.asp-nombre').value.trim();
       const desc = block.querySelector('.asp-desc').value.trim();
-      
+
       if (nombre || desc) {
         const item = document.createElement('div');
         item.className = 'aspecto-item';
@@ -154,6 +158,16 @@ function updatePreviewFn() {
 // Versión con debounce para eventos
 const updatePreview = debounce(updatePreviewFn, 300);
 
+// Espera a que las fuentes web terminen de cargar antes de capturar el DOM.
+// Sin esto, html2canvas puede capturar el frame con la fuente de respaldo
+// (fallback) todavía activa, generando un PDF con métricas de texto
+// distintas a las que se ven en pantalla (saltos de línea desalineados).
+async function waitForFonts() {
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) { /* noop */ }
+  }
+}
+
 // Contrato: window.downloadPDF
 window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
@@ -162,35 +176,55 @@ window.downloadPDF = async function() {
   if (status) status.textContent = 'Generando PDF, por favor espera...';
 
   try {
-    // Validar contenido
     if (!hasContent()) {
       if (status) status.textContent = '⚠ El documento está vacío. Agregá contenido antes de descargar.';
-      if (btn) btn.disabled = false;
       return;
     }
 
-    // Validar librerías disponibles
     if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
       if (status) status.textContent = '⚠ Las librerías necesarias aún se están cargando. Intentá de nuevo en unos segundos.';
-      if (btn) btn.disabled = false;
       return;
     }
+
+    await waitForFonts();
 
     const { jsPDF } = window.jspdf;
     const element = document.getElementById('pdfPreview');
     const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
+    // ---- Paginación real en A4 ----
+    // En vez de forzar TODO el canvas capturado dentro de una única página
+    // de 210x297mm (lo que distorsiona/recorta el contenido cuando el
+    // informe es más largo que una hoja A4), se calcula la altura real de
+    // la imagen manteniendo el ancho fijo a 210mm, y se recorta en franjas
+    // de 297mm de alto, agregando tantas páginas como haga falta.
     const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-    
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight; // desplaza la imagen hacia arriba
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
     const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.pdf';
     pdf.save(nombreArchivo);
 
     if (status) status.textContent = '✔ PDF descargado con éxito.';
   } catch (e) {
     console.error(e);
-    if (status) status.textContent = '⚠ Error al generar el PDF.';
+    if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
   } finally {
     if (btn) btn.disabled = false;
     if (status) setTimeout(() => { status.textContent = ''; }, 4000);
@@ -205,17 +239,13 @@ window.downloadWord = async function() {
   if (status) status.textContent = 'Generando Word, por favor espera...';
 
   try {
-    // Validar contenido
     if (!hasContent()) {
       if (status) status.textContent = '⚠ El documento está vacío. Agregá contenido antes de descargar.';
-      if (btn) btn.disabled = false;
       return;
     }
 
-    // Validar librerías disponibles
     if (typeof docx === 'undefined') {
       if (status) status.textContent = '⚠ Las librerías necesarias aún se están cargando. Intentá de nuevo en unos segundos.';
-      if (btn) btn.disabled = false;
       return;
     }
 
@@ -256,6 +286,7 @@ window.downloadWord = async function() {
       children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
       children.push(new docx.Paragraph({ text: clasificacion }));
     }
+
     // Aspectos dinámicos
     const aspectosContainer = document.getElementById('aspectosContainer');
     const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
@@ -264,29 +295,24 @@ window.downloadWord = async function() {
       aspectosBlocks.forEach(block => {
         const nombre = block.querySelector('.asp-nombre').value.trim();
         const desc = block.querySelector('.asp-desc').value.trim();
-        if (nombre || desc) {
-          tieneAspecto = true;
-        }
+        if (nombre || desc) tieneAspecto = true;
       });
-      
+
       if (tieneAspecto) {
         children.push(new docx.Paragraph({ text: '' }));
         children.push(new docx.Paragraph({ text: 'Aspectos Evaluados', heading: docx.HeadingLevel.HEADING_2 }));
-        
+
         aspectosBlocks.forEach(block => {
           const nombre = block.querySelector('.asp-nombre').value.trim();
           const desc = block.querySelector('.asp-desc').value.trim();
           if (nombre || desc) {
-            if (nombre) {
-              children.push(new docx.Paragraph({ text: nombre, style: 'Heading 3' }));
-            }
-            if (desc) {
-              children.push(new docx.Paragraph({ text: desc }));
-            }
+            if (nombre) children.push(new docx.Paragraph({ text: nombre, heading: docx.HeadingLevel.HEADING_3 }));
+            if (desc) children.push(new docx.Paragraph({ text: desc }));
           }
         });
       }
     }
+
     const doc = new docx.Document({
       sections: [{ properties: {}, children }]
     });
@@ -299,7 +325,6 @@ window.downloadWord = async function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Liberar memoria después de descargar
     setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
@@ -324,21 +349,16 @@ function init() {
     }
   });
 
-  // Event listeners para radios de clasificación
   document.querySelectorAll('input[name="clasificacion"]').forEach(radio => {
     radio.addEventListener('change', updatePreview);
   });
-  
-  // Event listeners para checkboxes de secciones
+
   const checkboxes = ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion'];
   checkboxes.forEach(id => {
     const chk = document.getElementById(id);
-    if (chk) {
-      chk.addEventListener('change', updatePreview);
-    }
+    if (chk) chk.addEventListener('change', updatePreview);
   });
-  
-  // Event listener para agregar aspectos
+
   const addAspectoBtn = document.getElementById('addAspectoBtn');
   if (addAspectoBtn) {
     addAspectoBtn.addEventListener('click', () => {
@@ -359,7 +379,9 @@ function init() {
       nombreArchivoBase: 'Informe_Generico',
       onResetExtra: function() {
         document.getElementById('fechaInforme').value = new Date().toISOString().slice(0, 10);
-        document.querySelector('input[name="clasificacion"][value=""]').checked = true;        document.getElementById('aspectosContainer').innerHTML = '';        updatePreview();
+        document.querySelector('input[name="clasificacion"][value=""]').checked = true;
+        document.getElementById('aspectosContainer').innerHTML = '';
+        updatePreview();
       },
       onLoadExtra: function() {
         updatePreview();

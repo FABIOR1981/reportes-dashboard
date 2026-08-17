@@ -7,14 +7,12 @@ body {
   font-family: 'Segoe UI', Arial, sans-serif;
   background: #e7ebec;
   color: #333;
-  display: flex;
-  min-height: 100vh;
 }
 
 .container {
   display: flex;
   width: 100%;
-  height: 100%;
+  min-height: 100vh;
 }
 
 .form-panel {
@@ -65,8 +63,8 @@ body {
   vertical-align: middle;
 }
 
-.form-group input, 
-.form-group textarea, 
+.form-group input,
+.form-group textarea,
 .form-group select {
   width: 100%;
   padding: 8px 12px;
@@ -154,7 +152,11 @@ body {
   background: #dc2626;
 }
 
-/* Hoja A4 simulada */
+/* Hoja A4 simulada.
+   IMPORTANTE: sin "height" fijo, solo min-height. El contenido puede crecer
+   más allá de una hoja A4 (resumen/desarrollo/conclusión extensos); la
+   paginación real para el PDF se resuelve en js/script.js recortando el
+   canvas capturado en franjas de 297mm, no forzando todo a una sola página. */
 .page-a4 {
   width: 794px;
   min-height: 1123px;
@@ -240,7 +242,6 @@ body {
 /*                    MEJORAS DE ACCESIBILIDAD                  */
 /* ============================================================ */
 
-/* Focus visible para teclado */
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -249,7 +250,6 @@ body {
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-/* Validación visual */
 .form-group input:invalid,
 .form-group textarea:invalid {
   border-color: #dc2626;
@@ -265,14 +265,19 @@ body {
 /*                    MEDIA QUERIES - RESPONSIVE                */
 /* ============================================================ */
 
-/* Tablet (768px - 1024px) */
 @media (max-width: 1024px) {
   .container {
     flex-direction: column;
     gap: 16px;
     padding: 12px;
   }
-  
+
+  .form-panel, .preview-panel {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
   .page-a4 {
     width: 100%;
     min-height: auto;
@@ -282,23 +287,22 @@ body {
   }
 }
 
-/* Móvil (hasta 768px) */
 @media (max-width: 768px) {
   body {
     padding: 8px;
   }
-  
+
   .container {
     flex-direction: column;
     gap: 12px;
     max-width: 100%;
   }
-  
+
   .form-panel, .preview-panel {
     padding: 16px;
     border-radius: 6px;
   }
-  
+
   .page-a4 {
     width: 100%;
     min-height: auto;
@@ -308,64 +312,63 @@ body {
     margin: 0;
     border: 1px solid #d1d5db;
   }
-  
+
   .form-group label {
     font-size: 13px;
     margin-bottom: 4px;
   }
-  
+
   .form-group input,
   .form-group textarea,
   .form-group select {
     font-size: 16px;
     padding: 10px;
   }
-  
+
   .report-title {
     font-size: 18px;
   }
-  
+
   .report-section h3 {
     font-size: 14px;
   }
-  
+
   .report-body {
     font-size: 12px;
   }
-  
+
   .report-meta {
     flex-direction: column;
     gap: 4px;
   }
 }
 
-/* Móvil pequeño (hasta 480px) */
 @media (max-width: 480px) {
   body {
     padding: 4px;
   }
-  
+
   .container {
     gap: 8px;
   }
-  
+
   .form-panel, .preview-panel {
     padding: 12px;
   }
-  
+
   .page-a4 {
     padding: 8mm;
     max-height: 400px;
   }
-  
+
   .form-group {
     margin-bottom: 12px;
   }
-  
+
   .report-title {
     font-size: 16px;
   }
-  
+
   .report-section h3 {
     font-size: 13px;
   }
@@ -381,32 +384,31 @@ body {
     margin: 0;
     padding: 0;
   }
-  
+
   .container {
     display: block;
     max-width: 100%;
   }
-  
+
   .form-panel {
     display: none;
   }
-  
+
   .preview-panel {
     background: transparent;
     box-shadow: none;
     padding: 0;
   }
-  
+
   .page-a4 {
     width: 210mm;
-    height: 297mm;
+    min-height: 297mm;
     padding: 20mm;
     margin: 0;
-    page-break-after: always;
     box-shadow: none;
     border: none;
   }
-  
+
   .report-body {
     white-space: normal;
   }
