@@ -225,11 +225,17 @@ body {
 }
 
 /* Botones de solo ícono (Recargar / Pantalla completa) a juego con la botonera de los informes */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .actions .icon-btn {
   width: 40px;
   height: 40px;
   padding: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
