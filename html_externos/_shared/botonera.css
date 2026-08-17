@@ -1,18 +1,18 @@
 /* ============================================================
    BOTONERA COMPACTA – Estilos para todos los informes
-   Posición fija arriba a la izquierda, alineada con el dashboard
+   Posición fija arriba a la derecha, alineada con el dashboard
    Selectores con alta especificidad para ganar sobre #actions del informe
    ============================================================ */
 
 #actions.btn-toolbar {
   position: fixed;
   top: 10px;
-  left: 10px;
+  right: 10px;
   z-index: 1000;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  justify-content: flex-start;
+  justify-content: flex-end;
   background: transparent;
   border: none;
   padding: 0;
@@ -124,9 +124,9 @@
 #status {
   position: fixed;
   top: 56px;
-  left: 10px;
+  right: 10px;
   z-index: 1000;
-  text-align: left;
+  text-align: right;
   font-size: 12px;
   color: #2c3e50;
   font-family: 'Segoe UI', system-ui, sans-serif;
@@ -233,7 +233,7 @@
 /* Responsive: en móvil */
 @media (max-width: 768px) {
   #actions.btn-toolbar {
-    left: 10px;
+    right: 10px;
     top: 10px;
     gap: 4px;
   }
@@ -247,7 +247,7 @@
     height: 16px;
   }
   #status {
-    left: 10px;
+    right: 10px;
     top: 52px;
   }
 }
