@@ -13,18 +13,30 @@ body {
 .container {
   display: flex;
   gap: 20px;
-  max-width: 1400px;
+  max-width: 100%;
   margin: 0 auto;
-  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
 }
 
-.form-panel, .preview-panel {
-  flex: 1;
+.form-panel {
+  flex: 0 0 45%;
   background: #fff;
   padding: 24px;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  min-width: 500px;
+  overflow-y: auto;
+  max-height: 90vh;
+}
+
+.preview-panel {
+  flex: 0 0 50%;
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 90vh;
 }
 
 .form-group {
@@ -32,19 +44,18 @@ body {
 }
 
 .form-group label {
-  display: flex;
+  display: inline;
   align-items: center;
   font-weight: bold;
   margin-bottom: 6px;
   font-size: 14px;
-  justify-content: space-between;
 }
 
 .form-group label input[type="checkbox"] {
   width: auto;
-  margin: 0;
-  margin-left: 8px;
+  margin: 0 6px 0 0;
   cursor: pointer;
+  vertical-align: middle;
 }
 
 .form-group input, 
