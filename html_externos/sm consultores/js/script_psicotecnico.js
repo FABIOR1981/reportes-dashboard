@@ -30,6 +30,7 @@ function addCompBlock(data){
 }
 
 defaultComps.forEach(addCompBlock);
+renderPreview();
 document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); renderPreview(); });
 
 // ---------- Helpers de formato ----------
