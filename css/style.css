@@ -224,6 +224,31 @@ body {
   border-color: var(--accent-hover);
 }
 
+/* Botones de solo ícono (Recargar / Pantalla completa) a juego con la botonera de los informes */
+.actions .icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #334155;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  transition: all 0.2s ease;
+}
+
+.actions .icon-btn:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #334155;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 .content-body {
   flex: 1;
   position: relative;

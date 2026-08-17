@@ -23,7 +23,7 @@
   width: 40px;
   height: 40px;
   padding: 0;
-  border: none;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   font-size: 18px;
   cursor: pointer;
@@ -33,22 +33,30 @@
   justify-content: center;
   position: relative;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: #1a5276;
-  color: #fff;
+  background: #ffffff;
+  color: #334155;
   margin: 0;
   overflow: visible;
   text-overflow: clip;
   white-space: normal;
   line-height: 1;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
 }
 
+#actions.btn-toolbar .btn .btn-icon {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
 #actions.btn-toolbar .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  background: #f8fafc;
 }
 
 #actions.btn-toolbar .btn:active {
@@ -61,18 +69,18 @@
   transform: none;
 }
 
-/* Colores por clase */
-#actions.btn-toolbar .btn-primary   { background: #1a5276; color: #fff; }
-#actions.btn-toolbar .btn-primary:hover   { background: #154360; }
+/* Colores por clase: fondo blanco, ícono en color semántico */
+#actions.btn-toolbar .btn-primary   { background: #ffffff; color: #1a5276; border-color: #e5e7eb; }
+#actions.btn-toolbar .btn-primary:hover   { background: #eef5fb; border-color: #cfe1ef; }
 
-#actions.btn-toolbar .btn-secondary { background: #2874a6; color: #fff; }
-#actions.btn-toolbar .btn-secondary:hover { background: #1f618d; }
+#actions.btn-toolbar .btn-secondary { background: #ffffff; color: #2874a6; border-color: #e5e7eb; }
+#actions.btn-toolbar .btn-secondary:hover { background: #eef5fb; border-color: #cfe1ef; }
 
-#actions.btn-toolbar .btn-tertiary  { background: #d4ac0d; color: #fff; }
-#actions.btn-toolbar .btn-tertiary:hover  { background: #b7950b; }
+#actions.btn-toolbar .btn-tertiary  { background: #ffffff; color: #1e293b; border-color: #e5e7eb; }
+#actions.btn-toolbar .btn-tertiary:hover  { background: #f8fafc; border-color: #e2e8f0; }
 
-#actions.btn-toolbar .btn-danger    { background: #c0392b; color: #fff; }
-#actions.btn-toolbar .btn-danger:hover    { background: #a93226; }
+#actions.btn-toolbar .btn-danger    { background: #fdecea; color: #c0392b; border-color: #f5c6c0; }
+#actions.btn-toolbar .btn-danger:hover    { background: #fbdad6; border-color: #f0aca4; }
 
 /* Tooltip */
 #actions.btn-toolbar .btn .tooltip {
@@ -233,6 +241,10 @@
     width: 36px;
     height: 36px;
     font-size: 16px;
+  }
+  #actions.btn-toolbar .btn .btn-icon {
+    width: 16px;
+    height: 16px;
   }
   #status {
     right: 10px;
