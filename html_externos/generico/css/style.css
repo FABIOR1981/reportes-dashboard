@@ -135,6 +135,14 @@ body {
   padding: 6px 8px;
 }
 
+/* Fila de dos columnas para puntaje obtenido / máximo,
+   igual patrón que .row2 de SM Consultores */
+.aspecto-block .row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
 .aspecto-block .del-btn {
   position: absolute;
   top: 8px;
@@ -225,17 +233,25 @@ body {
 }
 
 .aspecto-name {
-  font-size: 13px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: #1f2937;
+  color: #1e3a8a;
   margin-bottom: 4px;
 }
 
+.aspecto-scores {
+  font-size: 12.5px;
+  color: #1e3a8a;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
 .aspecto-desc {
-  font-size: 12px;
+  font-size: 12.5px;
   color: #4b5563;
   line-height: 1.5;
   text-align: justify;
+  margin-top: 4px;
 }
 
 /* ============================================================ */

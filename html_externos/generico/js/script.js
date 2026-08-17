@@ -40,8 +40,10 @@ function hasContent() {
 }
 
 // Agregar bloque de aspecto dinámico
+// Estructura calcada de "Competencias evaluadas" (SM Consultores):
+// nombre + puntaje obtenido/máximo + descripción.
 function addAspectoBlock(data) {
-  data = data || { nombre: '', descripcion: '' };
+  data = data || { nombre: '', puntaje: 3, maximo: 5, descripcion: '' };
   const container = document.getElementById('aspectosContainer');
 
   const div = document.createElement('div');
@@ -51,6 +53,16 @@ function addAspectoBlock(data) {
     <div class="form-group">
       <label>Aspecto</label>
       <input type="text" class="asp-nombre" value="${data.nombre || ''}" placeholder="Ej: Comunicación, Liderazgo, etc.">
+    </div>
+    <div class="row2">
+      <div class="form-group">
+        <label>Puntaje obtenido</label>
+        <input type="number" class="asp-puntaje" min="1" max="10" value="${data.puntaje ?? 3}">
+      </div>
+      <div class="form-group">
+        <label>Puntaje máximo</label>
+        <input type="number" class="asp-maximo" min="1" max="10" value="${data.maximo ?? 5}">
+      </div>
     </div>
     <div class="form-group">
       <label>Descripción</label>
@@ -137,6 +149,8 @@ function updatePreviewFn() {
     aspectosOutContainer.innerHTML = '';
     aspectosBlocks.forEach(block => {
       const nombre = block.querySelector('.asp-nombre').value.trim();
+      const puntaje = block.querySelector('.asp-puntaje').value.trim();
+      const maximo = block.querySelector('.asp-maximo').value.trim();
       const desc = block.querySelector('.asp-desc').value.trim();
 
       if (nombre || desc) {
@@ -144,6 +158,7 @@ function updatePreviewFn() {
         item.className = 'aspecto-item';
         item.innerHTML = `
           <div class="aspecto-name">${nombre || '(sin nombre)'}</div>
+          ${puntaje || maximo ? '<div class="aspecto-scores"><b>Puntaje obtenido:</b> ' + (puntaje || '-') + ' &nbsp; <b>Puntaje máximo:</b> ' + (maximo || '-') + '</div>' : ''}
           ${desc ? '<div class="aspecto-desc">' + desc + '</div>' : ''}
         `;
         aspectosOutContainer.appendChild(item);
@@ -292,9 +307,18 @@ window.downloadWord = async function() {
 
         aspectosBlocks.forEach(block => {
           const nombre = block.querySelector('.asp-nombre').value.trim();
+          const puntaje = block.querySelector('.asp-puntaje').value.trim();
+          const maximo = block.querySelector('.asp-maximo').value.trim();
           const desc = block.querySelector('.asp-desc').value.trim();
           if (nombre || desc) {
             if (nombre) children.push(new docx.Paragraph({ text: nombre, heading: docx.HeadingLevel.HEADING_3 }));
+            if (puntaje || maximo) {
+              children.push(new docx.Paragraph({
+                children: [
+                  new docx.TextRun({ text: 'Puntaje obtenido: ' + (puntaje || '-') + '   Puntaje máximo: ' + (maximo || '-'), bold: true })
+                ]
+              }));
+            }
             if (desc) children.push(new docx.Paragraph({ text: desc }));
           }
         });
