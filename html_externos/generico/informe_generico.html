@@ -78,7 +78,28 @@
         <label for="conclusion">Conclusión (opcional)</label>
         <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones..."></textarea>
       </div>
-    </div>
+      
+      <fieldset class="form-fieldset">
+        <legend>Clasificación</legend>
+        <label><input type="radio" name="clasificacion" value="" checked> Sin especificar</label>
+        <label><input type="radio" name="clasificacion" value="Recomendable"> Recomendable</label>
+        <label><input type="radio" name="clasificacion" value="Con observaciones"> Con observaciones</label>
+        <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
+      </fieldset>
+      
+      <fieldset class="form-fieldset">
+        <legend>Mostrar/Ocultar Secciones</legend>
+        <label><input type="checkbox" id="chkResumen" checked> Mostrar Resumen</label>
+        <label><input type="checkbox" id="chkDesarrollo" checked> Mostrar Desarrollo</label>
+        <label><input type="checkbox" id="chkConclusion" checked> Mostrar Conclusión</label>
+        <label><input type="checkbox" id="chkClasificacion" checked> Mostrar Clasificación</label>
+      </fieldset>
+      
+      <fieldset class="form-fieldset">
+        <legend>Aspectos Evaluados (Opcional)</legend>
+        <div id="aspectosContainer"></div>
+        <button type="button" id="addAspectoBtn" class="btn btn-secondary">+ Agregar Aspecto</button>
+      </fieldset>
 
     <!-- VISTA PREVIA (A4) -->
     <div class="preview-panel">
@@ -101,6 +122,14 @@
         <div class="report-section" id="secConclusion">
           <h3>Conclusión</h3>
           <div class="report-body" id="prevConclusion"></div>
+        </div>
+        <div class="report-section" id="secClasificacion">
+          <h3>Clasificación</h3>
+          <div id="prevClasificacion" class="classification-box"></div>
+        </div>
+        <div class="report-section" id="secAspectos">
+          <h3>Aspectos Evaluados</h3>
+          <div id="aspectosOutContainer"></div>
         </div>
       </div>
     </div>

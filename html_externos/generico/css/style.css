@@ -47,6 +47,84 @@ body {
   font-family: inherit;
 }
 
+/* Fieldsets */
+.form-fieldset {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.form-fieldset legend {
+  font-weight: bold;
+  font-size: 14px;
+  color: #1f2937;
+  padding: 0 8px;
+}
+
+.form-fieldset label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: normal;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.form-fieldset label input[type="radio"],
+.form-fieldset label input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+  cursor: pointer;
+}
+
+.form-fieldset label:last-child {
+  margin-bottom: 0;
+}
+
+/* Aspectos dinámicos (formulario) */
+.aspecto-block {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.aspecto-block .form-group {
+  margin-bottom: 8px;
+}
+
+.aspecto-block .form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.aspecto-block .form-group input,
+.aspecto-block .form-group textarea {
+  font-size: 12px;
+  padding: 6px 8px;
+}
+
+.aspecto-block .del-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.aspecto-block .del-btn:hover {
+  background: #dc2626;
+}
+
 /* Hoja A4 simulada */
 .page-a4 {
   width: 210mm;
@@ -92,6 +170,42 @@ body {
   font-size: 14px;
   line-height: 1.6;
   white-space: pre-wrap;
+}
+
+/* Clasificación */
+.classification-box {
+  padding: 12px;
+  background: #f0f9ff;
+  border-left: 4px solid #2563eb;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+/* Aspectos dinámicos (vista previa) */
+.aspecto-item {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.aspecto-item:last-child {
+  border-bottom: none;
+}
+
+.aspecto-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.aspecto-desc {
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.5;
+  text-align: justify;
 }
 
 /* ============================================================ */
