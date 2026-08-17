@@ -67,15 +67,15 @@
         <input type="date" id="fechaInforme">
       </div>
       <div class="form-group">
-        <label for="resumen">Resumen / Antecedentes</label>
+        <label for="resumen">Resumen / Antecedentes (opcional)</label>
         <textarea id="resumen" rows="4" placeholder="Escriba un resumen breve..."></textarea>
       </div>
       <div class="form-group">
-        <label for="desarrollo">Desarrollo / Observaciones</label>
+        <label for="desarrollo">Desarrollo / Observaciones (opcional)</label>
         <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones..."></textarea>
       </div>
       <div class="form-group">
-        <label for="conclusion">Conclusión</label>
+        <label for="conclusion">Conclusión (opcional)</label>
         <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones..."></textarea>
       </div>
     </div>
@@ -86,21 +86,21 @@
         <div class="report-header">
           <h1 class="report-title" id="prevTitulo">INFORME GENERAL</h1>
           <div class="report-meta">
-            <span id="prevDestinatario">Para: -</span>
-            <span id="prevFecha">Fecha: -</span>
+            <span id="prevDestinatario"></span>
+            <span id="prevFecha"></span>
           </div>
         </div>
-        <div class="report-section">
-          <h3>1. Resumen / Antecedentes</h3>
-          <div class="report-body" id="prevResumen">-</div>
+        <div class="report-section" id="secResumen">
+          <h3>Resumen / Antecedentes</h3>
+          <div class="report-body" id="prevResumen"></div>
         </div>
-        <div class="report-section">
-          <h3>2. Desarrollo / Observaciones</h3>
-          <div class="report-body" id="prevDesarrollo">-</div>
+        <div class="report-section" id="secDesarrollo">
+          <h3>Desarrollo / Observaciones</h3>
+          <div class="report-body" id="prevDesarrollo"></div>
         </div>
-        <div class="report-section">
-          <h3>3. Conclusión</h3>
-          <div class="report-body" id="prevConclusion">-</div>
+        <div class="report-section" id="secConclusion">
+          <h3>Conclusión</h3>
+          <div class="report-body" id="prevConclusion"></div>
         </div>
       </div>
     </div>

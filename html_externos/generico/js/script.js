@@ -1,18 +1,44 @@
-// Actualizar la vista previa
+// Actualizar la vista previa ocultando secciones vacías
 function updatePreview() {
-  const titulo = document.getElementById('tituloInforme');
-  const destinatario = document.getElementById('destinatario');
-  const fecha = document.getElementById('fechaInforme');
-  const resumen = document.getElementById('resumen');
-  const desarrollo = document.getElementById('desarrollo');
-  const conclusion = document.getElementById('conclusion');
+  const titulo = document.getElementById('tituloInforme').value.trim();
+  const destinatario = document.getElementById('destinatario').value.trim();
+  const fecha = document.getElementById('fechaInforme').value;
+  
+  const resumen = document.getElementById('resumen').value.trim();
+  const desarrollo = document.getElementById('desarrollo').value.trim();
+  const conclusion = document.getElementById('conclusion').value.trim();
 
-  if (titulo) document.getElementById('prevTitulo').textContent = titulo.value || 'INFORME GENERAL';
-  if (destinatario) document.getElementById('prevDestinatario').textContent = 'Para: ' + (destinatario.value || '-');
-  if (fecha) document.getElementById('prevFecha').textContent = 'Fecha: ' + (fecha.value || '-');
-  if (resumen) document.getElementById('prevResumen').textContent = resumen.value || '-';
-  if (desarrollo) document.getElementById('prevDesarrollo').textContent = desarrollo.value || '-';
-  if (conclusion) document.getElementById('prevConclusion').textContent = conclusion.value || '-';
+  // Encabezado
+  document.getElementById('prevTitulo').textContent = titulo || 'INFORME GENERAL';
+  document.getElementById('prevDestinatario').textContent = destinatario ? 'Para: ' + destinatario : '';
+  document.getElementById('prevFecha').textContent = fecha ? 'Fecha: ' + fecha : '';
+
+  // Resumen
+  const secResumen = document.getElementById('secResumen');
+  if (resumen) {
+    document.getElementById('prevResumen').textContent = resumen;
+    secResumen.style.display = 'block';
+  } else {
+    secResumen.style.display = 'none';
+  }
+
+  // Desarrollo
+  const secDesarrollo = document.getElementById('secDesarrollo');
+  if (desarrollo) {
+    document.getElementById('prevDesarrollo').textContent = desarrollo;
+    secDesarrollo.style.display = 'block';
+  } else {
+    secDesarrollo.style.display = 'none';
+  }
+
+  // Conclusión
+  const secConclusion = document.getElementById('secConclusion');
+  if (conclusion) {
+    document.getElementById('prevConclusion').textContent = conclusion;
+    secConclusion.style.display = 'block';
+  } else {
+    secConclusion.style.display = 'none';
+  }
 }
 
 // Contrato: window.downloadPDF
@@ -31,7 +57,7 @@ window.downloadPDF = async function() {
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     
-    const nombreArchivo = (document.getElementById('tituloInforme').value || 'Informe_Generico') + '.pdf';
+    const nombreArchivo = (document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.pdf';
     pdf.save(nombreArchivo);
 
     if (status) status.textContent = '✔ PDF descargado con éxito.';
@@ -52,28 +78,45 @@ window.downloadWord = async function() {
   if (status) status.textContent = 'Generando Word, por favor espera...';
 
   try {
+    const children = [
+      new docx.Paragraph({ text: document.getElementById('tituloInforme').value.trim() || 'INFORME GENERAL', heading: docx.HeadingLevel.HEADING_1 })
+    ];
+
+    const destinatario = document.getElementById('destinatario').value.trim();
+    if (destinatario) children.push(new docx.Paragraph({ text: 'Para: ' + destinatario }));
+
+    const fecha = document.getElementById('fechaInforme').value;
+    if (fecha) children.push(new docx.Paragraph({ text: 'Fecha: ' + fecha }));
+
+    const resumen = document.getElementById('resumen').value.trim();
+    if (resumen) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: 'Resumen / Antecedentes', heading: docx.HeadingLevel.HEADING_2 }));
+      children.push(new docx.Paragraph({ text: resumen }));
+    }
+
+    const desarrollo = document.getElementById('desarrollo').value.trim();
+    if (desarrollo) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: 'Desarrollo / Observaciones', heading: docx.HeadingLevel.HEADING_2 }));
+      children.push(new docx.Paragraph({ text: desarrollo }));
+    }
+
+    const conclusion = document.getElementById('conclusion').value.trim();
+    if (conclusion) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: 'Conclusión', heading: docx.HeadingLevel.HEADING_2 }));
+      children.push(new docx.Paragraph({ text: conclusion }));
+    }
+
     const doc = new docx.Document({
-      sections: [{
-        properties: {},
-        children: [
-          new docx.Paragraph({ text: document.getElementById('tituloInforme').value || 'INFORME GENERAL', heading: docx.HeadingLevel.HEADING_1 }),
-          new docx.Paragraph({ text: 'Para: ' + (document.getElementById('destinatario').value || '-') }),
-          new docx.Paragraph({ text: 'Fecha: ' + (document.getElementById('fechaInforme').value || '-') }),
-          new docx.Paragraph({ text: '' }),
-          new docx.Paragraph({ text: '1. Resumen / Antecedentes', heading: docx.HeadingLevel.HEADING_2 }),
-          new docx.Paragraph({ text: document.getElementById('resumen').value || '-' }),
-          new docx.Paragraph({ text: '2. Desarrollo / Observaciones', heading: docx.HeadingLevel.HEADING_2 }),
-          new docx.Paragraph({ text: document.getElementById('desarrollo').value || '-' }),
-          new docx.Paragraph({ text: '3. Conclusión', heading: docx.HeadingLevel.HEADING_2 }),
-          new docx.Paragraph({ text: document.getElementById('conclusion').value || '-' })
-        ]
-      }]
+      sections: [{ properties: {}, children }]
     });
 
     const blob = await docx.Packer.toBlob(doc);
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = (document.getElementById('tituloInforme').value || 'Informe_Generico') + '.docx';
+    link.download = (document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.docx';
     link.click();
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
