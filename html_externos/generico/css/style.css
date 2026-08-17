@@ -32,10 +32,19 @@ body {
 }
 
 .form-group label {
-  display: block;
+  display: flex;
+  align-items: center;
   font-weight: bold;
   margin-bottom: 6px;
   font-size: 14px;
+  justify-content: space-between;
+}
+
+.form-group label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  margin-left: 8px;
+  cursor: pointer;
 }
 
 .form-group input, 

@@ -67,32 +67,35 @@
         <input type="date" id="fechaInforme">
       </div>
       <div class="form-group">
-        <label for="resumen">Resumen / Antecedentes (opcional)</label>
+        <label for="resumen">
+          Resumen / Antecedentes (opcional)
+          <input type="checkbox" id="chkResumen" checked>
+        </label>
         <textarea id="resumen" rows="4" placeholder="Escriba un resumen breve..."></textarea>
       </div>
       <div class="form-group">
-        <label for="desarrollo">Desarrollo / Observaciones (opcional)</label>
+        <label for="desarrollo">
+          Desarrollo / Observaciones (opcional)
+          <input type="checkbox" id="chkDesarrollo" checked>
+        </label>
         <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones..."></textarea>
       </div>
       <div class="form-group">
-        <label for="conclusion">Conclusión (opcional)</label>
+        <label for="conclusion">
+          Conclusión (opcional)
+          <input type="checkbox" id="chkConclusion" checked>
+        </label>
         <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones..."></textarea>
       </div>
       
       <fieldset class="form-fieldset">
         <legend>Clasificación</legend>
+        <label><input type="checkbox" id="chkClasificacion" checked> Mostrar clasificación</label>
+        <br><br>
         <label><input type="radio" name="clasificacion" value="" checked> Sin especificar</label>
         <label><input type="radio" name="clasificacion" value="Recomendable"> Recomendable</label>
         <label><input type="radio" name="clasificacion" value="Con observaciones"> Con observaciones</label>
         <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
-      </fieldset>
-      
-      <fieldset class="form-fieldset">
-        <legend>Mostrar/Ocultar Secciones</legend>
-        <label><input type="checkbox" id="chkResumen" checked> Mostrar Resumen</label>
-        <label><input type="checkbox" id="chkDesarrollo" checked> Mostrar Desarrollo</label>
-        <label><input type="checkbox" id="chkConclusion" checked> Mostrar Conclusión</label>
-        <label><input type="checkbox" id="chkClasificacion" checked> Mostrar Clasificación</label>
       </fieldset>
       
       <fieldset class="form-fieldset">
