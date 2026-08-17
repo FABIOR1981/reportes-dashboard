@@ -6,39 +6,39 @@ body {
   font-family: Arial, sans-serif;
   background: #f3f4f6;
   margin: 0;
-  padding: 20px;
+  padding: 0;
   color: #333;
+  display: flex;
+  min-height: 100vh;
 }
 
 .container {
-  display: flex;
-  gap: 20px;
-  max-width: 100%;
-  margin: 0 auto;
-  flex-wrap: nowrap;
-  align-items: flex-start;
+  display: contents;
 }
 
 .form-panel {
-  flex: 1;
+  width: 520px;
+  min-width: 520px;
   background: #fff;
   padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
   overflow-y: auto;
-  max-height: 90vh;
-  min-width: 400px;
+  height: 100vh;
 }
 
 .preview-panel {
   flex: 1;
-  background: #fff;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #f3f4f6;
+  padding: 30px;
+  border-radius: 0;
+  box-shadow: none;
   overflow-y: auto;
-  max-height: 90vh;
-  min-width: 400px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
 }
 
 .form-group {
@@ -151,13 +151,13 @@ body {
 
 /* Hoja A4 simulada */
 .page-a4 {
-  width: 210mm;
-  min-height: 297mm;
-  padding: 20mm;
-  margin: 0 auto;
+  width: 794px;
+  min-height: 1123px;
+  padding: 50px 60px;
   background: white;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: none;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+  position: relative;
 }
 
 .report-header {
