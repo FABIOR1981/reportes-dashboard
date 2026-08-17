@@ -153,12 +153,19 @@ function updatePreviewFn() {
       const maximo = block.querySelector('.asp-maximo').value.trim();
       const desc = block.querySelector('.asp-desc').value.trim();
 
+      // Solo mostrar la línea de puntajes si al menos uno de los dos
+      // valores es distinto de cero. "0 / 0" significa "sin puntuar":
+      // ni el dato ni la etiqueta deben aparecer en la vista previa.
+      const puntajeNum = parseFloat(puntaje) || 0;
+      const maximoNum = parseFloat(maximo) || 0;
+      const mostrarPuntajes = puntajeNum !== 0 || maximoNum !== 0;
+
       if (nombre || desc) {
         const item = document.createElement('div');
         item.className = 'aspecto-item';
         item.innerHTML = `
           <div class="aspecto-name">${nombre || '(sin nombre)'}</div>
-          ${puntaje || maximo ? '<div class="aspecto-scores"><b>Puntaje obtenido:</b> ' + (puntaje || '-') + ' &nbsp; <b>Puntaje máximo:</b> ' + (maximo || '-') + '</div>' : ''}
+          ${mostrarPuntajes ? '<div class="aspecto-scores"><b>Puntaje obtenido:</b> ' + (puntaje || '-') + ' &nbsp; <b>Puntaje máximo:</b> ' + (maximo || '-') + '</div>' : ''}
           ${desc ? '<div class="aspecto-desc">' + desc + '</div>' : ''}
         `;
         aspectosOutContainer.appendChild(item);
@@ -310,9 +317,12 @@ window.downloadWord = async function() {
           const puntaje = block.querySelector('.asp-puntaje').value.trim();
           const maximo = block.querySelector('.asp-maximo').value.trim();
           const desc = block.querySelector('.asp-desc').value.trim();
+          const puntajeNum = parseFloat(puntaje) || 0;
+          const maximoNum = parseFloat(maximo) || 0;
+          const mostrarPuntajes = puntajeNum !== 0 || maximoNum !== 0;
           if (nombre || desc) {
             if (nombre) children.push(new docx.Paragraph({ text: nombre, heading: docx.HeadingLevel.HEADING_3 }));
-            if (puntaje || maximo) {
+            if (mostrarPuntajes) {
               children.push(new docx.Paragraph({
                 children: [
                   new docx.TextRun({ text: 'Puntaje obtenido: ' + (puntaje || '-') + '   Puntaje máximo: ' + (maximo || '-'), bold: true })
