@@ -273,21 +273,9 @@ window.downloadWord = async function() {
       children.push(new docx.Paragraph({ text: desarrollo }));
     }
 
-    const conclusion = document.getElementById('conclusion').value.trim();
-    if (conclusion) {
-      children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Conclusión', heading: docx.HeadingLevel.HEADING_2 }));
-      children.push(new docx.Paragraph({ text: conclusion }));
-    }
-
-    const clasificacion = document.querySelector('input[name="clasificacion"]:checked').value;
-    if (clasificacion) {
-      children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
-      children.push(new docx.Paragraph({ text: clasificacion }));
-    }
-
-    // Aspectos dinámicos
+    // Orden narrativo coherente con UDE / SM Consultores:
+    // aspectos evaluados (evidencia detallada) → conclusión → clasificación
+    // (siempre la ÚLTIMA sección, es el veredicto final).
     const aspectosContainer = document.getElementById('aspectosContainer');
     const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
     if (aspectosBlocks.length > 0) {
@@ -311,6 +299,20 @@ window.downloadWord = async function() {
           }
         });
       }
+    }
+
+    const conclusion = document.getElementById('conclusion').value.trim();
+    if (conclusion) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: 'Conclusión', heading: docx.HeadingLevel.HEADING_2 }));
+      children.push(new docx.Paragraph({ text: conclusion }));
+    }
+
+    const clasificacion = document.querySelector('input[name="clasificacion"]:checked').value;
+    if (clasificacion) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
+      children.push(new docx.Paragraph({ text: clasificacion }));
     }
 
     const doc = new docx.Document({
