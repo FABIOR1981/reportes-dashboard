@@ -132,10 +132,23 @@ function updatePreviewFn() {
   // Clasificación
   const secClasificacion = document.getElementById('secClasificacion');
   const chkClasificacion = document.getElementById('chkClasificacion').checked;
+  const clasifObsWrapper = document.getElementById('clasifObsWrapper');
+  const clasifObservaciones = document.getElementById('clasifObservaciones').value.trim();
+  const esConObservaciones = clasificacion === 'Con observaciones';
+
+  // El campo de texto de observaciones solo tiene sentido cuando la
+  // clasificación elegida es justamente "Con observaciones".
+  if (clasifObsWrapper) {
+    clasifObsWrapper.style.display = esConObservaciones ? 'block' : 'none';
+  }
+
   if (clasificacion && chkClasificacion) {
     document.getElementById('prevClasificacion').textContent = clasificacion;
+    document.getElementById('prevClasifObservaciones').textContent =
+      (esConObservaciones && clasifObservaciones) ? clasifObservaciones : '';
     secClasificacion.style.display = 'block';
   } else {
+    document.getElementById('prevClasifObservaciones').textContent = '';
     secClasificacion.style.display = 'none';
   }
 
@@ -347,6 +360,13 @@ window.downloadWord = async function() {
       children.push(new docx.Paragraph({ text: '' }));
       children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
       children.push(new docx.Paragraph({ text: clasificacion }));
+
+      if (clasificacion === 'Con observaciones') {
+        const clasifObservaciones = document.getElementById('clasifObservaciones').value.trim();
+        if (clasifObservaciones) {
+          children.push(new docx.Paragraph({ text: clasifObservaciones }));
+        }
+      }
     }
 
     const doc = new docx.Document({
@@ -375,7 +395,7 @@ window.downloadWord = async function() {
 
 // Inicialización de event listeners y Botonera
 function init() {
-  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion'];
+  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion', 'clasifObservaciones'];
 
   campos.forEach(id => {
     const el = document.getElementById(id);
@@ -386,7 +406,15 @@ function init() {
   });
 
   document.querySelectorAll('input[name="clasificacion"]').forEach(radio => {
-    radio.addEventListener('change', updatePreview);
+    radio.addEventListener('change', () => {
+      // Toggle inmediato (sin esperar el debounce de updatePreview) para
+      // que el campo de observaciones aparezca/desaparezca al instante.
+      const clasifObsWrapper = document.getElementById('clasifObsWrapper');
+      if (clasifObsWrapper) {
+        clasifObsWrapper.style.display = (radio.value === 'Con observaciones' && radio.checked) ? 'block' : 'none';
+      }
+      updatePreview();
+    });
   });
 
   const checkboxes = ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion'];
@@ -410,13 +438,16 @@ function init() {
         { id: 'tituloInforme', label: 'Título del informe' },
         { id: 'resumen', label: 'Resumen' },
         { id: 'desarrollo', label: 'Desarrollo / Observaciones' },
-        { id: 'conclusion', label: 'Conclusión' }
+        { id: 'conclusion', label: 'Conclusión' },
+        { id: 'clasifObservaciones', label: 'Observaciones de la clasificación' }
       ],
       nombreArchivoBase: 'Informe_Generico',
       onResetExtra: function() {
         document.getElementById('fechaInforme').value = new Date().toISOString().slice(0, 10);
         document.querySelector('input[name="clasificacion"][value=""]').checked = true;
         document.getElementById('aspectosContainer').innerHTML = '';
+        const clasifObsWrapper = document.getElementById('clasifObsWrapper');
+        if (clasifObsWrapper) clasifObsWrapper.style.display = 'none';
         updatePreview();
       },
       onLoadExtra: function() {

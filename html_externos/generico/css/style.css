@@ -221,6 +221,21 @@ body {
   color: #1e3a8a;
 }
 
+.classification-obs {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: #f8f9f9;
+  border-left: 4px solid #d5dbdb;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: normal;
+  color: #4b5563;
+}
+
+.classification-obs:empty {
+  display: none;
+}
+
 /* Aspectos dinámicos (vista previa) */
 .aspecto-item {
   margin-bottom: 16px;

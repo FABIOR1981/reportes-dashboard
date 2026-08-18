@@ -117,6 +117,12 @@
         <label><input type="radio" name="clasificacion" value="Recomendable"> Recomendable</label>
         <label><input type="radio" name="clasificacion" value="Con observaciones"> Con observaciones</label>
         <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
+
+        <!-- Solo visible cuando la clasificación es "Con observaciones" -->
+        <div class="form-group" id="clasifObsWrapper" style="display:none; margin-top:12px;">
+          <label for="clasifObservaciones">Observaciones</label>
+          <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación..."></textarea>
+        </div>
       </fieldset>
     </div>
     <!-- /.form-panel -->
@@ -150,6 +156,7 @@
         <div class="report-section" id="secClasificacion">
           <h3>Clasificación</h3>
           <div id="prevClasificacion" class="classification-box"></div>
+          <div id="prevClasifObservaciones" class="report-body classification-obs"></div>
         </div>
       </div>
     </div>
