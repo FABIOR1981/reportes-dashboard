@@ -1,6 +1,250 @@
-# CONTEXT: Reportes Dashboard – FABIOR1981/reportes-dashboard
+# 📋 REPORTES-DASHBOARD: CONTEXTO ARQUITECTURA
+**Última actualización:** 17-08-2026
 
-## 1. Propósito del proyecto
+---
+
+## 🎯 PROPÓSITO DEL PROYECTO
+
+Dashboard dinámico para **generación de informes profesionales HTML**. Cada informe es una aplicación independiente con:
+- 📝 Formulario dinámico
+- 👁️ Vista previa en tiempo real (A4 simulada)
+- 📥 Exportación a PDF y Word
+- 💾 Guardado/carga de datos en JSON
+- ✅ Revisión ortográfica con diccionario personalizado
+
+**Hosting:** Netlify (SPA, sin backend)
+
+---
+
+## 📁 ESTRUCTURA DEL PROYECTO
+
+```
+reportes-dashboard/
+├── index.html                           # Dashboard principal
+├── index.json                           # Metadatos de informes
+├── js/main.js                          # Lógica del dashboard
+├── css/style.css                       # Estilos globales
+│
+├── html_externos/                      # Informes autocontenidos
+│   ├── _shared/
+│   │   ├── botonera.js                 # ⭐ LIBRERÍA COMPARTIDA: botones + diccionario
+│   │   └── botonera.css                # Estilos de botonera
+│   │
+│   ├── generico/                       # ✨ INFORME GENÉRICO (Mejorado 08-2026)
+│   │   ├── informe_generico.html       # Layout: 2 paneles lado a lado
+│   │   ├── js/script.js                # Lógica + funciones de descarga
+│   │   └── css/style.css               # Estilos + responsive
+│   │
+│   ├── sm consultores/                 # Informe Psicotécnico
+│   │   ├── generador_informe_psicotecnico.html
+│   │   ├── js/script_psicotecnico.js   # 3 páginas, competencias dinámicas
+│   │   └── css/style_psicotecnico.css
+│   │
+│   └── ude/                            # Informe Psicolaboral
+│       ├── generador_informe_psicolaboral.html
+│       ├── js/script_psicolaboral.js   # 1 página, datos fijos
+│       └── css/style_psicolaboral.css
+│
+└── para nuevo informe/
+    ├── CONTEXTO_ARQUITECTURA_DASHBOARD.md
+    └── PROMPT_NUEVO_INFORME.md
+```
+
+---
+
+## 🛠️ STACK TECNOLÓGICO
+
+| Aspecto | Tecnología | Versión |
+|--------|-----------|---------|
+| **Frontend** | HTML5 + CSS3 + JS Vanilla | - |
+| **Exportación PDF** | html2canvas + jsPDF | 1.4.1 + 2.5.1 |
+| **Exportación Word** | docx (UMD) | 8.5.0 |
+| **Corrector ortográfico** | LanguageTool API | v2/check |
+| **Build** | Node.js nativo | - |
+| **Hosting** | Netlify | - |
+| **Almacenamiento** | localStorage | - |
+
+**Librerías cargadas vía CDN:**
+```html
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+```
+
+---
+
+## 📐 ARQUITECTURA LAYOUT
+
+### Cada Informe: 2 Paneles Lado a Lado
+```
+┌───────────────────┬──────────────────────────┐
+│  PANEL IZQUIERDO  │  PANEL DERECHO           │
+│  (Formulario)     │  (Vista Previa A4)       │
+│  520px fijo       │  Flex: 1 (ocupa resto)   │
+│  height: 100vh    │  height: 100vh           │
+│  scroll-y         │  scroll-y                │
+└───────────────────┴──────────────────────────┘
+```
+
+**CSS Critical:**
+```css
+body { display: flex; min-height: 100vh; }
+.form-panel { width: 520px; height: 100vh; overflow-y: auto; }
+.preview-panel { flex: 1; height: 100vh; overflow-y: auto; }
+```
+
+**Página A4 simulada:**
+- Ancho: `794px` (210mm @ 96dpi)
+- Alto: `1123px` (297mm @ 96dpi)
+- Padding: `50px 60px`
+
+### Botonera Compartida
+- Fixed: `top: 10px; right: 10px; z-index: 1000`
+- 6 botones: PDF, Word, Guardar, Cargar, Ortografía, Limpiar
+- Iconos SVG (no emoji)
+- Status debajo
+
+---
+
+## 🔄 FLUJO DE DATOS
+
+### Ciclo de Actualización
+```
+Usuario edita campo → Event listener
+  → updatePreview() [con debounce 300ms]
+  → Renderiza preview en tiempo real
+  → Oculta secciones vacías automáticamente
+```
+
+### Exportación PDF
+```
+Click [PDF] → Validar contenido (no vacío)
+  → Validar librerías → html2canvas()
+  → jsPDF.addImage() → Sanitizar nombre
+  → pdf.save()
+```
+
+---
+
+## 📊 INFORMES DISPONIBLES
+
+### 1️⃣ INFORME GENÉRICO ✨ (Actualizado 08-2026)
+
+**Características:**
+- ✅ Estructura flexible y reutilizable
+- ✅ Secciones controlables con checkboxes (mostrar/ocultar)
+- ✅ Clasificación con radio buttons
+- ✅ **Aspectos dinámicos:** Agregar/eliminar múltiples aspectos evaluados
+- ✅ Exportación completa a PDF y Word
+
+**Mejoras implementadas (08-2026):**
+- 🔒 **Seguridad:** Sanitización de nombres archivo, escapado de HTML (XSS prevention)
+- ⚡ **Performance:** Debounce en updatePreview (300ms)
+- ✔️ **Validación:** No permite descargar si documento está vacío
+- 📱 **Responsive:** Media queries, estilos de impresión
+- ✅ **Accesibilidad:** Focus states, aria-live, labels correctos
+
+---
+
+### 2️⃣ INFORME PSICOTÉCNICO (SM Consultores)
+- 3 páginas, competencias dinámicas, escala 1-5
+
+### 3️⃣ INFORME PSICOLABORAL (UDE)
+- 1 página compacta, datos fijos
+
+---
+
+## ⭐ BOTONERA COMPARTIDA (`_shared/botonera.js`)
+
+### Implementación
+```javascript
+Botonera.init({
+  camposGuardables: [],         // IDs de inputs
+  camposOrtografia: [],         // IDs de textareas
+  nombreArchivoBase: 'informe',
+  onResetExtra: null,           // Callback personalizado
+  onLoadExtra: null
+})
+```
+
+### Seguridad (08-2026)
+- ✅ `escapeHTML()` para prevenir XSS
+- ✅ Validación regex en entrada diccionario
+- ✅ localStorage con fallback
+
+---
+
+## 🔐 CONTRATOS Y REGLAS
+
+### Contrato: `window.downloadPDF()` y `window.downloadWord()`
+
+**❌ NUNCA hacer:**
+```javascript
+btn.textContent = 'Generando...';  // Destruye el tooltip
+```
+
+**✅ SIEMPRE hacer:**
+```javascript
+btn.disabled = true;
+status.textContent = 'Generando...';  // Usa #status, no modifica botón
+```
+
+### Validación de Contenido
+```javascript
+function hasContent() {
+  // Verificar que hay algo por exportar
+  return titulo || resumen || desarrollo || conclusion || aspectos.length > 0;
+}
+```
+
+### Sanitización de Nombres
+```javascript
+function sanitizeFilename(str) {
+  return str
+    .replace(/[\/\\:?*"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .substring(0, 100);
+}
+```
+
+---
+
+## 🛡️ PROBLEMAS CONOCIDOS Y SOLUCIONES
+
+### 1. Competencias no se ven en preview
+**Solución:** Agregar `renderPreview()` después de cargar datos por defecto
+
+### 2. Vista previa bajo formulario
+**Solución:** Asegurar `body { display: flex; min-height: 100vh; }`
+
+### 3. XSS en revisión ortográfica
+**Solución:** Usar `escapeHTML()` al renderizar contenido del usuario
+
+### 4. Caracteres inválidos en nombres archivo
+**Solución:** Usar `sanitizeFilename()`
+
+---
+
+## 📋 CHECKLIST PARA NUEVO INFORME
+
+- [ ] Crear `html_externos/[nombre]/` con HTML, JS, CSS
+- [ ] Implementar `window.downloadPDF()` y `window.downloadWord()`
+- [ ] Llamar `Botonera.init({ camposGuardables: [...] })`
+- [ ] Layout: `body { display: flex; }` + paneles 520px / flex:1
+- [ ] Testar PDF, Word, Guardar, Cargar, Ortografía, Limpiar
+- [ ] Agregar en `index.json` y dashboard
+
+---
+
+## 🚀 NOTAS FINALES
+
+- **Sin backend:** Todo ocurre en cliente
+- **localStorage:** Datos persisten entre sesiones
+- **CDN:** No hay node_modules
+- **Offline:** Funciona excepto revisión ortográfica
+- **Print:** `@media print` optimiza impresión
+
+**Última actualización:** 17-08-2026 (Informe Genérico mejorado con seguridad + performance)
 Dashboard dinámico para reportes HTML. Centraliza visualizaciones e informes autocontenidos en un panel navegable con menú lateral. Cada informe es un generador de informes profesionales con formularios, vistas previas y exportación a PDF/Word.
 
 ## 2. Estructura de carpetas
