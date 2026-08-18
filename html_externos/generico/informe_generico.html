@@ -124,6 +124,26 @@
           <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación...">Se sugiere realizar un seguimiento en los próximos tres meses para verificar la implementación de las recomendaciones planteadas.</textarea>
         </div>
       </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend>Datos del Firmante</legend>
+        <label><input type="checkbox" id="chkFirma" checked> Mostrar firma</label>
+        <br><br>
+        <div class="row2">
+          <div class="form-group">
+            <label for="firmanteNombre">Nombre completo</label>
+            <input type="text" id="firmanteNombre" placeholder="Ej: Lic. Juan Pérez">
+          </div>
+          <div class="form-group">
+            <label for="firmanteContacto">Contacto (tel./cel.)</label>
+            <input type="text" id="firmanteContacto" placeholder="Ej: 099 123 456">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="firmanteCargo">Cargo / Especialidad</label>
+          <input type="text" id="firmanteCargo" placeholder="Ej: Responsable de Recursos Humanos" spellcheck="true">
+        </div>
+      </fieldset>
     </div>
     <!-- /.form-panel -->
 
@@ -157,6 +177,14 @@
           <h3>Clasificación</h3>
           <div id="prevClasificacion" class="classification-box"></div>
           <div id="prevClasifObservaciones" class="report-body classification-obs"></div>
+        </div>
+        <div class="report-section" id="secFirma">
+          <div class="firma-block">
+            <div class="firma-line"></div>
+            <div class="firma-nombre" id="prevFirmanteNombre"></div>
+            <div class="firma-cargo" id="prevFirmanteCargo"></div>
+            <div class="firma-mat" id="prevFirmanteContacto"></div>
+          </div>
         </div>
       </div>
     </div>

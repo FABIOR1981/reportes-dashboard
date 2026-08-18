@@ -269,6 +269,43 @@ body {
   margin-top: 4px;
 }
 
+/* Firma del responsable/firmante */
+.firma-block {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.firma-line {
+  width: 280px;
+  border-top: 1px solid #1f2937;
+  margin: 0 auto 8px auto;
+  padding-top: 8px;
+}
+
+.firma-nombre {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.firma-cargo {
+  font-size: 11px;
+  color: #4b5563;
+  margin-top: 2px;
+}
+
+.firma-mat {
+  font-size: 10px;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
+.firma-nombre:empty,
+.firma-cargo:empty,
+.firma-mat:empty {
+  display: none;
+}
+
 /* ============================================================ */
 /*                    MEJORAS DE ACCESIBILIDAD                  */
 /* ============================================================ */

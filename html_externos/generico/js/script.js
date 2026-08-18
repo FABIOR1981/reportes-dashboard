@@ -161,6 +161,23 @@ function updatePreviewFn() {
     secClasificacion.style.display = 'none';
   }
 
+  // Firma del firmante (mismo criterio que "Datos del profesional" en UDE:
+  // los datos ingresados se usan para armar el bloque de firma al pie).
+  const secFirma = document.getElementById('secFirma');
+  const chkFirma = document.getElementById('chkFirma').checked;
+  const firmanteNombre = document.getElementById('firmanteNombre').value.trim();
+  const firmanteCargo = document.getElementById('firmanteCargo').value.trim();
+  const firmanteContacto = document.getElementById('firmanteContacto').value.trim();
+
+  if (chkFirma && (firmanteNombre || firmanteCargo || firmanteContacto)) {
+    document.getElementById('prevFirmanteNombre').textContent = firmanteNombre;
+    document.getElementById('prevFirmanteCargo').textContent = firmanteCargo;
+    document.getElementById('prevFirmanteContacto').textContent = firmanteContacto;
+    secFirma.style.display = 'block';
+  } else {
+    secFirma.style.display = 'none';
+  }
+
   // Aspectos dinámicos
   const secAspectos = document.getElementById('secAspectos');
   const aspectosContainer = document.getElementById('aspectosContainer');
@@ -378,6 +395,29 @@ window.downloadWord = async function() {
       }
     }
 
+    // Firma del firmante (mismo dato usado en la vista previa)
+    const chkFirma = document.getElementById('chkFirma').checked;
+    const firmanteNombre = document.getElementById('firmanteNombre').value.trim();
+    const firmanteCargo = document.getElementById('firmanteCargo').value.trim();
+    const firmanteContacto = document.getElementById('firmanteContacto').value.trim();
+    if (chkFirma && (firmanteNombre || firmanteCargo || firmanteContacto)) {
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: '' }));
+      children.push(new docx.Paragraph({ text: '_______________________', alignment: docx.AlignmentType.CENTER }));
+      if (firmanteNombre) {
+        children.push(new docx.Paragraph({
+          children: [new docx.TextRun({ text: firmanteNombre, bold: true })],
+          alignment: docx.AlignmentType.CENTER
+        }));
+      }
+      if (firmanteCargo) {
+        children.push(new docx.Paragraph({ text: firmanteCargo, alignment: docx.AlignmentType.CENTER }));
+      }
+      if (firmanteContacto) {
+        children.push(new docx.Paragraph({ text: firmanteContacto, alignment: docx.AlignmentType.CENTER }));
+      }
+    }
+
     const doc = new docx.Document({
       sections: [{ properties: {}, children }]
     });
@@ -404,7 +444,7 @@ window.downloadWord = async function() {
 
 // Inicialización de event listeners y Botonera
 function init() {
-  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion', 'clasifObservaciones'];
+  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion', 'clasifObservaciones', 'firmanteNombre', 'firmanteCargo', 'firmanteContacto'];
 
   campos.forEach(id => {
     const el = document.getElementById(id);
@@ -426,7 +466,7 @@ function init() {
     });
   });
 
-  const checkboxes = ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion'];
+  const checkboxes = ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'];
   checkboxes.forEach(id => {
     const chk = document.getElementById(id);
     if (chk) chk.addEventListener('change', updatePreview);
@@ -448,7 +488,8 @@ function init() {
         { id: 'resumen', label: 'Resumen' },
         { id: 'desarrollo', label: 'Desarrollo / Observaciones' },
         { id: 'conclusion', label: 'Conclusión' },
-        { id: 'clasifObservaciones', label: 'Observaciones de la clasificación' }
+        { id: 'clasifObservaciones', label: 'Observaciones de la clasificación' },
+        { id: 'firmanteCargo', label: 'Cargo / Especialidad del firmante' }
       ],
       nombreArchivoBase: 'Informe_Generico',
       onResetExtra: function() {
