@@ -68,7 +68,7 @@
 
       <div class="form-group">
         <label for="destinatario">Destinatario / Institución</label>
-        <input type="text" id="destinatario" placeholder="Ej: Dirección de RRHH">
+        <input type="text" id="destinatario" placeholder="Ej: Dirección de RRHH" value="Dirección de Recursos Humanos">
       </div>
 
       <div class="form-group">
@@ -81,7 +81,7 @@
           Resumen / Antecedentes (opcional)
           <input type="checkbox" id="chkResumen" checked>
         </label>
-        <textarea id="resumen" rows="4" placeholder="Escriba un resumen breve..."></textarea>
+        <textarea id="resumen" rows="4" placeholder="Escriba un resumen breve...">El presente informe fue elaborado a solicitud de la Dirección de Recursos Humanos, con el objetivo de relevar el estado actual del proceso evaluado y presentar las observaciones correspondientes.</textarea>
       </div>
 
       <div class="form-group">
@@ -89,7 +89,7 @@
           Desarrollo / Observaciones (opcional)
           <input type="checkbox" id="chkDesarrollo" checked>
         </label>
-        <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones..."></textarea>
+        <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones...">Durante el período analizado se relevó la información disponible mediante entrevistas, revisión de documentación y observación directa. Los datos recabados permiten identificar fortalezas y aspectos a mejorar en el proceso, los cuales se detallan en las secciones siguientes.</textarea>
       </div>
 
       <!-- Orden narrativo coherente con UDE / SM Consultores:
@@ -106,22 +106,22 @@
           Conclusión (opcional)
           <input type="checkbox" id="chkConclusion" checked>
         </label>
-        <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones..."></textarea>
+        <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones...">En base a lo relevado, se concluye que el desempeño general es satisfactorio, destacándose la organización y el cumplimiento de los plazos establecidos. Se recomienda reforzar los canales de comunicación interna.</textarea>
       </div>
 
       <fieldset class="form-fieldset">
         <legend>Clasificación</legend>
         <label><input type="checkbox" id="chkClasificacion" checked> Mostrar clasificación</label>
         <br><br>
-        <label><input type="radio" name="clasificacion" value="" checked> Sin especificar</label>
+        <label><input type="radio" name="clasificacion" value=""> Sin especificar</label>
         <label><input type="radio" name="clasificacion" value="Recomendable"> Recomendable</label>
-        <label><input type="radio" name="clasificacion" value="Con observaciones"> Con observaciones</label>
+        <label><input type="radio" name="clasificacion" value="Con observaciones" checked> Con observaciones</label>
         <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
 
         <!-- Solo visible cuando la clasificación es "Con observaciones" -->
-        <div class="form-group" id="clasifObsWrapper" style="display:none; margin-top:12px;">
+        <div class="form-group" id="clasifObsWrapper" style="display:block; margin-top:12px;">
           <label for="clasifObservaciones">Observaciones</label>
-          <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación..."></textarea>
+          <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación...">Se sugiere realizar un seguimiento en los próximos tres meses para verificar la implementación de las recomendaciones planteadas.</textarea>
         </div>
       </fieldset>
     </div>

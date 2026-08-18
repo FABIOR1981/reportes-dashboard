@@ -39,6 +39,15 @@ function hasContent() {
   return titulo || resumen || desarrollo || conclusion || clasificacion || tieneAspectos;
 }
 
+// Datos de ejemplo para los aspectos evaluados, mostrados por defecto al
+// abrir el informe (mismo criterio que defaultComps en SM Consultores):
+// sirven como muestra de cómo luce la sección con contenido real.
+const defaultAspectos = [
+  { nombre: 'Organización', puntaje: 4, maximo: 5, descripcion: 'Se observa un manejo ordenado de las tareas asignadas, con buena planificación de los tiempos.' },
+  { nombre: 'Comunicación', puntaje: 3, maximo: 5, descripcion: 'La comunicación con el equipo es adecuada, aunque podría reforzarse en instancias de mayor exigencia.' },
+  { nombre: 'Cumplimiento de plazos', puntaje: 4, maximo: 5, descripcion: 'Las tareas se completan dentro de los plazos establecidos en la mayoría de los casos relevados.' }
+];
+
 // Agregar bloque de aspecto dinámico
 // Estructura calcada de "Competencias evaluadas" (SM Consultores):
 // nombre + puntaje obtenido/máximo + descripción.
@@ -460,6 +469,11 @@ function init() {
   if (fechaInput && !fechaInput.value) {
     fechaInput.value = new Date().toISOString().slice(0, 10);
   }
+
+  // Precargar aspectos de ejemplo (solo al abrir el informe; "Limpiar
+  // formulario" los vacía y no los vuelve a cargar, igual que compContainer
+  // en SM Consultores).
+  defaultAspectos.forEach(addAspectoBlock);
 
   updatePreview();
 }
