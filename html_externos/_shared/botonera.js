@@ -138,13 +138,29 @@ window.Botonera = (function() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
+      // 1) Parsear el JSON. Solo acá mostramos el error de "JSON inválido".
+      let data;
       try {
-        const data = JSON.parse(ev.target.result);
+        data = JSON.parse(ev.target.result);
+      } catch(err) {
+        console.error(err);
+        alert('El archivo elegido no es un JSON válido generado por esta herramienta.');
+        return;
+      }
+
+      // 2) Aplicar los datos al formulario. Si algo falla acá, NO es un problema
+      //    del JSON (que ya sabemos que es válido), así que avisamos distinto.
+      try {
         document.querySelectorAll('input[type="radio"]:checked').forEach(function(r) { r.checked = false; });
         Object.keys(data).forEach(function(key) {
-          const radio = document.querySelector('input[type="radio"][name="' + key + '"][value="' + data[key] + '"]');
-          if (radio) {
-            radio.checked = true;
+          // Buscamos los radios por "name" únicamente (sin meter el value en el
+          // selector, para no romper el CSS selector si el texto tiene comillas
+          // u otros caracteres especiales) y comparamos el value en JS.
+          const radios = document.querySelectorAll('input[type="radio"][name="' + CSS.escape(key) + '"]');
+          if (radios.length) {
+            radios.forEach(function(r) {
+              r.checked = (r.value === data[key]);
+            });
           } else {
             const el = document.getElementById(key);
             if (el) el.value = data[key];
@@ -154,7 +170,7 @@ window.Botonera = (function() {
         mostrarStatus('✅ Datos cargados. Podés continuar editando.');
       } catch(err) {
         console.error(err);
-        alert('El archivo elegido no es un JSON válido generado por esta herramienta.');
+        alert('El JSON es válido, pero ocurrió un error al aplicar los datos al formulario. Revisá la consola (F12) para más detalles.');
       }
     };
     reader.readAsText(file);
