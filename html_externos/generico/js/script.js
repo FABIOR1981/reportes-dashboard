@@ -503,8 +503,26 @@ function init() {
         if (clasifObsWrapper) clasifObsWrapper.style.display = 'none';
         updatePreview();
       },
-      onLoadExtra: function() {
+      onLoadExtra: function(data) {
+        // Si el JSON trae aspectos guardados (formato nuevo), reconstruir los
+        // bloques desde cero. Si no los trae (JSON viejo, guardado antes de
+        // este fix), dejamos los bloques actuales tal cual están en pantalla.
+        if (Array.isArray(data.aspectos)) {
+          document.getElementById('aspectosContainer').innerHTML = '';
+          data.aspectos.forEach(addAspectoBlock);
+        }
         updatePreview();
+      },
+      onSaveExtra: function(data) {
+        const bloques = document.querySelectorAll('#aspectosContainer .aspecto-block');
+        data.aspectos = Array.from(bloques).map(function(block) {
+          return {
+            nombre: block.querySelector('.asp-nombre').value,
+            puntaje: block.querySelector('.asp-puntaje').value,
+            maximo: block.querySelector('.asp-maximo').value,
+            descripcion: block.querySelector('.asp-desc').value
+          };
+        });
       }
     });
   }

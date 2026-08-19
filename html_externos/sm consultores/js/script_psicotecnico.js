@@ -767,7 +767,25 @@ window.downloadWord = async function() {
       document.getElementById('compContainer').innerHTML = '';
       renderPreview();
     },
-    onLoadExtra: function() {
+    onLoadExtra: function(data) {
+      // Si el JSON trae competencias guardadas (formato nuevo), reconstruir
+      // los bloques desde cero. Si no las trae (JSON viejo), dejamos los
+      // bloques actuales tal cual están en pantalla.
+      if (Array.isArray(data.competencias)) {
+        document.getElementById('compContainer').innerHTML = '';
+        data.competencias.forEach(addCompBlock);
+      }
       renderPreview();
+    },
+    onSaveExtra: function(data) {
+      const bloques = document.querySelectorAll('#compContainer .comp-block');
+      data.competencias = Array.from(bloques).map(function(block) {
+        return {
+          nombre: block.querySelector('.c-nombre').value,
+          puntaje: block.querySelector('.c-puntaje').value,
+          maximo: block.querySelector('.c-maximo').value,
+          desc: block.querySelector('.c-desc').value
+        };
+      });
     }
   });

@@ -115,6 +115,7 @@ window.Botonera = (function() {
   function guardarDatos() {
     try {
       const data = gatherFormData();
+      if (cfg.onSaveExtra) cfg.onSaveExtra(data);
       const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
