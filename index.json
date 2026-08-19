@@ -5,9 +5,9 @@
     "items": [
       {
         "type": "file",
-        "filename": "Generador_informe_psicotecnico.html",
+        "filename": "generador_informe_psicotecnico.html",
         "title": "Generador de Informe Psicotecnico",
-        "path": "html_externos/SM Consultores/Generador_informe_psicotecnico.html"
+        "path": "html_externos/sm_consultores/generador_informe_psicotecnico.html"
       }
     ]
   },
