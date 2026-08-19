@@ -83,7 +83,8 @@ function renderPreview(){
   setText('out-oportunidadTexto', val('oportunidadTexto'));
 
   // clasificación (checkmark SVG en la fila correspondiente)
-  const clasif = document.querySelector('input[name=clasif]:checked').value;
+  const clasifElPreview = document.querySelector('input[name=clasif]:checked');
+  const clasif = clasifElPreview ? clasifElPreview.value : '';
   const checkSvgHTML = document.getElementById('checkSvg').innerHTML;
   document.getElementById('chk-REC').innerHTML = clasif === 'RECOMENDABLE' ? checkSvgHTML : '';
   document.getElementById('chk-OBS').innerHTML = clasif === 'RECOMENDABLE CON OBSERVACIÓN' ? checkSvgHTML : '';

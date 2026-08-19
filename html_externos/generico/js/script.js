@@ -33,7 +33,8 @@ function hasContent() {
   const resumen = document.getElementById('resumen').value.trim();
   const desarrollo = document.getElementById('desarrollo').value.trim();
   const conclusion = document.getElementById('conclusion').value.trim();
-  const clasificacion = document.querySelector('input[name="clasificacion"]:checked').value;
+  const clasifEl = document.querySelector('input[name="clasificacion"]:checked');
+  const clasificacion = clasifEl ? clasifEl.value : '';
   const aspectosContainer = document.getElementById('aspectosContainer');
   const tieneAspectos = aspectosContainer && aspectosContainer.querySelectorAll('.aspecto-block').length > 0;
   return titulo || resumen || desarrollo || conclusion || clasificacion || tieneAspectos;
@@ -101,7 +102,8 @@ function updatePreviewFn() {
   const resumen = document.getElementById('resumen').value.trim();
   const desarrollo = document.getElementById('desarrollo').value.trim();
   const conclusion = document.getElementById('conclusion').value.trim();
-  const clasificacion = document.querySelector('input[name="clasificacion"]:checked').value;
+  const clasifEl = document.querySelector('input[name="clasificacion"]:checked');
+  const clasificacion = clasifEl ? clasifEl.value : '';
 
   // Encabezado
   document.getElementById('prevTitulo').textContent = titulo || 'INFORME GENERAL';
@@ -381,7 +383,8 @@ window.downloadWord = async function() {
       children.push(new docx.Paragraph({ text: conclusion }));
     }
 
-    const clasificacion = document.querySelector('input[name="clasificacion"]:checked').value;
+    const clasifElWord = document.querySelector('input[name="clasificacion"]:checked');
+    const clasificacion = clasifElWord ? clasifElWord.value : '';
     if (clasificacion) {
       children.push(new docx.Paragraph({ text: '' }));
       children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
