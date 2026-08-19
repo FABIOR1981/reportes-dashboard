@@ -84,7 +84,7 @@
     // Firma
     document.getElementById('prevProfNombre').textContent = profNombre || '[Nombre del evaluador]';
     document.getElementById('prevProfCargo').textContent = profCargo || '[Cargo del evaluador]';
-    document.getElementById('prevProfMat').textContent = (profCargo ? profCargo + ' - ' : '') + (profCel ? 'Cel. ' + profCel : '');
+    document.getElementById('prevProfMat').textContent = profCel ? 'Cel. ' + profCel : '';
   }
 
   // Listeners robustos para CADA tipo de campo
@@ -363,7 +363,11 @@
         }),
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          children: [new TextRun({ text: (profCargo ? profCargo + ' - ' : '') + (profCel ? 'Cel. ' + profCel : ''), color: GRAY, size: 17 })]
+          children: [new TextRun({ text: profCargo || '[Cargo del evaluador]', color: GRAY, size: 17 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: profCel ? 'Cel. ' + profCel : '', color: GRAY, size: 17 })]
         })
       ];
 
