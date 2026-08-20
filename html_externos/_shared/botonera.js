@@ -193,8 +193,10 @@ window.Botonera = (function() {
 
   function palabraEnDiccionario(palabra) {
     const p = palabra.toLowerCase().replace(/[.,;:!?'"]/g, '');
-    const base = ['psic', 'psicolaboral', 'psicotecnico', 'ansiógeno', 'ansiógenos', 'ansiógena', 'ansiógenas',
-      'resiliencia', 'resiliente', 'proactividad', 'adaptabilidad', 'compromiso', 'resolutiva'];
+    // Diccionario de fábrica (vocabulario del rubro), común a los 3 informes.
+    // Vive en un archivo aparte (diccionario-base.js) para poder ampliarlo
+    // sin tocar la lógica del corrector.
+    const base = window.DICCIONARIO_BASE || [];
     let custom = [];
     try { custom = JSON.parse(localStorage.getItem(cfg.diccionarioKey) || '[]'); } catch(e) {}
     const dic = base.concat(custom).map(function(w) { return w.toLowerCase(); });
