@@ -8,20 +8,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const fullscreenBtn = document.getElementById('fullscreen-btn');
   const sidebar = document.querySelector('.sidebar');
   const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 
   let reportsData = [];
 
   // 0. Colapsar/expandir sidebar (con preferencia guardada)
   if (sidebar && sidebarToggleBtn) {
-    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+    const savedPref = localStorage.getItem('sidebarCollapsed');
+    // En pantallas chicas, si el usuario nunca tocó el botón, arranca
+    // colapsado (oculto) para no tapar el contenido apenas se abre la app.
+    const shouldCollapseByDefault = savedPref === null && window.innerWidth <= 768;
+    const startsCollapsed = savedPref === 'true' || shouldCollapseByDefault;
+    if (startsCollapsed) {
       sidebar.classList.add('collapsed');
     }
+    if (sidebarBackdrop) sidebarBackdrop.classList.toggle('visible', !startsCollapsed && window.innerWidth <= 768);
 
-    sidebarToggleBtn.addEventListener('click', () => {
+    const toggleSidebar = () => {
       const isCollapsed = sidebar.classList.toggle('collapsed');
       localStorage.setItem('sidebarCollapsed', isCollapsed);
       sidebarToggleBtn.title = isCollapsed ? 'Expandir menú' : 'Colapsar menú';
-    });
+      if (sidebarBackdrop) sidebarBackdrop.classList.toggle('visible', !isCollapsed && window.innerWidth <= 768);
+    };
+
+    sidebarToggleBtn.addEventListener('click', toggleSidebar);
+    if (mobileMenuBtn) mobileMenuBtn.addEventListener('click', toggleSidebar);
+    // Tocar el fondo oscuro (solo visible en mobile con el menú abierto) lo cierra
+    if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', toggleSidebar);
   }
 
   // 1. Cargar el JSON generado
@@ -118,6 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
       reportFrame.src = path;
     }
     if (currentReportTitle) currentReportTitle.textContent = title;
+
+    // En mobile, al elegir un reporte cerramos el menú para ver el contenido
+    if (sidebar && window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {
+      sidebar.classList.add('collapsed');
+      localStorage.setItem('sidebarCollapsed', 'true');
+      if (sidebarBackdrop) sidebarBackdrop.classList.remove('visible');
+    }
   }
 
   // 4. Búsqueda en tiempo real

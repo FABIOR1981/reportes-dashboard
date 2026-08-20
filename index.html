@@ -12,6 +12,9 @@
 <body>
 
   <div class="dashboard-container">
+    <!-- Fondo oscuro para cerrar el menú al tocar afuera (solo mobile) -->
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
     <!-- Barra Lateral -->
     <aside class="sidebar">
       <div class="sidebar-header">
@@ -37,6 +40,9 @@
     <!-- Área Principal de Contenido -->
     <main class="main-content">
       <header class="top-bar">
+        <button id="mobile-menu-btn" class="icon-btn" title="Abrir menú" aria-label="Abrir menú">
+          <i class="fa-solid fa-bars"></i>
+        </button>
         <h1 id="current-report-title">Selecciona un reporte</h1>
         <div class="actions">
           <button id="reload-btn" class="icon-btn" title="Recargar" aria-label="Recargar"><i class="fa-solid fa-rotate-right"></i></button>

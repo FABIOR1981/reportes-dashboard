@@ -73,3 +73,58 @@ textarea{resize:vertical;min-height:90px;}
 .info-value{color:var(--ink);}
 .check-box{display:inline-block;width:14px;height:14px;border:1.5px solid var(--primary);margin-left:8px;vertical-align:middle;position:relative;}
 .check-box.checked::after{content:"\2713";position:absolute;top:-4px;left:1px;font-size:14px;font-weight:700;color:var(--primary-dark);}
+
+/* ============================================================ */
+/*                    MEDIA QUERIES - RESPONSIVE                */
+/* ============================================================ */
+
+@media (max-width: 1024px) {
+  body {
+    flex-direction: column;
+    min-height: auto;
+  }
+  #panel {
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+  #previewWrap {
+    height: auto;
+    padding: 20px;
+  }
+  .page {
+    width: 100%;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  #panel {
+    padding: 16px;
+  }
+  /* Deja lugar para la botonera fija (arriba a la derecha) y evita que
+     tape el título del panel en pantallas angostas */
+  #panel h1 {
+    margin-top: 44px;
+  }
+  /* font-size 16px evita que iOS haga zoom automático al enfocar el campo */
+  input[type=text], input[type=date], input[type=number], textarea, select {
+    font-size: 16px;
+  }
+  .row2 {
+    flex-direction: column;
+    gap: 0;
+  }
+  .page {
+    padding: 30px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  #panel {
+    padding: 12px;
+  }
+  .page {
+    padding: 20px 14px;
+  }
+}

@@ -361,3 +361,115 @@ body {
   background-color: rgba(99, 102, 241, 0.12);
   border-radius: 4px;
 }
+
+/* ============================================================ */
+/*         RESPONSIVE: fondo oscuro y botón hamburguesa         */
+/* ============================================================ */
+
+/* Fondo oscuro detrás del sidebar cuando está abierto en mobile.
+   Fuera del breakpoint mobile queda siempre oculto. */
+.sidebar-backdrop {
+  display: none;
+}
+
+/* El botón hamburguesa del top-bar solo existe para mobile;
+   en desktop/tablet se usa el botón de colapsar que ya vive en el sidebar. */
+#mobile-menu-btn {
+  display: none;
+}
+
+/* ============================================================ */
+/*                    TABLET (hasta 1024px)                     */
+/* ============================================================ */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 240px;
+    min-width: 240px;
+  }
+}
+
+/* ============================================================ */
+/*                    MOBILE (hasta 768px)                      */
+/* ============================================================ */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .top-bar h1 {
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #mobile-menu-btn {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+
+  /* El botón de colapsar que vive dentro del sidebar ya no hace falta
+     en mobile: ahí el menú se abre/cierra siempre por completo. */
+  #sidebar-toggle-btn {
+    display: none;
+  }
+
+  /* El sidebar pasa a ser un panel superpuesto (off-canvas) en vez de
+     ocupar espacio fijo al lado del contenido. */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 82%;
+    max-width: 300px;
+    min-width: 0;
+    z-index: 1001;
+    transform: translateX(0);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Reutilizamos la misma clase "collapsed" que en desktop, pero acá
+     significa "oculto fuera de pantalla" en vez de "franja de íconos". */
+  .sidebar.collapsed {
+    width: 82%;
+    max-width: 300px;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.collapsed .sidebar-header h2,
+  .sidebar.collapsed .search-box,
+  .sidebar.collapsed .sidebar-nav {
+    display: flex;
+  }
+
+  .sidebar.collapsed .sidebar-nav {
+    display: block;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+  }
+
+  /* El fondo oscuro solo se muestra cuando el menú está abierto (controlado por JS) */
+  #sidebar-backdrop.visible {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 1000;
+  }
+
+  .actions .icon-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .welcome-card {
+    padding: 24px;
+    width: 92%;
+  }
+}
