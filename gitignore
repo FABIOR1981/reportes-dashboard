@@ -1,0 +1,9 @@
+# index.json es un archivo GENERADO por build-index.js (se corre
+# automáticamente en cada deploy de Netlify vía "npm run build").
+# No se versiona para evitar que quede una copia vieja/desactualizada
+# en el repo — la fuente de verdad es siempre el estado real de
+# html_externos/, no un JSON commiteado a mano.
+index.json
+
+# Carpetas típicas que tampoco hace falta versionar
+node_modules/
