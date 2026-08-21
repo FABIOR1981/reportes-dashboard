@@ -1,3 +1,12 @@
+// Registrar el Service Worker (permite que la app cargue sin conexión
+// una vez que ya se abrió al menos una vez con internet).
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch((err) => console.error('No se pudo registrar el Service Worker:', err));
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const reportList = document.getElementById('report-list');
   const searchInput = document.getElementById('search-input');
@@ -10,8 +19,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+  const langtoolStatusIcon = document.getElementById('langtool-status-icon');
 
   let reportsData = [];
+
+  // Ícono de estado del corrector ortográfico (lo reporta cada informe
+  // por postMessage, ya que corre dentro del iframe). 3 estados posibles.
+  function setLangtoolIcon(status) {
+    if (!langtoolStatusIcon) return;
+    langtoolStatusIcon.classList.remove('langtool-status-online', 'langtool-status-offline', 'langtool-status-unknown');
+    if (status === 'online') {
+      langtoolStatusIcon.classList.add('langtool-status-online');
+      langtoolStatusIcon.title = 'Corrector ortográfico: conectado';
+    } else if (status === 'offline') {
+      langtoolStatusIcon.classList.add('langtool-status-offline');
+      langtoolStatusIcon.title = 'Corrector ortográfico: sin conexión';
+    } else {
+      langtoolStatusIcon.classList.add('langtool-status-unknown');
+      langtoolStatusIcon.title = 'Corrector ortográfico: estado desconocido (aún no se probó)';
+    }
+  }
+
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (data && data.source === 'reportes-dashboard' && data.type === 'langtool-status') {
+      setLangtoolIcon(data.status);
+    }
+  });
 
   // 0. Colapsar/expandir sidebar (con preferencia guardada)
   if (sidebar && sidebarToggleBtn) {
@@ -132,6 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
       reportFrame.src = path;
     }
     if (currentReportTitle) currentReportTitle.textContent = title;
+    // El informe nuevo todavía no reportó su estado del corrector
+    setLangtoolIcon('unknown');
 
     // En mobile, al elegir un reporte cerramos el menú para ver el contenido
     if (sidebar && window.innerWidth <= 768 && !sidebar.classList.contains('collapsed')) {

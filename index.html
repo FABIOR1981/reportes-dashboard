@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel de Reportes</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#818cf8">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <!-- CSS Externo -->
   <link rel="stylesheet" href="css/style.css">
   <!-- FontAwesome (si usas iconos en la barra lateral) -->
@@ -45,6 +49,9 @@
         </button>
         <h1 id="current-report-title">Selecciona un reporte</h1>
         <div class="actions">
+          <span id="langtool-status-icon" class="langtool-status-icon langtool-status-unknown" title="Corrector ortográfico: estado desconocido">
+            <i class="fa-solid fa-circle"></i>
+          </span>
           <button id="reload-btn" class="icon-btn" title="Recargar" aria-label="Recargar"><i class="fa-solid fa-rotate-right"></i></button>
           <button id="fullscreen-btn" class="icon-btn" title="Pantalla Completa" aria-label="Pantalla Completa"><i class="fa-solid fa-expand"></i></button>
         </div>

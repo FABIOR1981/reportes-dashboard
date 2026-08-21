@@ -255,6 +255,30 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* Ícono de estado del corrector ortográfico automático (LanguageTool).
+   Lo actualiza js/main.js según lo que reporte cada informe. */
+.langtool-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.langtool-status-icon.langtool-status-online {
+  color: #22c55e; /* verde: conectado */
+}
+
+.langtool-status-icon.langtool-status-offline {
+  color: #ef4444; /* rojo: sin conexión */
+}
+
+.langtool-status-icon.langtool-status-unknown {
+  color: #cbd5e1; /* gris: todavía no se probó */
+}
+
 .content-body {
   flex: 1;
   position: relative;

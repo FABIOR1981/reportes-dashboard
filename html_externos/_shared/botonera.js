@@ -179,6 +179,51 @@ window.Botonera = (function() {
   }
 
   // ---------- Ortografía ----------
+  // ---------- Estado de conexión del corrector (LanguageTool) ----------
+  // 'unknown' = todavía no se confirmó con una consulta real
+  // 'online'  = la última consulta real a LanguageTool funcionó
+  // 'offline' = la última consulta real falló (o el navegador está sin red)
+  let langtoolStatus = 'unknown';
+  const MODAL_SHOWN_KEY = 'langtoolOfflineModalShown';
+
+  function reportLangtoolStatus(status) {
+    langtoolStatus = status;
+    try {
+      // El ícono de estado vive en el dashboard (fuera del iframe del
+      // informe), así que avisamos por postMessage. Si el informe se
+      // abre suelto (sin dashboard), esto simplemente no tiene efecto.
+      window.parent.postMessage({ source: 'reportes-dashboard', type: 'langtool-status', status: status }, '*');
+    } catch (e) { /* sin dashboard contenedor, no pasa nada */ }
+  }
+
+  function mostrarModalSinConexion() {
+    if (sessionStorage.getItem(MODAL_SHOWN_KEY) === 'true') return;
+    sessionStorage.setItem(MODAL_SHOWN_KEY, 'true');
+
+    const overlay = document.createElement('div');
+    overlay.id = 'langtoolOfflineModal';
+    overlay.className = 'langtool-modal-overlay';
+    overlay.innerHTML =
+      '<div class="langtool-modal-box">' +
+      '<div class="langtool-modal-icon">⚠️</div>' +
+      '<h3>Sin conexión con el corrector</h3>' +
+      '<p>No se pudo conectar con el corrector ortográfico y gramatical automático. ' +
+      'Podés seguir completando el informe con normalidad — esta función se reintentará ' +
+      'la próxima vez que uses "Revisar ortografía".</p>' +
+      '<button type="button" class="langtool-modal-accept">Aceptar</button>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('.langtool-modal-accept').addEventListener('click', function() {
+      overlay.remove();
+    });
+  }
+
+  // Estado inicial aproximado (rápido, sin gastar red) + reacción a
+  // cambios reales de conectividad del navegador mientras se trabaja.
+  reportLangtoolStatus(navigator.onLine ? 'unknown' : 'offline');
+  window.addEventListener('online', function() { reportLangtoolStatus('unknown'); });
+  window.addEventListener('offline', function() { reportLangtoolStatus('offline'); });
+
   async function checkSpellingText(text) {
     if (!text || !text.trim()) return [];
     const resp = await fetch('https://api.languagetool.org/v2/check', {
@@ -239,6 +284,7 @@ window.Botonera = (function() {
       }
 
       els.spellPanel.innerHTML = totalIssues ? html : '✅ No se encontraron errores ortográficos ni gramaticales.';
+      reportLangtoolStatus('online');
 
       els.spellPanel.querySelectorAll('.dic-ignore').forEach(function(btnIgnore) {
         btnIgnore.addEventListener('click', function() {
@@ -255,6 +301,8 @@ window.Botonera = (function() {
     } catch(err) {
       console.error(err);
       els.spellPanel.innerHTML = '❌ No se pudo conectar con el corrector ortográfico. Verificá tu conexión a internet e intentá de nuevo.';
+      reportLangtoolStatus('offline');
+      mostrarModalSinConexion();
     } finally {
       btn.disabled = false;
     }

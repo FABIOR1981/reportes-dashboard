@@ -251,3 +251,62 @@
     top: 52px;
   }
 }
+
+/* ============================================================
+   MODAL: aviso de corrector ortográfico sin conexión
+   ============================================================ */
+.langtool-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.langtool-modal-box {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.langtool-modal-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.langtool-modal-box h3 {
+  margin: 0 0 10px 0;
+  color: #1f2937;
+  font-size: 17px;
+}
+
+.langtool-modal-box p {
+  margin: 0 0 20px 0;
+  color: #4b5563;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.langtool-modal-accept {
+  background: #6366f1;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.langtool-modal-accept:hover {
+  background: #4f46e5;
+}
