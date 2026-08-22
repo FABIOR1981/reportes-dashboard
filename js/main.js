@@ -1,9 +1,37 @@
 // Registrar el Service Worker (permite que la app cargue sin conexión
 // una vez que ya se abrió al menos una vez con internet).
 if ('serviceWorker' in navigator) {
+  // Esto hay que capturarlo ANTES de registrar nada: nos dice si esta
+  // página ya estaba controlada por un Service Worker al momento de
+  // cargar. Lo usamos para distinguir "se instaló por primera vez"
+  // (no avisar nada) de "ya había una versión y ahora cambió" (sí avisar).
+  const teniaControladorAlCargar = !!navigator.serviceWorker.controller;
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!teniaControladorAlCargar) return; // primera instalación, no una actualización
+    mostrarAvisoActualizacion();
+  });
+
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
       .catch((err) => console.error('No se pudo registrar el Service Worker:', err));
+  });
+}
+
+// No recargamos solos: alguien puede estar completando un informe largo
+// sin haberlo guardado todavía, y forzar un refresh se lo haría perder.
+// Avisamos con un banner y dejamos que decida cuándo actualizar.
+function mostrarAvisoActualizacion() {
+  if (document.getElementById('sw-update-banner')) return; // ya se está mostrando
+  const banner = document.createElement('div');
+  banner.id = 'sw-update-banner';
+  banner.className = 'sw-update-banner';
+  banner.innerHTML =
+    '<span>Hay una versión nueva de la app lista para usar.</span>' +
+    '<button type="button" id="sw-update-btn">Actualizar ahora</button>';
+  document.body.appendChild(banner);
+  document.getElementById('sw-update-btn').addEventListener('click', () => {
+    window.location.reload();
   });
 }
 
