@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generador de informes genéricos para selección de personal">
+  <meta name="theme-color" content="#2563eb">
   <title>Informe Genérico</title>
   <!-- Estilos compartidos de botonera -->
   <link rel="stylesheet" href="../_shared/botonera.css">
@@ -13,9 +15,6 @@
 
   <!-- BOTONERA COMPARTIDA -->
   <div class="btn-toolbar" id="actions"></div>
-  <!-- El contenido de esta barra (botones + íconos) lo genera
-       botonera.js -> renderToolbar(), para no duplicarlo en los 3
-       informes. Ver html_externos/_shared/botonera.js -->
 
   <!-- CONTENIDO PRINCIPAL -->
   <div class="container">
@@ -24,9 +23,6 @@
     <div class="form-panel">
       <h2>Datos del Informe</h2>
 
-      <!-- Status / ortografía / diccionario: SIEMPRE dentro de .form-panel,
-           nunca como hermano de .container a nivel de <body> (rompe el layout,
-           ver bug de agosto 2026). -->
       <div id="status"></div>
       <div id="spellPanel"></div>
       <div id="dicPanel">
@@ -69,9 +65,6 @@
         <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones...">Durante el período analizado se relevó la información disponible mediante entrevistas, revisión de documentación y observación directa. Los datos recabados permiten identificar fortalezas y aspectos a mejorar en el proceso, los cuales se detallan en las secciones siguientes.</textarea>
       </div>
 
-      <!-- Orden narrativo coherente con UDE / SM Consultores:
-           contenido → aspectos evaluados (evidencia detallada) → conclusión
-           → clasificación final (siempre la ÚLTIMA sección, es el veredicto). -->
       <fieldset class="form-fieldset">
         <legend>Aspectos Evaluados (Opcional)</legend>
         <div id="aspectosContainer"></div>
@@ -95,7 +88,6 @@
         <label><input type="radio" name="clasificacion" value="Con observaciones" checked> Con observaciones</label>
         <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
 
-        <!-- Solo visible cuando la clasificación es "Con observaciones" -->
         <div class="form-group" id="clasifObsWrapper" style="display:block; margin-top:12px;">
           <label for="clasifObservaciones">Observaciones</label>
           <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación...">Se sugiere realizar un seguimiento en los próximos tres meses para verificar la implementación de las recomendaciones planteadas.</textarea>
@@ -118,11 +110,10 @@
         </div>
         <div class="form-group">
           <label for="firmanteCargo">Cargo / Especialidad</label>
-          <input type="text" id="firmanteCargo" placeholder="Ej: Responsable de Recursos Humanos" spellcheck="true" value="Licenciada en Psicología - Especializada en Selección de Personal">
+          <input type="text" id="firmanteCargo" placeholder="Ej: Responsable de Recursos Humanos" value="Licenciada en Psicología - Especializada en Selección de Personal">
         </div>
       </fieldset>
     </div>
-    <!-- /.form-panel -->
 
     <!-- VISTA PREVIA (A4) -->
     <div class="preview-panel">
@@ -165,19 +156,34 @@
         </div>
       </div>
     </div>
-    <!-- /.preview-panel -->
 
   </div>
-  <!-- /.container -->
 
-  <!-- Librerías de exportación (UMD) -->
+  <!-- Librerías de exportación (UMD) con fallback dinámico -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script>window.html2canvas || document.write('<script src="../_shared/vendor/html2canvas.min.js"><\/script>')</script>
+  <script>
+    if (!window.html2canvas) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/html2canvas.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script>(window.jspdf && window.jspdf.jsPDF) || document.write('<script src="../_shared/vendor/jspdf.umd.min.js"><\/script>')</script>
-  <!--<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>-->
+  <script>
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/jspdf.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
-  <script>window.docx || document.write('<script src="../_shared/vendor/docx.umd.min.js"><\/script>')</script>
+  <script>
+    if (!window.docx) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/docx.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
 
   <!-- Lógica compartida y del informe -->
   <script src="../_shared/diccionario-base.js"></script>

@@ -1,11 +1,8 @@
 // ============================================================
-//  BOTONERA COMPARTIDA – Lógica común para todos los informes
-//  Cada informe debe definir window.downloadPDF y window.downloadWord
-//  ANTES de llamar a Botonera.init()
+//  BOTONERA COMPARTIDA – Logica comun para todos los informes
 // ============================================================
 
 window.Botonera = (function() {
-  // ---------- Configuración ----------
   let cfg = {
     camposGuardables: [],
     camposNoLimpiar: [],
@@ -25,14 +22,12 @@ window.Botonera = (function() {
 
   let els = {};
 
-  // Función para escapar HTML
   function escapeHTML(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
   }
 
-  // ---------- Inicialización ----------
   function init(userConfig) {
     Object.assign(cfg, userConfig);
     renderToolbar();
@@ -41,15 +36,9 @@ window.Botonera = (function() {
     renderDiccionarioPanel();
   }
 
-  // ---------- Barra de botones (única fuente de verdad) ----------
-  // Antes este HTML estaba duplicado, carácter por carácter, en los 3
-  // informes (UDE / SM Consultores / Genérico). Cambiar un ícono o un
-  // texto significaba editar 3 archivos y confiar en no equivocarse en
-  // ninguno. Ahora vive acá una sola vez; cada informe solo necesita un
-  // contenedor vacío: <div class="btn-toolbar" id="actions"></div>
   function renderToolbar() {
     const container = document.getElementById(cfg.actionsId);
-    if (!container) return; // este informe no tiene barra de botones
+    if (!container) return;
 
     container.innerHTML =
       '<button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">' +
@@ -68,10 +57,10 @@ window.Botonera = (function() {
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' +
         '<span class="tooltip">Cargar datos</span>' +
       '</button>' +
-      '<input type="file" id="loadInput" accept="application/json,.json" hidden>' +
-      '<button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografía">' +
+      '<input type="file" id="loadInput" accept="application/json,.json" hidden aria-label="Cargar archivo JSON de datos guardados">' +
+      '<button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografia">' +
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="12" y="11" font-size="7.5" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">ABC</text><polyline points="8 16 11 19 17 13" stroke-width="2.2"/></svg>' +
-        '<span class="tooltip">Revisar ortografía</span>' +
+        '<span class="tooltip">Revisar ortografia</span>' +
       '</button>' +
       '<button class="btn btn-danger" data-action="reset" aria-label="Limpiar formulario">' +
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
@@ -89,41 +78,34 @@ window.Botonera = (function() {
   }
 
   function bindEvents() {
-    // PDF (hook)
     const pdfBtn = document.querySelector('[data-action="pdf"]');
     if (pdfBtn) pdfBtn.addEventListener('click', function() {
       if (typeof window.downloadPDF === 'function') window.downloadPDF();
-      else alert('downloadPDF() no está implementado para este informe.');
+      else alert('downloadPDF() no esta implementado para este informe.');
     });
 
-    // Word (hook)
     const wordBtn = document.querySelector('[data-action="word"]');
     if (wordBtn) wordBtn.addEventListener('click', function() {
       if (typeof window.downloadWord === 'function') window.downloadWord();
-      else alert('downloadWord() no está implementado para este informe.');
+      else alert('downloadWord() no esta implementado para este informe.');
     });
 
-    // Guardar
     const saveBtn = document.querySelector('[data-action="save"]');
     if (saveBtn) saveBtn.addEventListener('click', guardarDatos);
 
-    // Cargar
     const loadBtn = document.querySelector('[data-action="load"]');
     const loadInput = document.getElementById('loadInput');
     if (loadBtn && loadInput) {
-      loadBtn.addEventListener('click', () => loadInput.click());
+      loadBtn.addEventListener('click', function() { loadInput.click(); });
       loadInput.addEventListener('change', cargarDatos);
     }
 
-    // Ortografía
     const spellBtn = document.querySelector('[data-action="spellcheck"]');
     if (spellBtn) spellBtn.addEventListener('click', revisarOrtografia);
 
-    // Limpiar
     const resetBtn = document.querySelector('[data-action="reset"]');
     if (resetBtn) resetBtn.addEventListener('click', limpiarFormulario);
 
-    // Diccionario
     if (els.dicAddBtn && els.dicInput) {
       els.dicAddBtn.addEventListener('click', agregarPalabraDiccionario);
       els.dicInput.addEventListener('keydown', function(e) {
@@ -132,14 +114,12 @@ window.Botonera = (function() {
     }
   }
 
-  // ---------- Status ----------
   function mostrarStatus(msg) {
     if (!els.status) return;
     els.status.textContent = msg;
     setTimeout(function() { els.status.textContent = ''; }, 5000);
   }
 
-  // ---------- Guardar / Cargar ----------
   function gatherFormData() {
     const data = {};
     cfg.camposGuardables.forEach(function(id) {
@@ -167,7 +147,7 @@ window.Botonera = (function() {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      mostrarStatus('✅ Datos guardados. Guardá este archivo para continuar luego.');
+      mostrarStatus('✅ Datos guardados. Guarda este archivo para continuar luego.');
     } catch(err) {
       console.error(err);
       mostrarStatus('❌ No se pudieron guardar los datos.');
@@ -179,24 +159,17 @@ window.Botonera = (function() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(ev) {
-      // 1) Parsear el JSON. Solo acá mostramos el error de "JSON inválido".
       let data;
       try {
         data = JSON.parse(ev.target.result);
       } catch(err) {
         console.error(err);
-        alert('El archivo elegido no es un JSON válido generado por esta herramienta.');
+        alert('El archivo elegido no es un JSON valido generado por esta herramienta.');
         return;
       }
-
-      // 2) Aplicar los datos al formulario. Si algo falla acá, NO es un problema
-      //    del JSON (que ya sabemos que es válido), así que avisamos distinto.
       try {
         document.querySelectorAll('input[type="radio"]:checked').forEach(function(r) { r.checked = false; });
         Object.keys(data).forEach(function(key) {
-          // Buscamos los radios por "name" únicamente (sin meter el value en el
-          // selector, para no romper el CSS selector si el texto tiene comillas
-          // u otros caracteres especiales) y comparamos el value en JS.
           const radios = document.querySelectorAll('input[type="radio"][name="' + CSS.escape(key) + '"]');
           if (radios.length) {
             radios.forEach(function(r) {
@@ -208,32 +181,24 @@ window.Botonera = (function() {
           }
         });
         if (cfg.onLoadExtra) cfg.onLoadExtra(data);
-        mostrarStatus('✅ Datos cargados. Podés continuar editando.');
+        mostrarStatus('✅ Datos cargados. Podes continuar editando.');
       } catch(err) {
         console.error(err);
-        alert('El JSON es válido, pero ocurrió un error al aplicar los datos al formulario. Revisá la consola (F12) para más detalles.');
+        alert('El JSON es valido, pero ocurrio un error al aplicar los datos al formulario. Revisa la consola (F12) para mas detalles.');
       }
     };
     reader.readAsText(file);
     e.target.value = '';
   }
 
-  // ---------- Ortografía ----------
-  // ---------- Estado de conexión del corrector (LanguageTool) ----------
-  // 'unknown' = todavía no se confirmó con una consulta real
-  // 'online'  = la última consulta real a LanguageTool funcionó
-  // 'offline' = la última consulta real falló (o el navegador está sin red)
   let langtoolStatus = 'unknown';
   const MODAL_SHOWN_KEY = 'langtoolOfflineModalShown';
 
   function reportLangtoolStatus(status) {
     langtoolStatus = status;
     try {
-      // El ícono de estado vive en el dashboard (fuera del iframe del
-      // informe), así que avisamos por postMessage. Si el informe se
-      // abre suelto (sin dashboard), esto simplemente no tiene efecto.
       window.parent.postMessage({ source: 'reportes-dashboard', type: 'langtool-status', status: status }, '*');
-    } catch (e) { /* sin dashboard contenedor, no pasa nada */ }
+    } catch (e) { }
   }
 
   function mostrarModalSinConexion() {
@@ -246,10 +211,10 @@ window.Botonera = (function() {
     overlay.innerHTML =
       '<div class="langtool-modal-box">' +
       '<div class="langtool-modal-icon">⚠️</div>' +
-      '<h3>Sin conexión con el corrector</h3>' +
-      '<p>No se pudo conectar con el corrector ortográfico y gramatical automático. ' +
-      'Podés seguir completando el informe con normalidad — esta función se reintentará ' +
-      'la próxima vez que uses "Revisar ortografía".</p>' +
+      '<h3>Sin conexion con el corrector</h3>' +
+      '<p>No se pudo conectar con el corrector ortografico y gramatical automatico. ' +
+      'Podes seguir completando el informe con normalidad — esta funcion se reintentara ' +
+      'la proxima vez que uses "Revisar ortografia".</p>' +
       '<button type="button" class="langtool-modal-accept">Aceptar</button>' +
       '</div>';
     document.body.appendChild(overlay);
@@ -258,8 +223,6 @@ window.Botonera = (function() {
     });
   }
 
-  // Estado inicial aproximado (rápido, sin gastar red) + reacción a
-  // cambios reales de conectividad del navegador mientras se trabaja.
   reportLangtoolStatus(navigator.onLine ? 'unknown' : 'offline');
   window.addEventListener('online', function() { reportLangtoolStatus('unknown'); });
   window.addEventListener('offline', function() { reportLangtoolStatus('offline'); });
@@ -278,9 +241,6 @@ window.Botonera = (function() {
 
   function palabraEnDiccionario(palabra) {
     const p = palabra.toLowerCase().replace(/[.,;:!?'"]/g, '');
-    // Diccionario de fábrica (vocabulario del rubro), común a los 3 informes.
-    // Vive en un archivo aparte (diccionario-base.js) para poder ampliarlo
-    // sin tocar la lógica del corrector.
     const base = window.DICCIONARIO_BASE || [];
     let custom = [];
     try { custom = JSON.parse(localStorage.getItem(cfg.diccionarioKey) || '[]'); } catch(e) {}
@@ -292,7 +252,7 @@ window.Botonera = (function() {
     const btn = document.querySelector('[data-action="spellcheck"]');
     if (!btn) return;
     btn.disabled = true;
-    els.spellPanel.innerHTML = 'Revisando ortografía y gramática, un momento...';
+    els.spellPanel.innerHTML = 'Revisando ortografia y gramatica, un momento...';
 
     try {
       let totalIssues = 0;
@@ -308,9 +268,7 @@ window.Botonera = (function() {
           const bad = el.value.substring(m.offset, m.offset + m.length);
           if (palabraEnDiccionario(bad)) return;
           const suggestion = (m.replacements && m.replacements[0]) ? m.replacements[0].value : null;
-          // SEGURIDAD: Escapar HTML para evitar XSS
           const badEscaped = escapeHTML(bad);
-          const labelEscaped = escapeHTML(campo.label);
           items.push(suggestion
             ? '<li>"' + badEscaped + '" → <b>' + escapeHTML(suggestion) + '</b> <button type="button" class="dic-ignore" data-w="' + badEscaped + '">no es un error, ignorar siempre</button></li>'
             : '<li>"' + badEscaped + '": ' + escapeHTML(m.message) + ' <button type="button" class="dic-ignore" data-w="' + badEscaped + '">no es un error, ignorar siempre</button></li>'
@@ -323,7 +281,7 @@ window.Botonera = (function() {
         }
       }
 
-      els.spellPanel.innerHTML = totalIssues ? html : '✅ No se encontraron errores ortográficos ni gramaticales.';
+      els.spellPanel.innerHTML = totalIssues ? html : '✅ No se encontraron errores ortograficos ni gramaticales.';
       reportLangtoolStatus('online');
 
       els.spellPanel.querySelectorAll('.dic-ignore').forEach(function(btnIgnore) {
@@ -340,7 +298,7 @@ window.Botonera = (function() {
       });
     } catch(err) {
       console.error(err);
-      els.spellPanel.innerHTML = '❌ No se pudo conectar con el corrector ortográfico. Verificá tu conexión a internet e intentá de nuevo.';
+      els.spellPanel.innerHTML = '❌ No se pudo conectar con el corrector ortografico. Verifica tu conexion a internet e intenta de nuevo.';
       reportLangtoolStatus('offline');
       mostrarModalSinConexion();
     } finally {
@@ -348,7 +306,6 @@ window.Botonera = (function() {
     }
   }
 
-  // ---------- Diccionario ----------
   function getDiccionarioPersonalizado() {
     try { return JSON.parse(localStorage.getItem(cfg.diccionarioKey) || '[]'); }
     catch(e) { return []; }
@@ -362,10 +319,9 @@ window.Botonera = (function() {
     if (!els.dicList) return;
     const custom = getDiccionarioPersonalizado();
     if (!custom.length) {
-      els.dicList.innerHTML = '<span style="color:#999;">Sin palabras agregadas todavía.</span>';
+      els.dicList.innerHTML = '<span style="color:#999;">Sin palabras agregadas todavia.</span>';
       return;
     }
-    // SEGURIDAD: Escapar palabras para evitar XSS
     els.dicList.innerHTML = custom.map(function(w) {
       const wEscaped = escapeHTML(w);
       return '<span class="dic-chip">' + wEscaped + ' <button type="button" class="dic-del" data-w="' + wEscaped + '">✕</button></span>';
@@ -384,9 +340,8 @@ window.Botonera = (function() {
     if (!els.dicInput) return;
     const palabra = els.dicInput.value.trim();
     if (!palabra) return;
-    // Validar que no tenga caracteres sospechosos
     if (!/^[a-záéíóúñüA-ZÁÉÍÓÚÑÜ\s'-]+$/.test(palabra)) {
-      alert('La palabra solo puede contener letras, espacios, guiones y apóstrofos.');
+      alert('La palabra solo puede contener letras, espacios, guiones y apostrofos.');
       return;
     }
     const custom = getDiccionarioPersonalizado();
@@ -398,18 +353,29 @@ window.Botonera = (function() {
     els.dicInput.value = '';
   }
 
-  // ---------- Limpiar ----------
+  // ---------- Limpiar (CORREGIDO) ----------
   function limpiarFormulario() {
-    if (!confirm('¿Estás seguro de que querés limpiar los datos del formulario?')) return;
+    if (!confirm('¿Estas seguro de que queres limpiar los datos del formulario?')) return;
     cfg.camposGuardables.forEach(function(id) {
       if (cfg.camposNoLimpiar.indexOf(id) !== -1) return;
       const el = document.getElementById(id);
-      if (el) el.value = '';
+      if (el) {
+        if (el.type === 'checkbox') {
+          el.checked = true;
+        } else {
+          el.value = '';
+        }
+      }
     });
-    const defaultRec = document.querySelector('input[name="recom"][value="Recomendable"]');
-    if (defaultRec) defaultRec.checked = true;
-    const defaultClasif = document.querySelector('input[name="clasif"][value="RECOMENDABLE"]');
-    if (defaultClasif) defaultClasif.checked = true;
+    // Resetear radios: marcar el primero de cada grupo
+    const radioNames = new Set();
+    document.querySelectorAll('input[type="radio"]').forEach(function(r) {
+      radioNames.add(r.name);
+    });
+    radioNames.forEach(function(name) {
+      const firstRadio = document.querySelector('input[type="radio"][name="' + CSS.escape(name) + '"]');
+      if (firstRadio) firstRadio.checked = true;
+    });
 
     if (cfg.onResetExtra) cfg.onResetExtra();
     mostrarStatus('🗑 Formulario limpiado.');

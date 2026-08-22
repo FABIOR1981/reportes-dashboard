@@ -1,17 +1,25 @@
 // ============================================================
 //  INFORME GENÉRICO – lógica propia del informe
 //  Contrato: define window.downloadPDF, window.downloadWord
-//  y llama a Botonera.init() al final (ver CONTEXTO_ARQUITECTURA_DASHBOARD.md)
+//  y llama a Botonera.init() al final
 // ============================================================
+
+// Escapar HTML para prevenir XSS
+function escapeHTML(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
 
 // Sanitizar nombres de archivo
 function sanitizeFilename(str) {
   return str
-    .replace(/[\/\\:?*"<>|]/g, '_') // Reemplazar caracteres inválidos
-    .replace(/\s+/g, '_')           // Reemplazar espacios
-    .substring(0, 100)              // Limitar longitud
-    .replace(/_+/g, '_')            // Limpiar múltiples guiones
-    .replace(/^_+|_+$/g, '');       // Quitar guiones de inicio/final
+    .replace(/[\/\\:?*"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .substring(0, 100)
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
 }
 
 // Debounce helper
@@ -36,13 +44,17 @@ function hasContent() {
   const clasifEl = document.querySelector('input[name="clasificacion"]:checked');
   const clasificacion = clasifEl ? clasifEl.value : '';
   const aspectosContainer = document.getElementById('aspectosContainer');
-  const tieneAspectos = aspectosContainer && aspectosContainer.querySelectorAll('.aspecto-block').length > 0;
-  return titulo || resumen || desarrollo || conclusion || clasificacion || tieneAspectos;
+  const bloques = aspectosContainer ? aspectosContainer.querySelectorAll('.aspecto-block') : [];
+  let tieneAspectosConContenido = false;
+  bloques.forEach(block => {
+    const nombre = block.querySelector('.asp-nombre')?.value.trim();
+    const desc = block.querySelector('.asp-desc')?.value.trim();
+    if (nombre || desc) tieneAspectosConContenido = true;
+  });
+  return titulo || resumen || desarrollo || conclusion || clasificacion || tieneAspectosConContenido;
 }
 
-// Datos de ejemplo para los aspectos evaluados, mostrados por defecto al
-// abrir el informe (mismo criterio que defaultComps en SM Consultores):
-// sirven como muestra de cómo luce la sección con contenido real.
+// Datos de ejemplo para los aspectos evaluados
 const defaultAspectos = [
   { nombre: 'Organización', puntaje: 4, maximo: 5, descripcion: 'Se observa un manejo ordenado de las tareas asignadas, con buena planificación de los tiempos.' },
   { nombre: 'Comunicación', puntaje: 3, maximo: 5, descripcion: 'La comunicación con el equipo es adecuada, aunque podría reforzarse en instancias de mayor exigencia.' },
@@ -50,8 +62,6 @@ const defaultAspectos = [
 ];
 
 // Agregar bloque de aspecto dinámico
-// Estructura calcada de "Competencias evaluadas" (SM Consultores):
-// nombre + puntaje obtenido/máximo + descripción.
 function addAspectoBlock(data) {
   data = data || { nombre: '', puntaje: 3, maximo: 5, descripcion: '' };
   const container = document.getElementById('aspectosContainer');
@@ -62,12 +72,12 @@ function addAspectoBlock(data) {
     <button type="button" class="del-btn">✕ Eliminar</button>
     <div class="form-group">
       <label>Aspecto</label>
-      <input type="text" class="asp-nombre" value="${data.nombre || ''}" placeholder="Ej: Comunicación, Liderazgo, etc.">
+      <input type="text" class="asp-nombre" value="${escapeHTML(data.nombre || '')}" placeholder="Ej: Comunicación, Liderazgo, etc.">
     </div>
     <div class="row2">
       <div class="form-group">
         <label>Puntaje obtenido</label>
-        <input type="number" class="asp-puntaje" min="1" max="10" value="${data.puntaje ?? 3}">
+        <input type="number" class="asp-puntaje" min="0" max="10" value="${data.puntaje ?? 3}">
       </div>
       <div class="form-group">
         <label>Puntaje máximo</label>
@@ -76,7 +86,7 @@ function addAspectoBlock(data) {
     </div>
     <div class="form-group">
       <label>Descripción</label>
-      <textarea class="asp-desc" rows="3" placeholder="Descripción de la evaluación...">${data.descripcion || ''}</textarea>
+      <textarea class="asp-desc" rows="3" placeholder="Descripción de la evaluación...">${escapeHTML(data.descripcion || '')}</textarea>
     </div>
   `;
 
@@ -85,6 +95,7 @@ function addAspectoBlock(data) {
     updatePreview();
   });
 
+  // Delegación de eventos para inputs y textareas
   div.querySelectorAll('input, textarea').forEach(el => {
     el.addEventListener('input', updatePreview);
     el.addEventListener('change', updatePreview);
@@ -93,7 +104,7 @@ function addAspectoBlock(data) {
   container.appendChild(div);
 }
 
-// Actualizar la vista previa ocultando secciones vacías (versión sin debounce)
+// Actualizar la vista previa
 function updatePreviewFn() {
   const titulo = document.getElementById('tituloInforme').value.trim();
   const destinatario = document.getElementById('destinatario').value.trim();
@@ -147,8 +158,6 @@ function updatePreviewFn() {
   const clasifObservaciones = document.getElementById('clasifObservaciones').value.trim();
   const esConObservaciones = clasificacion === 'Con observaciones';
 
-  // El campo de texto de observaciones solo tiene sentido cuando la
-  // clasificación elegida es justamente "Con observaciones".
   if (clasifObsWrapper) {
     clasifObsWrapper.style.display = esConObservaciones ? 'block' : 'none';
   }
@@ -163,8 +172,7 @@ function updatePreviewFn() {
     secClasificacion.style.display = 'none';
   }
 
-  // Firma del firmante (mismo criterio que "Datos del profesional" en UDE:
-  // los datos ingresados se usan para armar el bloque de firma al pie).
+  // Firma del firmante
   const secFirma = document.getElementById('secFirma');
   const chkFirma = document.getElementById('chkFirma').checked;
   const firmanteNombre = document.getElementById('firmanteNombre').value.trim();
@@ -194,9 +202,6 @@ function updatePreviewFn() {
       const maximo = block.querySelector('.asp-maximo').value.trim();
       const desc = block.querySelector('.asp-desc').value.trim();
 
-      // Solo mostrar la línea de puntajes si al menos uno de los dos
-      // valores es distinto de cero. "0 / 0" significa "sin puntuar":
-      // ni el dato ni la etiqueta deben aparecer en la vista previa.
       const puntajeNum = parseFloat(puntaje) || 0;
       const maximoNum = parseFloat(maximo) || 0;
       const mostrarPuntajes = puntajeNum !== 0 || maximoNum !== 0;
@@ -205,9 +210,9 @@ function updatePreviewFn() {
         const item = document.createElement('div');
         item.className = 'aspecto-item';
         item.innerHTML = `
-          <div class="aspecto-name">${nombre || '(sin nombre)'}</div>
-          ${mostrarPuntajes ? '<div class="aspecto-scores"><b>Puntaje obtenido:</b> ' + (puntaje || '-') + ' &nbsp; <b>Puntaje máximo:</b> ' + (maximo || '-') + '</div>' : ''}
-          ${desc ? '<div class="aspecto-desc">' + desc + '</div>' : ''}
+          <div class="aspecto-name">${escapeHTML(nombre) || '(sin nombre)'}</div>
+          ${mostrarPuntajes ? '<div class="aspecto-scores"><b>Puntaje obtenido:</b> ' + escapeHTML(puntaje || '-') + ' &nbsp; <b>Puntaje máximo:</b> ' + escapeHTML(maximo || '-') + '</div>' : ''}
+          ${desc ? '<div class="aspecto-desc">' + escapeHTML(desc) + '</div>' : ''}
         `;
         aspectosOutContainer.appendChild(item);
       }
@@ -218,13 +223,8 @@ function updatePreviewFn() {
   }
 }
 
-// Versión con debounce para eventos
 const updatePreview = debounce(updatePreviewFn, 300);
 
-// Espera a que las fuentes web terminen de cargar antes de capturar el DOM.
-// Sin esto, html2canvas puede capturar el frame con la fuente de respaldo
-// (fallback) todavía activa, generando un PDF con métricas de texto
-// distintas a las que se ven en pantalla (saltos de línea desalineados).
 async function waitForFonts() {
   if (document.fonts && document.fonts.ready) {
     try { await document.fonts.ready; } catch (e) { /* noop */ }
@@ -256,12 +256,6 @@ window.downloadPDF = async function() {
     const canvas = await html2canvas(element, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
-    // ---- Paginación real en A4 ----
-    // En vez de forzar TODO el canvas capturado dentro de una única página
-    // de 210x297mm (lo que distorsiona/recorta el contenido cuando el
-    // informe es más largo que una hoja A4), se calcula la altura real de
-    // la imagen manteniendo el ancho fijo a 210mm, y se recorta en franjas
-    // de 297mm de alto, agregando tantas páginas como haga falta.
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210;
     const pageHeight = 297;
@@ -275,7 +269,7 @@ window.downloadPDF = async function() {
     heightLeft -= pageHeight;
 
     while (heightLeft > 0) {
-      position = heightLeft - imgHeight; // desplaza la imagen hacia arriba
+      position = heightLeft - imgHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -312,9 +306,23 @@ window.downloadWord = async function() {
       return;
     }
 
-    const children = [
-      new docx.Paragraph({ text: document.getElementById('tituloInforme').value.trim() || 'INFORME GENERAL', heading: docx.HeadingLevel.HEADING_1 })
-    ];
+    // Verificar que HeadingLevel existe, si no usar alternativa
+    const H1 = docx.HeadingLevel ? docx.HeadingLevel.HEADING_1 : undefined;
+    const H2 = docx.HeadingLevel ? docx.HeadingLevel.HEADING_2 : undefined;
+    const H3 = docx.HeadingLevel ? docx.HeadingLevel.HEADING_3 : undefined;
+    const center = docx.AlignmentType ? docx.AlignmentType.CENTER : undefined;
+
+    const children = [];
+
+    // Título
+    if (H1) {
+      children.push(new docx.Paragraph({ text: document.getElementById('tituloInforme').value.trim() || 'INFORME GENERAL', heading: H1 }));
+    } else {
+      children.push(new docx.Paragraph({
+        children: [new docx.TextRun({ text: document.getElementById('tituloInforme').value.trim() || 'INFORME GENERAL', bold: true, size: 32 })],
+        spacing: { after: 200 }
+      }));
+    }
 
     const destinatario = document.getElementById('destinatario').value.trim();
     if (destinatario) children.push(new docx.Paragraph({ text: 'Para: ' + destinatario }));
@@ -325,20 +333,25 @@ window.downloadWord = async function() {
     const resumen = document.getElementById('resumen').value.trim();
     if (resumen) {
       children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Resumen / Antecedentes', heading: docx.HeadingLevel.HEADING_2 }));
+      if (H2) {
+        children.push(new docx.Paragraph({ text: 'Resumen / Antecedentes', heading: H2 }));
+      } else {
+        children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Resumen / Antecedentes', bold: true, size: 26 })] }));
+      }
       children.push(new docx.Paragraph({ text: resumen }));
     }
 
     const desarrollo = document.getElementById('desarrollo').value.trim();
     if (desarrollo) {
       children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Desarrollo / Observaciones', heading: docx.HeadingLevel.HEADING_2 }));
+      if (H2) {
+        children.push(new docx.Paragraph({ text: 'Desarrollo / Observaciones', heading: H2 }));
+      } else {
+        children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Desarrollo / Observaciones', bold: true, size: 26 })] }));
+      }
       children.push(new docx.Paragraph({ text: desarrollo }));
     }
 
-    // Orden narrativo coherente con UDE / SM Consultores:
-    // aspectos evaluados (evidencia detallada) → conclusión → clasificación
-    // (siempre la ÚLTIMA sección, es el veredicto final).
     const aspectosContainer = document.getElementById('aspectosContainer');
     const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
     if (aspectosBlocks.length > 0) {
@@ -351,7 +364,11 @@ window.downloadWord = async function() {
 
       if (tieneAspecto) {
         children.push(new docx.Paragraph({ text: '' }));
-        children.push(new docx.Paragraph({ text: 'Aspectos Evaluados', heading: docx.HeadingLevel.HEADING_2 }));
+        if (H2) {
+          children.push(new docx.Paragraph({ text: 'Aspectos Evaluados', heading: H2 }));
+        } else {
+          children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Aspectos Evaluados', bold: true, size: 26 })] }));
+        }
 
         aspectosBlocks.forEach(block => {
           const nombre = block.querySelector('.asp-nombre').value.trim();
@@ -362,7 +379,13 @@ window.downloadWord = async function() {
           const maximoNum = parseFloat(maximo) || 0;
           const mostrarPuntajes = puntajeNum !== 0 || maximoNum !== 0;
           if (nombre || desc) {
-            if (nombre) children.push(new docx.Paragraph({ text: nombre, heading: docx.HeadingLevel.HEADING_3 }));
+            if (nombre) {
+              if (H3) {
+                children.push(new docx.Paragraph({ text: nombre, heading: H3 }));
+              } else {
+                children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: nombre, bold: true, size: 24 })] }));
+              }
+            }
             if (mostrarPuntajes) {
               children.push(new docx.Paragraph({
                 children: [
@@ -379,7 +402,11 @@ window.downloadWord = async function() {
     const conclusion = document.getElementById('conclusion').value.trim();
     if (conclusion) {
       children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Conclusión', heading: docx.HeadingLevel.HEADING_2 }));
+      if (H2) {
+        children.push(new docx.Paragraph({ text: 'Conclusión', heading: H2 }));
+      } else {
+        children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Conclusión', bold: true, size: 26 })] }));
+      }
       children.push(new docx.Paragraph({ text: conclusion }));
     }
 
@@ -387,7 +414,11 @@ window.downloadWord = async function() {
     const clasificacion = clasifElWord ? clasifElWord.value : '';
     if (clasificacion) {
       children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: 'Clasificación', heading: docx.HeadingLevel.HEADING_2 }));
+      if (H2) {
+        children.push(new docx.Paragraph({ text: 'Clasificación', heading: H2 }));
+      } else {
+        children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Clasificación', bold: true, size: 26 })] }));
+      }
       children.push(new docx.Paragraph({ text: clasificacion }));
 
       if (clasificacion === 'Con observaciones') {
@@ -398,7 +429,6 @@ window.downloadWord = async function() {
       }
     }
 
-    // Firma del firmante (mismo dato usado en la vista previa)
     const chkFirma = document.getElementById('chkFirma').checked;
     const firmanteNombre = document.getElementById('firmanteNombre').value.trim();
     const firmanteCargo = document.getElementById('firmanteCargo').value.trim();
@@ -406,18 +436,21 @@ window.downloadWord = async function() {
     if (chkFirma && (firmanteNombre || firmanteCargo || firmanteContacto)) {
       children.push(new docx.Paragraph({ text: '' }));
       children.push(new docx.Paragraph({ text: '' }));
-      children.push(new docx.Paragraph({ text: '_______________________', alignment: docx.AlignmentType.CENTER }));
+      children.push(new docx.Paragraph({
+        text: '_______________________',
+        alignment: center
+      }));
       if (firmanteNombre) {
         children.push(new docx.Paragraph({
           children: [new docx.TextRun({ text: firmanteNombre, bold: true })],
-          alignment: docx.AlignmentType.CENTER
+          alignment: center
         }));
       }
       if (firmanteCargo) {
-        children.push(new docx.Paragraph({ text: firmanteCargo, alignment: docx.AlignmentType.CENTER }));
+        children.push(new docx.Paragraph({ text: firmanteCargo, alignment: center }));
       }
       if (firmanteContacto) {
-        children.push(new docx.Paragraph({ text: firmanteContacto, alignment: docx.AlignmentType.CENTER }));
+        children.push(new docx.Paragraph({ text: firmanteContacto, alignment: center }));
       }
     }
 
@@ -433,7 +466,8 @@ window.downloadWord = async function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+    // Aumentar timeout para evitar liberar el blob antes del download
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
   } catch (e) {
@@ -445,9 +479,19 @@ window.downloadWord = async function() {
   }
 };
 
-// Inicialización de event listeners y Botonera
+// Inicialización
 function init() {
-  const campos = ['tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo', 'conclusion', 'clasifObservaciones', 'firmanteNombre', 'firmanteCargo', 'firmanteContacto'];
+  // Setear fecha ANTES de Botonera.init()
+  const fechaInput = document.getElementById('fechaInforme');
+  if (fechaInput && !fechaInput.value) {
+    fechaInput.value = new Date().toISOString().slice(0, 10);
+  }
+
+  const campos = [
+    'tituloInforme', 'destinatario', 'fechaInforme', 'resumen', 'desarrollo',
+    'conclusion', 'clasifObservaciones', 'firmanteNombre', 'firmanteCargo', 'firmanteContacto',
+    'chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'
+  ];
 
   campos.forEach(id => {
     const el = document.getElementById(id);
@@ -459,20 +503,12 @@ function init() {
 
   document.querySelectorAll('input[name="clasificacion"]').forEach(radio => {
     radio.addEventListener('change', () => {
-      // Toggle inmediato (sin esperar el debounce de updatePreview) para
-      // que el campo de observaciones aparezca/desaparezca al instante.
       const clasifObsWrapper = document.getElementById('clasifObsWrapper');
       if (clasifObsWrapper) {
         clasifObsWrapper.style.display = (radio.value === 'Con observaciones' && radio.checked) ? 'block' : 'none';
       }
       updatePreview();
     });
-  });
-
-  const checkboxes = ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'];
-  checkboxes.forEach(id => {
-    const chk = document.getElementById(id);
-    if (chk) chk.addEventListener('change', updatePreview);
   });
 
   const addAspectoBtn = document.getElementById('addAspectoBtn');
@@ -501,16 +537,28 @@ function init() {
         document.getElementById('aspectosContainer').innerHTML = '';
         const clasifObsWrapper = document.getElementById('clasifObsWrapper');
         if (clasifObsWrapper) clasifObsWrapper.style.display = 'none';
+
+        // Resetear todos los checkboxes de visibilidad
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.checked = true;
+        });
+
         updatePreview();
       },
       onLoadExtra: function(data) {
-        // Si el JSON trae aspectos guardados (formato nuevo), reconstruir los
-        // bloques desde cero. Si no los trae (JSON viejo, guardado antes de
-        // este fix), dejamos los bloques actuales tal cual están en pantalla.
         if (Array.isArray(data.aspectos)) {
           document.getElementById('aspectosContainer').innerHTML = '';
           data.aspectos.forEach(addAspectoBlock);
+          window.__datosCargados__ = true;
         }
+        // Restaurar estado de checkboxes si vienen en el JSON
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+          if (data[id] !== undefined) {
+            const el = document.getElementById(id);
+            if (el) el.checked = data[id];
+          }
+        });
         updatePreview();
       },
       onSaveExtra: function(data) {
@@ -523,19 +571,19 @@ function init() {
             descripcion: block.querySelector('.asp-desc').value
           };
         });
+        // Guardar estado de checkboxes
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) data[id] = el.checked;
+        });
       }
     });
   }
 
-  const fechaInput = document.getElementById('fechaInforme');
-  if (fechaInput && !fechaInput.value) {
-    fechaInput.value = new Date().toISOString().slice(0, 10);
+  // Cargar aspectos por defecto SOLO si no se cargaron datos guardados
+  if (!window.__datosCargados__) {
+    defaultAspectos.forEach(addAspectoBlock);
   }
-
-  // Precargar aspectos de ejemplo (solo al abrir el informe; "Limpiar
-  // formulario" los vacía y no los vuelve a cargar, igual que compContainer
-  // en SM Consultores).
-  defaultAspectos.forEach(addAspectoBlock);
 
   updatePreview();
 }

@@ -74,7 +74,6 @@ body {
   font-family: inherit;
 }
 
-/* Fieldsets */
 .form-fieldset {
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -109,7 +108,6 @@ body {
   margin-bottom: 0;
 }
 
-/* Aspectos dinámicos (formulario) */
 .aspecto-block {
   background: #f9fafb;
   border: 1px solid #e5e7eb;
@@ -135,8 +133,8 @@ body {
   padding: 6px 8px;
 }
 
-/* Fila de dos columnas para puntaje obtenido / máximo,
-   igual patrón que .row2 de SM Consultores */
+/* .row2 global y dentro de aspecto-block */
+.row2,
 .aspecto-block .row2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -160,11 +158,6 @@ body {
   background: #dc2626;
 }
 
-/* Hoja A4 simulada.
-   IMPORTANTE: sin "height" fijo, solo min-height. El contenido puede crecer
-   más allá de una hoja A4 (resumen/desarrollo/conclusión extensos); la
-   paginación real para el PDF se resuelve en js/script.js recortando el
-   canvas capturado en franjas de 297mm, no forzando todo a una sola página. */
 .page-a4 {
   width: 794px;
   min-height: 1123px;
@@ -210,7 +203,6 @@ body {
   white-space: pre-wrap;
 }
 
-/* Clasificación */
 .classification-box {
   padding: 12px;
   background: #f0f9ff;
@@ -236,7 +228,6 @@ body {
   display: none;
 }
 
-/* Aspectos dinámicos (vista previa) */
 .aspecto-item {
   margin-bottom: 16px;
   padding-bottom: 12px;
@@ -269,7 +260,6 @@ body {
   margin-top: 4px;
 }
 
-/* Firma del responsable/firmante */
 .firma-block {
   margin-top: 40px;
   text-align: center;
@@ -306,10 +296,6 @@ body {
   display: none;
 }
 
-/* ============================================================ */
-/*                    MEJORAS DE ACCESIBILIDAD                  */
-/* ============================================================ */
-
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -329,9 +315,10 @@ body {
   border-color: #16a34a;
 }
 
-/* ============================================================ */
-/*                    MEDIA QUERIES - RESPONSIVE                */
-/* ============================================================ */
+.form-group label input[type="checkbox"]:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
 
 @media (max-width: 1024px) {
   .container {
@@ -441,10 +428,6 @@ body {
     font-size: 13px;
   }
 }
-
-/* ============================================================ */
-/*                    ESTILOS DE IMPRESIÓN                      */
-/* ============================================================ */
 
 @media print {
   body {
