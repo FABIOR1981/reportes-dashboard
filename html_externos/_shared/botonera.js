@@ -14,6 +14,7 @@ window.Botonera = (function() {
     onResetExtra: null,
     onLoadExtra: null,
     statusId: 'status',
+    actionsId: 'actions',
     spellPanelId: 'spellPanel',
     dicPanelId: 'dicPanel',
     dicListId: 'dicList',
@@ -34,9 +35,48 @@ window.Botonera = (function() {
   // ---------- Inicialización ----------
   function init(userConfig) {
     Object.assign(cfg, userConfig);
+    renderToolbar();
     cacheElements();
     bindEvents();
     renderDiccionarioPanel();
+  }
+
+  // ---------- Barra de botones (única fuente de verdad) ----------
+  // Antes este HTML estaba duplicado, carácter por carácter, en los 3
+  // informes (UDE / SM Consultores / Genérico). Cambiar un ícono o un
+  // texto significaba editar 3 archivos y confiar en no equivocarse en
+  // ninguno. Ahora vive acá una sola vez; cada informe solo necesita un
+  // contenedor vacío: <div class="btn-toolbar" id="actions"></div>
+  function renderToolbar() {
+    const container = document.getElementById(cfg.actionsId);
+    if (!container) return; // este informe no tiene barra de botones
+
+    container.innerHTML =
+      '<button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="18.5" font-size="7" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">PDF</text></svg>' +
+        '<span class="tooltip">Descargar PDF</span>' +
+      '</button>' +
+      '<button class="btn btn-primary" data-action="word" aria-label="Descargar Word">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="18" font-size="9" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">W</text></svg>' +
+        '<span class="tooltip">Descargar Word</span>' +
+      '</button>' +
+      '<button class="btn btn-secondary" data-action="save" aria-label="Guardar datos">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>' +
+        '<span class="tooltip">Guardar datos</span>' +
+      '</button>' +
+      '<button class="btn btn-secondary" data-action="load" aria-label="Cargar datos">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' +
+        '<span class="tooltip">Cargar datos</span>' +
+      '</button>' +
+      '<input type="file" id="loadInput" accept="application/json,.json" hidden>' +
+      '<button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografía">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><text x="12" y="11" font-size="7.5" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">ABC</text><polyline points="8 16 11 19 17 13" stroke-width="2.2"/></svg>' +
+        '<span class="tooltip">Revisar ortografía</span>' +
+      '</button>' +
+      '<button class="btn btn-danger" data-action="reset" aria-label="Limpiar formulario">' +
+        '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
+        '<span class="tooltip">Limpiar formulario</span>' +
+      '</button>';
   }
 
   function cacheElements() {
