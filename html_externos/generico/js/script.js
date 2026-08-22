@@ -253,7 +253,27 @@ window.downloadPDF = async function() {
 
     const { jsPDF } = window.jspdf;
     const element = document.getElementById('pdfPreview');
-    const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+
+    // El mismo contenedor que se usa para capturar el PDF tiene, en
+    // pantallas angostas, un recorte visual (max-height + overflow) para
+    // que se pueda hacer scroll cómodo en el formulario (ver CSS
+    // responsive de .page-a4). Si generamos el PDF con la ventana
+    // angosta, ese recorte también afecta la captura y el informe queda
+    // incompleto. Lo neutralizamos solo durante la captura y lo
+    // restauramos enseguida, sin que el usuario note el cambio.
+    const prevMaxHeight = element.style.maxHeight;
+    const prevOverflow = element.style.overflow;
+    element.style.maxHeight = 'none';
+    element.style.overflow = 'visible';
+
+    let canvas;
+    try {
+      canvas = await html2canvas(element, { scale: 2, useCORS: true });
+    } finally {
+      element.style.maxHeight = prevMaxHeight;
+      element.style.overflow = prevOverflow;
+    }
+
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
 
     const pdf = new jsPDF('p', 'mm', 'a4');
@@ -262,13 +282,17 @@ window.downloadPDF = async function() {
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
+    // Margen de tolerancia para no generar una página extra en blanco
+    // por una diferencia de menos de 1mm (redondeo de la conversión
+    // px -> mm), que en la práctica es invisible para el usuario.
+    const EPSILON_MM = 1;
     let heightLeft = imgHeight;
     let position = 0;
 
     pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
 
-    while (heightLeft > 0) {
+    while (heightLeft > EPSILON_MM) {
       position = heightLeft - imgHeight;
       pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
