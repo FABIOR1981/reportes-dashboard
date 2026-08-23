@@ -161,7 +161,11 @@ body {
 .page-a4 {
   width: 794px;
   min-height: 1123px;
-  padding: 50px 60px;
+  /* 96px = 25.4mm = 1 pulgada, el mismo margen que ya usa el Word
+     (docx.Document -> page.margin: 1440 twips). Antes era más chico acá
+     (50px/60px) que en el Word, así que el PDF quedaba con menos aire
+     que el Word y el texto llegaba casi hasta el borde de la hoja. */
+  padding: 96px;
   background: white;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
   position: relative;
