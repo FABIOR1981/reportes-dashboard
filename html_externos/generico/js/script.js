@@ -35,6 +35,43 @@ function debounce(func, wait) {
   };
 }
 
+// ============================================================
+//  HELPERS PARA DOCX – convertir texto con saltos de línea
+// ============================================================
+
+/**
+ * Convierte texto con saltos de línea en array de párrafos docx.
+ * Cada línea es un párrafo separado. Filtra líneas vacías.
+ */
+function textToDocxParagraphs(text, options) {
+  options = options || {};
+  if (!text || !text.trim()) return [];
+  var lines = text.split(/\r?\n/).filter(function(line) { return line.trim() !== ''; });
+  if (lines.length === 0) return [];
+  return lines.map(function(line) {
+    return new docx.Paragraph({
+      children: [new docx.TextRun(Object.assign({ text: line }, options))],
+      spacing: { after: 120 }
+    });
+  });
+}
+
+/**
+ * Convierte texto con saltos de línea en array de párrafos docx.
+ * Conserva líneas vacías (espaciado intencional).
+ */
+function textToDocxParagraphsPreserveEmpty(text, options) {
+  options = options || {};
+  if (!text) return [];
+  var lines = text.split(/\r?\n/);
+  return lines.map(function(line) {
+    return new docx.Paragraph({
+      children: [new docx.TextRun(Object.assign({ text: line }, options))],
+      spacing: { after: 120 }
+    });
+  });
+}
+
 // Validar que hay contenido para descargar
 function hasContent() {
   const titulo = document.getElementById('tituloInforme').value.trim();
@@ -46,7 +83,7 @@ function hasContent() {
   const aspectosContainer = document.getElementById('aspectosContainer');
   const bloques = aspectosContainer ? aspectosContainer.querySelectorAll('.aspecto-block') : [];
   let tieneAspectosConContenido = false;
-  bloques.forEach(block => {
+  bloques.forEach(function(block) {
     const nombre = block.querySelector('.asp-nombre')?.value.trim();
     const desc = block.querySelector('.asp-desc')?.value.trim();
     if (nombre || desc) tieneAspectosConContenido = true;
@@ -90,13 +127,13 @@ function addAspectoBlock(data) {
     </div>
   `;
 
-  div.querySelector('.del-btn').addEventListener('click', () => {
+  div.querySelector('.del-btn').addEventListener('click', function() {
     div.remove();
     updatePreview();
   });
 
   // Delegación de eventos para inputs y textareas
-  div.querySelectorAll('input, textarea').forEach(el => {
+  div.querySelectorAll('input, textarea').forEach(function(el) {
     el.addEventListener('input', updatePreview);
     el.addEventListener('change', updatePreview);
   });
@@ -196,7 +233,7 @@ function updatePreviewFn() {
   const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
   if (aspectosBlocks.length > 0) {
     aspectosOutContainer.innerHTML = '';
-    aspectosBlocks.forEach(block => {
+    aspectosBlocks.forEach(function(block) {
       const nombre = block.querySelector('.asp-nombre').value.trim();
       const puntaje = block.querySelector('.asp-puntaje').value.trim();
       const maximo = block.querySelector('.asp-maximo').value.trim();
@@ -231,7 +268,9 @@ async function waitForFonts() {
   }
 }
 
-// Contrato: window.downloadPDF
+// ============================================================
+//  CONTRATO: window.downloadPDF
+// ============================================================
 window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
   const status = document.getElementById('status');
@@ -254,24 +293,36 @@ window.downloadPDF = async function() {
     const { jsPDF } = window.jspdf;
     const element = document.getElementById('pdfPreview');
 
-    // El mismo contenedor que se usa para capturar el PDF tiene, en
-    // pantallas angostas, un recorte visual (max-height + overflow) para
-    // que se pueda hacer scroll cómodo en el formulario (ver CSS
-    // responsive de .page-a4). Si generamos el PDF con la ventana
-    // angosta, ese recorte también afecta la captura y el informe queda
-    // incompleto. Lo neutralizamos solo durante la captura y lo
-    // restauramos enseguida, sin que el usuario note el cambio.
+    // ============================================================
+    //  FIX PDF: Forzar modo desktop durante captura
+    // ============================================================
+    document.body.classList.add('pdf-capturing');
+
+    // Guardar estilos inline previos para restaurar después
     const prevMaxHeight = element.style.maxHeight;
     const prevOverflow = element.style.overflow;
     element.style.maxHeight = 'none';
     element.style.overflow = 'visible';
 
+    // Forzar scroll al inicio para capturar desde arriba
+    element.scrollTop = 0;
+
     let canvas;
     try {
-      canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        windowWidth: 1200,      // Forzar ancho de ventana para evitar media queries
+        width: 794,             // Ancho exacto A4 en px
+        height: element.scrollHeight, // Capturar TODO el contenido
+        scrollY: 0,
+        scrollX: 0,
+        logging: false
+      });
     } finally {
       element.style.maxHeight = prevMaxHeight;
       element.style.overflow = prevOverflow;
+      document.body.classList.remove('pdf-capturing');
     }
 
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
@@ -282,9 +333,9 @@ window.downloadPDF = async function() {
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Margen de tolerancia para no generar una página extra en blanco
-    // por una diferencia de menos de 1mm (redondeo de la conversión
-    // px -> mm), que en la práctica es invisible para el usuario.
+    // ============================================================
+    //  FIX PDF: Paginación robusta sin páginas en blanco extra
+    // ============================================================
     const EPSILON_MM = 1;
     let heightLeft = imgHeight;
     let position = 0;
@@ -293,7 +344,7 @@ window.downloadPDF = async function() {
     heightLeft -= pageHeight;
 
     while (heightLeft > EPSILON_MM) {
-      position = heightLeft - imgHeight;
+      position = heightLeft - imgHeight;  // Negativo, desplaza hacia arriba
       pdf.addPage();
       pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -308,11 +359,13 @@ window.downloadPDF = async function() {
     if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
   } finally {
     if (btn) btn.disabled = false;
-    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+    if (status) setTimeout(function() { status.textContent = ''; }, 4000);
   }
 };
 
-// Contrato: window.downloadWord
+// ============================================================
+//  CONTRATO: window.downloadWord
+// ============================================================
 window.downloadWord = async function() {
   const btn = document.querySelector('[data-action="word"]');
   const status = document.getElementById('status');
@@ -354,33 +407,42 @@ window.downloadWord = async function() {
     const fecha = document.getElementById('fechaInforme').value;
     if (fecha) children.push(new docx.Paragraph({ text: 'Fecha: ' + fecha }));
 
+    // ============================================================
+    //  FIX WORD: Resumen con párrafos separados (no todo junto)
+    // ============================================================
     const resumen = document.getElementById('resumen').value.trim();
-    if (resumen) {
+    if (resumen && document.getElementById('chkResumen').checked) {
       children.push(new docx.Paragraph({ text: '' }));
       if (H2) {
         children.push(new docx.Paragraph({ text: 'Resumen / Antecedentes', heading: H2 }));
       } else {
         children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Resumen / Antecedentes', bold: true, size: 26 })] }));
       }
-      children.push(new docx.Paragraph({ text: resumen }));
+      children.push.apply(children, textToDocxParagraphsPreserveEmpty(resumen));
     }
 
+    // ============================================================
+    //  FIX WORD: Desarrollo con párrafos separados
+    // ============================================================
     const desarrollo = document.getElementById('desarrollo').value.trim();
-    if (desarrollo) {
+    if (desarrollo && document.getElementById('chkDesarrollo').checked) {
       children.push(new docx.Paragraph({ text: '' }));
       if (H2) {
         children.push(new docx.Paragraph({ text: 'Desarrollo / Observaciones', heading: H2 }));
       } else {
         children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Desarrollo / Observaciones', bold: true, size: 26 })] }));
       }
-      children.push(new docx.Paragraph({ text: desarrollo }));
+      children.push.apply(children, textToDocxParagraphsPreserveEmpty(desarrollo));
     }
 
+    // ============================================================
+    //  Aspectos evaluados
+    // ============================================================
     const aspectosContainer = document.getElementById('aspectosContainer');
     const aspectosBlocks = aspectosContainer.querySelectorAll('.aspecto-block');
     if (aspectosBlocks.length > 0) {
       let tieneAspecto = false;
-      aspectosBlocks.forEach(block => {
+      aspectosBlocks.forEach(function(block) {
         const nombre = block.querySelector('.asp-nombre').value.trim();
         const desc = block.querySelector('.asp-desc').value.trim();
         if (nombre || desc) tieneAspecto = true;
@@ -394,7 +456,7 @@ window.downloadWord = async function() {
           children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Aspectos Evaluados', bold: true, size: 26 })] }));
         }
 
-        aspectosBlocks.forEach(block => {
+        aspectosBlocks.forEach(function(block) {
           const nombre = block.querySelector('.asp-nombre').value.trim();
           const puntaje = block.querySelector('.asp-puntaje').value.trim();
           const maximo = block.querySelector('.asp-maximo').value.trim();
@@ -417,26 +479,33 @@ window.downloadWord = async function() {
                 ]
               }));
             }
-            if (desc) children.push(new docx.Paragraph({ text: desc }));
+            // FIX: Descripción con párrafos separados
+            if (desc) {
+              children.push.apply(children, textToDocxParagraphsPreserveEmpty(desc));
+            }
           }
         });
       }
     }
 
+    // ============================================================
+    //  FIX WORD: Conclusión con párrafos separados
+    // ============================================================
     const conclusion = document.getElementById('conclusion').value.trim();
-    if (conclusion) {
+    if (conclusion && document.getElementById('chkConclusion').checked) {
       children.push(new docx.Paragraph({ text: '' }));
       if (H2) {
         children.push(new docx.Paragraph({ text: 'Conclusión', heading: H2 }));
       } else {
         children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Conclusión', bold: true, size: 26 })] }));
       }
-      children.push(new docx.Paragraph({ text: conclusion }));
+      children.push.apply(children, textToDocxParagraphsPreserveEmpty(conclusion));
     }
 
+    // Clasificación
     const clasifElWord = document.querySelector('input[name="clasificacion"]:checked');
     const clasificacion = clasifElWord ? clasifElWord.value : '';
-    if (clasificacion) {
+    if (clasificacion && document.getElementById('chkClasificacion').checked) {
       children.push(new docx.Paragraph({ text: '' }));
       if (H2) {
         children.push(new docx.Paragraph({ text: 'Clasificación', heading: H2 }));
@@ -448,11 +517,12 @@ window.downloadWord = async function() {
       if (clasificacion === 'Con observaciones') {
         const clasifObservaciones = document.getElementById('clasifObservaciones').value.trim();
         if (clasifObservaciones) {
-          children.push(new docx.Paragraph({ text: clasifObservaciones }));
+          children.push.apply(children, textToDocxParagraphsPreserveEmpty(clasifObservaciones));
         }
       }
     }
 
+    // Firma
     const chkFirma = document.getElementById('chkFirma').checked;
     const firmanteNombre = document.getElementById('firmanteNombre').value.trim();
     const firmanteCargo = document.getElementById('firmanteCargo').value.trim();
@@ -478,8 +548,23 @@ window.downloadWord = async function() {
       }
     }
 
+    // ============================================================
+    //  FIX: Márgenes de página en el documento
+    // ============================================================
     const doc = new docx.Document({
-      sections: [{ properties: {}, children }]
+      sections: [{
+        properties: {
+          page: {
+            margin: {
+              top: 1440,    // 1 pulgada = 1440 twips
+              right: 1440,
+              bottom: 1440,
+              left: 1440
+            }
+          }
+        },
+        children: children
+      }]
     });
 
     const blob = await docx.Packer.toBlob(doc);
@@ -490,8 +575,7 @@ window.downloadWord = async function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    // Aumentar timeout para evitar liberar el blob antes del download
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
   } catch (e) {
@@ -499,11 +583,13 @@ window.downloadWord = async function() {
     if (status) status.textContent = '⚠ Error al generar Word.';
   } finally {
     if (btn) btn.disabled = false;
-    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+    if (status) setTimeout(function() { status.textContent = ''; }, 4000);
   }
 };
 
-// Inicialización
+// ============================================================
+//  Inicialización
+// ============================================================
 function init() {
   // Setear fecha ANTES de Botonera.init()
   const fechaInput = document.getElementById('fechaInforme');
@@ -517,7 +603,7 @@ function init() {
     'chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'
   ];
 
-  campos.forEach(id => {
+  campos.forEach(function(id) {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener('input', updatePreview);
@@ -525,8 +611,8 @@ function init() {
     }
   });
 
-  document.querySelectorAll('input[name="clasificacion"]').forEach(radio => {
-    radio.addEventListener('change', () => {
+  document.querySelectorAll('input[name="clasificacion"]').forEach(function(radio) {
+    radio.addEventListener('change', function() {
       const clasifObsWrapper = document.getElementById('clasifObsWrapper');
       if (clasifObsWrapper) {
         clasifObsWrapper.style.display = (radio.value === 'Con observaciones' && radio.checked) ? 'block' : 'none';
@@ -537,7 +623,7 @@ function init() {
 
   const addAspectoBtn = document.getElementById('addAspectoBtn');
   if (addAspectoBtn) {
-    addAspectoBtn.addEventListener('click', () => {
+    addAspectoBtn.addEventListener('click', function() {
       addAspectoBlock();
       updatePreview();
     });
@@ -563,7 +649,7 @@ function init() {
         if (clasifObsWrapper) clasifObsWrapper.style.display = 'none';
 
         // Resetear todos los checkboxes de visibilidad
-        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(function(id) {
           const el = document.getElementById(id);
           if (el) el.checked = true;
         });
@@ -577,7 +663,7 @@ function init() {
           window.__datosCargados__ = true;
         }
         // Restaurar estado de checkboxes si vienen en el JSON
-        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(function(id) {
           if (data[id] !== undefined) {
             const el = document.getElementById(id);
             if (el) el.checked = data[id];
@@ -596,7 +682,7 @@ function init() {
           };
         });
         // Guardar estado de checkboxes
-        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(id => {
+        ['chkResumen', 'chkDesarrollo', 'chkConclusion', 'chkClasificacion', 'chkFirma'].forEach(function(id) {
           const el = document.getElementById(id);
           if (el) data[id] = el.checked;
         });
