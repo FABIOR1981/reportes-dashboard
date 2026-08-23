@@ -65,7 +65,7 @@ window.DICCIONARIO_BASE = [
 
   // ---------- Instrumentos / pruebas frecuentes en la región ----------
   'Raven', 'Bender', 'Wartegg', 'Zulliger', 'Rorschach', 'Cleaver',
-  'DISC', '16PF', 'MMPI', 'NEO-PI-R',
+  'DISC', '16PF', 'MMPI', 'NEO-PI-R','MBTI',
 
   // ---------- Localidades / regionalismos frecuentes (UY) ----------
   'Montevideo', 'Canelones', 'Maldonado', 'Paysandú', 'Salto',
