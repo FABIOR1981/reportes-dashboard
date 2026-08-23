@@ -1,3 +1,19 @@
+// Mostrar la versión real de la app en el sidebar. La lee directamente
+// del contenido de sw.js (fetch como texto + regex), que es la ÚNICA
+// fuente de verdad de la versión — así nunca queda desincronizada del
+// número que realmente controla el caché offline.
+document.addEventListener('DOMContentLoaded', () => {
+  const versionBadge = document.querySelector('.badge');
+  if (!versionBadge) return;
+  fetch('sw.js')
+    .then((res) => res.text())
+    .then((texto) => {
+      const match = texto.match(/CACHE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+      if (match) versionBadge.textContent = match[1];
+    })
+    .catch(() => { /* si falla, se queda con el texto que ya tenía en el HTML */ });
+});
+
 // Registrar el Service Worker (permite que la app cargue sin conexión
 // una vez que ya se abrió al menos una vez con internet).
 if ('serviceWorker' in navigator) {

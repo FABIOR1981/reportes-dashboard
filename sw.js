@@ -9,6 +9,16 @@
 // proyecto, hay que sumarlo también a PRECACHE_URLS de acá abajo
 // y subir el número de CACHE_VERSION, para que los usuarios que
 // ya tenían la app instalada reciban la actualización.
+//
+// El número de acá abajo es la ÚNICA fuente de verdad de la
+// versión: el badge que se ve en el sidebar (index.html) lo lee
+// directamente de este archivo en tiempo real (ver js/main.js),
+// así que no hace falta (ni conviene) duplicarlo en ningún otro
+// lugar. Esto tiene que vivir en ESTE archivo puntual y no en uno
+// aparte: el navegador detecta que "hay una versión nueva"
+// comparando los bytes de este archivo específico — si el número
+// viviera en un archivo separado, cambiarlo no dispararía ninguna
+// actualización.
 // ============================================================
 
 const CACHE_VERSION = 'v2';
