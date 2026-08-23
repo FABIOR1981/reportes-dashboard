@@ -307,6 +307,40 @@ window.downloadPDF = async function() {
     // Forzar scroll al inicio para capturar desde arriba
     element.scrollTop = 0;
 
+    // ============================================================
+    //  FIX PDF: puntos de corte seguros (no partir una línea de texto)
+    //  Se miden ANTES de capturar, con el elemento ya en su estado real
+    //  de captura (sin recortes de altura), para que las coordenadas
+    //  coincidan exactamente con lo que va a fotografiar html2canvas.
+    // ============================================================
+    function calcularCortesSeguros(container) {
+      const bottoms = [];
+      const containerRect = container.getBoundingClientRect();
+      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+        acceptNode: function(node) {
+          return node.textContent.trim().length > 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+        }
+      });
+      let node;
+      while ((node = walker.nextNode())) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const rects = range.getClientRects();
+        for (let i = 0; i < rects.length; i++) {
+          if (rects[i].height > 0) bottoms.push(rects[i].bottom - containerRect.top);
+        }
+      }
+      // Elementos de caja sin texto propio (separadores, tablas, tarjetas)
+      // también deben respetarse enteros, no partirse a la mitad.
+      container.querySelectorAll('hr, table, tr, .clasif-box').forEach(function(el) {
+        const r = el.getBoundingClientRect();
+        bottoms.push(r.bottom - containerRect.top);
+      });
+      bottoms.sort(function(a, b) { return a - b; });
+      return bottoms;
+    }
+    const cortesSeguros = calcularCortesSeguros(element);
+
     let canvas;
     try {
       canvas = await html2canvas(element, {
@@ -334,20 +368,47 @@ window.downloadPDF = async function() {
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
     // ============================================================
-    //  FIX PDF: Paginación robusta sin páginas en blanco extra
+    //  FIX PDF: paginación que respeta los cortes seguros (sin partir
+    //  líneas de texto a la mitad) y sin páginas en blanco extra.
     // ============================================================
-    const EPSILON_MM = 1;
-    let heightLeft = imgHeight;
-    let position = 0;
+    // 794 = ancho CSS fijo usado en la captura de html2canvas (arriba).
+    // Como el "scale" se cancela en la conversión, este factor sirve para
+    // pasar coordenadas CSS (px) del DOM a milímetros dentro de la imagen.
+    const mmPerCssPx = imgWidth / 794;
+    const pageHeightCssPx = pageHeight / mmPerCssPx;
+    const alturaTotalCssPx = imgHeight / mmPerCssPx;
+    const MARGEN_MIN_PX = 15; // evita páginas casi vacías si el corte cae muy cerca del anterior
+    const EPSILON_MM = 3; // sobrante final tan chico que no amerita una página nueva (padding, redondeo)
+    const epsilonPx = EPSILON_MM / mmPerCssPx;
+    // La decisión de "¿entra en lo que queda?" se hace contra la altura con
+    // margen descontado, para no generar una página extra por una diferencia
+    // de menos de 3mm (redondeo entre el DOM y el canvas capturado). El
+    // contenido real que se dibuja en cada página sigue siendo el completo.
+    const alturaEfectivaCssPx = Math.max(0, alturaTotalCssPx - epsilonPx);
 
-    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+    const cortesPagina = [0];
+    let cursor = 0;
+    while (cursor < alturaEfectivaCssPx) {
+      const objetivo = cursor + pageHeightCssPx;
+      if (objetivo >= alturaEfectivaCssPx) {
+        cortesPagina.push(alturaTotalCssPx);
+        break;
+      }
+      let corte = objetivo;
+      for (let i = cortesSeguros.length - 1; i >= 0; i--) {
+        if (cortesSeguros[i] > cursor + MARGEN_MIN_PX && cortesSeguros[i] <= objetivo) {
+          corte = cortesSeguros[i];
+          break;
+        }
+      }
+      cortesPagina.push(corte);
+      cursor = corte;
+    }
 
-    while (heightLeft > EPSILON_MM) {
-      position = heightLeft - imgHeight;  // Negativo, desplaza hacia arriba
-      pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+    for (let p = 0; p < cortesPagina.length - 1; p++) {
+      const inicioMm = cortesPagina[p] * mmPerCssPx;
+      if (p > 0) pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, -inicioMm, imgWidth, imgHeight);
     }
 
     const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.pdf';
