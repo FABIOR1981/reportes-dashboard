@@ -18,6 +18,22 @@ function getTitleFromHtml(filePath, defaultName) {
   }
 }
 
+// Nombre "lindo" para el sidebar (ej. "UDE" en vez de "ude"). Vive en un
+// archivo de texto plano DENTRO de la propia carpeta que describe (no en
+// un mapeo centralizado aparte), así nunca queda desincronizado si se
+// agrega o saca un informe de esa carpeta. Si no existe el archivo, se
+// sigue usando el nombre de carpeta tal cual (comportamiento de siempre).
+function getFolderDisplayName(folderPath, defaultName) {
+  const nombreFile = path.join(folderPath, 'nombre.txt');
+  try {
+    if (fs.existsSync(nombreFile)) {
+      const content = fs.readFileSync(nombreFile, 'utf8').trim();
+      if (content) return content;
+    }
+  } catch (err) { /* si falla, usamos el nombre de carpeta de siempre */ }
+  return defaultName;
+}
+
 function scanDirectory(currentPath, relativePath = '') {
   const items = fs.readdirSync(currentPath, { withFileTypes: true });
   const result = [];
@@ -31,7 +47,7 @@ function scanDirectory(currentPath, relativePath = '') {
       if (subItems.length > 0) {
         result.push({
           type: 'folder',
-          name: item.name,
+          name: getFolderDisplayName(fullPath, item.name),
           items: subItems
         });
       }
