@@ -552,3 +552,57 @@
     padding: 20px 14px;
   }
 }
+
+/* ============================================================
+   TEMA OSCURO (opcional) — Solo afecta el panel de formulario
+   (#panel). La vista previa del documento (#previewWrap / .page)
+   NUNCA se ve afectada: siempre se ve y se exporta a PDF/Word
+   con la estética fija de oficina. Ver html_externos/_shared/theme.js
+   ============================================================ */
+[data-theme="oscuro"] #panel {
+  --teal-dark: #9FE1CB;
+  --teal: #5DCAA5;
+  --teal-text: #9FE1CB;
+  --teal-light: #173b2f;
+  --lavender: #20232b;
+  --teal-lighter: #20232b;
+  --ink: #e8e9ec;
+  --muted: #9a9ea8;
+  --border: #2c2f38;
+  background: #1a1d24;
+}
+[data-theme="oscuro"] input[type=text],
+[data-theme="oscuro"] input[type=date],
+[data-theme="oscuro"] input[type=time],
+[data-theme="oscuro"] input[type=number],
+[data-theme="oscuro"] textarea,
+[data-theme="oscuro"] select {
+  background: #20232b;
+}
+[data-theme="oscuro"] .comp-block {
+  background: #20232b;
+}
+[data-theme="oscuro"] #panel input[readonly] {
+  background: #171920;
+  color: #9a9ea8;
+}
+[data-theme="oscuro"] #panel #spellPanel .spell-field {
+  background: #20232b;
+  border-color: #2c2f38;
+}
+[data-theme="oscuro"] #panel #spellPanel .spell-field b {
+  color: #9FE1CB;
+}
+[data-theme="oscuro"] #panel .dic-ignore {
+  background: #173b2f;
+  border-color: #2a5c48;
+  color: #9FE1CB;
+}
+[data-theme="oscuro"] #panel .dic-chip {
+  background: #173b2f;
+  color: #9FE1CB;
+  border-color: #2a5c48;
+}
+[data-theme="oscuro"] #panel #dicList {
+  color: #9a9ea8;
+}

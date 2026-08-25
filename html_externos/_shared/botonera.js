@@ -41,6 +41,9 @@ window.Botonera = (function() {
     if (!container) return;
 
     container.innerHTML =
+      '<button type="button" id="themeToggleBtn" class="btn-toolbar-item" aria-label="Cambiar a modo oscuro" title="Cambiar a modo oscuro">' +
+        '<svg id="themeToggleIcon" class="btn-icon" data-icon="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>' +
+      '</button>' +
       '<button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">' +
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="18.5" font-size="7" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">PDF</text></svg>' +
         '<span class="tooltip">Descargar PDF</span>' +
@@ -66,6 +69,27 @@ window.Botonera = (function() {
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
         '<span class="tooltip">Limpiar formulario</span>' +
       '</button>';
+
+    // El botón de tema se acaba de crear recién ahora: si theme.js ya
+    // había corrido antes (por ejemplo, si el informe difiere el resto
+    // de la inicialización a DOMContentLoaded), hay que sincronizar el
+    // ícono/estado del botón con el tema ya aplicado en <html>.
+    if (window.Theme && typeof window.Theme.current === 'function') {
+      var temaActual = window.Theme.current();
+      var icon = document.getElementById('themeToggleIcon');
+      var btn = document.getElementById('themeToggleBtn');
+      var esOscuro = temaActual === 'oscuro';
+      if (icon) {
+        icon.innerHTML = esOscuro
+          ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>'
+          : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>';
+      }
+      if (btn) {
+        var label = esOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+        btn.setAttribute('aria-label', label);
+        btn.title = label;
+      }
+    }
   }
 
   function cacheElements() {
