@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v2.0.1';
+const CACHE_VERSION = 'v2.0.2';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -99,7 +99,15 @@ self.addEventListener('fetch', function(event) {
     caches.match(req).then(function(cached) {
       const networkFetch = fetch(req).then(function(res) {
         if (res && res.ok) {
-          caches.open(CACHE_NAME).then(function(cache) { cache.put(req, res.clone()); });
+          // IMPORTANTE: clonar ACÁ, de forma síncrona, antes de cualquier
+          // await/async gap. caches.open() es asíncrono (usa IndexedDB
+          // por debajo) — si se clona recién adentro de su .then(), el
+          // navegador ya empezó a leer el body de "res" para entregarlo
+          // a la página (por el "return res" de más abajo), y clonar una
+          // respuesta cuyo body ya se está leyendo tira
+          // "Response body is already used".
+          const resParaCache = res.clone();
+          caches.open(CACHE_NAME).then(function(cache) { cache.put(req, resParaCache); });
         }
         return res;
       }).catch(function() { return cached; });
