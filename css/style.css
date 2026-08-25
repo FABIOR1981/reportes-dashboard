@@ -471,27 +471,43 @@ input:focus-visible {
   outline-offset: 2px;
 }
 
-/* Ícono de estado del corrector ortográfico automático (LanguageTool) */
+/* Chip de estado del corrector ortográfico automático (LanguageTool).
+   Antes era un punto de color; ahora son letras ("DIC" = Diccionario)
+   con el borde, el texto y el relleno cambiando según el estado. */
 .langtool-status-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  font-size: 9px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  border: 1px solid var(--ink-line);
+  background: transparent;
+  color: var(--status-unknown);
   flex-shrink: 0;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
 .langtool-status-icon.langtool-status-online {
   color: var(--status-ok);
+  border-color: var(--status-ok);
+  background: rgba(63, 138, 92, 0.16);
 }
 
 .langtool-status-icon.langtool-status-offline {
   color: var(--status-bad);
+  border-color: var(--status-bad);
+  background: rgba(193, 80, 63, 0.16);
 }
 
 .langtool-status-icon.langtool-status-unknown {
   color: var(--status-unknown);
+  border-color: var(--ink-line);
+  background: transparent;
 }
 
 .content-body {
