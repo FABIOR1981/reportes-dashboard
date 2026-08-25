@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v2.1.0';
+const CACHE_VERSION = 'v2.0.1';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -36,7 +36,6 @@ const PRECACHE_URLS = [
 
   './html_externos/_shared/botonera.css',
   './html_externos/_shared/botonera.js',
-  './html_externos/_shared/theme.js',
   './html_externos/_shared/diccionario-base.js',
   './html_externos/_shared/vendor/html2canvas.min.js',
   './html_externos/_shared/vendor/jspdf.umd.min.js',

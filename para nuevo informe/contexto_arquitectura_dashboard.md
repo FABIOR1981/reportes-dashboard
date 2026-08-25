@@ -183,43 +183,6 @@ hacia el dashboard.
 
 ---
 
-## 🌗 TEMA CLARO/OSCURO (`_shared/theme.js`)
-
-### Qué hace y qué NO hace
-Agrega un botón (sol/luna, dentro de la propia botonera, generado por
-`renderToolbar()`) que cambia la paleta de colores del **panel de
-formulario únicamente** (`#panel` en UDE/SM Consultores, `.form-panel`
-en Genérico). **Nunca** afecta la vista previa del documento
-(`#previewWrap`/`.page` o `.preview-panel`/`.page-a4`) ni lo que se
-genera al exportar a PDF o Word — esos siempre usan la estética fija de
-oficina/empresarial, sin importar el tema activo en pantalla. Esto es
-posible porque en los 3 informes el panel de formulario y la vista
-previa del documento son elementos **hermanos** en el DOM (nunca uno
-dentro del otro), así que escopear el CSS oscuro al panel es
-estructuralmente seguro.
-
-### Persistencia
-Clave **compartida** en `localStorage`: `temaPreferido` (`'claro'` |
-`'oscuro'`). Compartida entre los 3 informes porque corren bajo el
-mismo origen (Netlify) — elegís el modo en un informe y los otros dos
-arrancan igual la próxima vez. Default: `'claro'`.
-
-### Cómo funciona
-- `theme.js` aplica el atributo `data-theme="claro"|"oscuro"` en
-  `<html>` apenas se ejecuta el script (antes de `DOMContentLoaded`),
-  para evitar parpadeo de tema incorrecto al cargar.
-- Cada CSS de informe define un bloque `[data-theme="oscuro"] #panel {...}`
-  (o `.form-panel` en Genérico) al final del archivo, sin tocar ninguna
-  regla existente — son overrides puramente aditivos.
-- El botón en sí (ícono SVG inline, no depende de fuentes externas,
-  mismo criterio que el resto de la botonera) se genera dentro de
-  `renderToolbar()` en `botonera.js`, así que no hace falta agregarlo a
-  mano en cada informe — solo incluir `<script src="../_shared/theme.js">`
-  en el `<head>` de cada uno.
-- Contrato: `window.Theme.init()`, `.toggle()`, `.current()`.
-
----
-
 ## 🐛 BUGS ENCONTRADOS Y CORREGIDOS (histórico, para no repetirlos)
 
 | Bug | Causa | Arreglo |

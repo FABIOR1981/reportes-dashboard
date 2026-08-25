@@ -1,0 +1,38 @@
+[
+  {
+    "type": "folder",
+    "name": "Informes Genéricos",
+    "items": [
+      {
+        "type": "file",
+        "filename": "informe_generico.html",
+        "title": "Informe Genérico",
+        "path": "html_externos/generico/informe_generico.html"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "name": "SM Consultores",
+    "items": [
+      {
+        "type": "file",
+        "filename": "generador_informe_psicotecnico.html",
+        "title": "Informe Psicolaboral",
+        "path": "html_externos/sm_consultores/generador_informe_psicotecnico.html"
+      }
+    ]
+  },
+  {
+    "type": "folder",
+    "name": "UDE",
+    "items": [
+      {
+        "type": "file",
+        "filename": "generador_informe_psicolaboral.html",
+        "title": "Informe Psicolaboral",
+        "path": "html_externos/ude/generador_informe_psicolaboral.html"
+      }
+    ]
+  }
+]
