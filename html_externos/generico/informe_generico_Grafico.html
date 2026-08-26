@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Generador de informes genéricos para selección de personal">
+  <meta name="theme-color" content="#2563eb">
+  <title>Informe Genérico (con gráfico)</title>
+  <!-- Estilos compartidos de botonera -->
+  <link rel="stylesheet" href="../_shared/botonera.css">
+  <!-- Estilos específicos del informe -->
+  <link rel="stylesheet" href="css/style_Grafico.css">
+</head>
+<body>
+
+  <!-- BOTONERA COMPARTIDA -->
+  <div class="btn-toolbar" id="actions"></div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="container">
+
+    <!-- PANEL FORMULARIO -->
+    <div class="form-panel">
+      <h2>Generador de Informe Generico</h2>
+
+      <div id="status"></div>
+      <div id="spellPanel"></div>
+      <div id="dicPanel">
+        <label>Diccionario técnico personalizado (palabras que nunca se marcan como error)</label>
+        <div id="dicAddRow">
+          <input type="text" id="dicInput" placeholder="Agregar palabra...">
+          <button type="button" id="dicAddBtn">+ Agregar</button>
+        </div>
+        <div id="dicList"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="tituloInforme">Título del Informe</label>
+        <input type="text" id="tituloInforme" value="INFORME GENERAL">
+      </div>
+
+      <div class="form-group">
+        <label for="destinatario">Destinatario / Institución</label>
+        <input type="text" id="destinatario" placeholder="Ej: Dirección de RRHH" value="Dirección de Recursos Humanos">
+      </div>
+
+      <div class="form-group">
+        <label for="fechaInforme">Fecha</label>
+        <input type="date" id="fechaInforme">
+      </div>
+
+      <div class="form-group">
+        <label for="resumen">
+          Resumen / Antecedentes (opcional)
+          <input type="checkbox" id="chkResumen" checked>
+        </label>
+        <textarea id="resumen" rows="4" placeholder="Escriba un resumen breve...">El presente informe fue elaborado a solicitud de la Dirección de Recursos Humanos, con el objetivo de relevar el estado actual del proceso evaluado y presentar las observaciones correspondientes.</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="desarrollo">
+          Desarrollo / Observaciones (opcional)
+          <input type="checkbox" id="chkDesarrollo" checked>
+        </label>
+        <textarea id="desarrollo" rows="8" placeholder="Detalle las observaciones...">Durante el período analizado se relevó la información disponible mediante entrevistas, revisión de documentación y observación directa. Los datos recabados permiten identificar fortalezas y aspectos a mejorar en el proceso, los cuales se detallan en las secciones siguientes.</textarea>
+      </div>
+
+      <fieldset class="form-fieldset">
+        <legend>Aspectos Evaluados (Opcional)</legend>
+        <div id="aspectosContainer"></div>
+        <button type="button" id="addAspectoBtn" class="btn btn-secondary">+ Agregar Aspecto</button>
+      </fieldset>
+
+      <div class="form-group">
+        <label for="conclusion">
+          Conclusión (opcional)
+          <input type="checkbox" id="chkConclusion" checked>
+        </label>
+        <textarea id="conclusion" rows="4" placeholder="Conclusiones o recomendaciones...">En base a lo relevado, se concluye que el desempeño general es satisfactorio, destacándose la organización y el cumplimiento de los plazos establecidos. Se recomienda reforzar los canales de comunicación interna.</textarea>
+      </div>
+
+      <fieldset class="form-fieldset">
+        <legend>Clasificación</legend>
+        <label><input type="checkbox" id="chkClasificacion" checked> Mostrar clasificación</label>
+        <br><br>
+        <label><input type="radio" name="clasificacion" value=""> Sin especificar</label>
+        <label><input type="radio" name="clasificacion" value="Recomendable"> Recomendable</label>
+        <label><input type="radio" name="clasificacion" value="Con observaciones" checked> Con observaciones</label>
+        <label><input type="radio" name="clasificacion" value="No recomendable"> No recomendable</label>
+
+        <div class="form-group" id="clasifObsWrapper" style="display:block; margin-top:12px;">
+          <label for="clasifObservaciones">Observaciones</label>
+          <textarea id="clasifObservaciones" rows="3" placeholder="Detalle las observaciones que motivan esta clasificación...">Se sugiere realizar un seguimiento en los próximos tres meses para verificar la implementación de las recomendaciones planteadas.</textarea>
+        </div>
+      </fieldset>
+
+      <fieldset class="form-fieldset">
+        <legend>Datos del Firmante</legend>
+        <label><input type="checkbox" id="chkFirma" checked> Mostrar firma</label>
+        <br><br>
+        <div class="row2">
+          <div class="form-group">
+            <label for="firmanteNombre">Nombre completo</label>
+            <input type="text" id="firmanteNombre" placeholder="Ej: Lic. Juan Pérez" value="Lic. Psic. Rita Morales">
+          </div>
+          <div class="form-group">
+            <label for="firmanteContacto">Contacto (tel./cel.)</label>
+            <input type="text" id="firmanteContacto" placeholder="Ej: 099 123 456" value="099140274">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="firmanteCargo">Cargo / Especialidad</label>
+          <input type="text" id="firmanteCargo" placeholder="Ej: Responsable de Recursos Humanos" value="Licenciada en Psicología - Especializada en Selección de Personal">
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- VISTA PREVIA (A4) -->
+    <div class="preview-panel">
+      <div class="page-a4" id="pdfPreview">
+        <div class="report-header">
+          <h1 class="report-title" id="prevTitulo">INFORME GENERAL</h1>
+          <div class="report-meta">
+            <span id="prevDestinatario"></span>
+            <span id="prevFecha"></span>
+          </div>
+        </div>
+        <div class="report-section" id="secResumen">
+          <h3>Resumen / Antecedentes</h3>
+          <div class="report-body" id="prevResumen"></div>
+        </div>
+        <div class="report-section" id="secDesarrollo">
+          <h3>Desarrollo / Observaciones</h3>
+          <div class="report-body" id="prevDesarrollo"></div>
+        </div>
+        <div class="report-section" id="secAspectos">
+          <h3>Aspectos Evaluados</h3>
+          <div id="graficoAspectosContainer" class="grafico-aspectos" style="display:none;"></div>
+          <div id="aspectosOutContainer"></div>
+        </div>
+        <div class="report-section" id="secConclusion">
+          <h3>Conclusión</h3>
+          <div class="report-body" id="prevConclusion"></div>
+        </div>
+        <div class="report-section" id="secClasificacion">
+          <h3>Clasificación</h3>
+          <div id="prevClasificacion" class="classification-box"></div>
+          <div id="prevClasifObservaciones" class="report-body classification-obs"></div>
+        </div>
+        <div class="report-section" id="secFirma">
+          <div class="firma-block">
+            <div class="firma-line"></div>
+            <div class="firma-nombre" id="prevFirmanteNombre"></div>
+            <div class="firma-cargo" id="prevFirmanteCargo"></div>
+            <div class="firma-mat" id="prevFirmanteContacto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Librerías de exportación (UMD) con fallback dinámico -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script>
+    if (!window.html2canvas) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/html2canvas.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/jspdf.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+  <script>
+    if (!window.docx) {
+      const s = document.createElement('script');
+      s.src = '../_shared/vendor/docx.umd.min.js';
+      document.head.appendChild(s);
+    }
+  </script>
+
+  <!-- Lógica compartida y del informe -->
+  <script src="../_shared/diccionario-base.js"></script>
+  <script src="../_shared/botonera.js"></script>
+  <script src="js/script_Grafico.js"></script>
+</body>
+</html>

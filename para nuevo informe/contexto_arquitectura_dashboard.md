@@ -1,5 +1,5 @@
 # 📋 REPORTES-DASHBOARD: CONTEXTO DE ARQUITECTURA
-**Última actualización:** 22-08-2026
+**Última actualización:** 25-08-2026
 
 > 💡 **Para qué sirve este documento:** pegalo al principio de una conversación
 > nueva con Claude para que tenga contexto completo del proyecto sin necesitar
@@ -74,7 +74,52 @@ algún doc o commit antiguo, ya no reflejan el estado real.
 
 ---
 
-## 🛠️ STACK TECNOLÓGICO
+## 🎨 DISEÑO VISUAL DEL DASHBOARD (SHELL)
+
+> Esto es solo el "marco" (`index.html` + `css/style.css`): sidebar, top-bar,
+> panel de bienvenida. **No afecta el CSS de cada informe individual** —
+> cada `html_externos/[carpeta]/css/style.css` es independiente y mantiene
+> su propio diseño (ej. SM Consultores y UDE siguen con su paleta
+> teal/corporativa propia). Si algo se ve raro dentro de la vista previa de
+> un informe, el archivo a revisar es el `css/style.css` de ESE informe, no
+> este.
+
+**Concepto:** identidad "archivo de casos" — tinta oscura + papel, en vez
+del look genérico de SaaS (indigo/lavanda) que tenía antes.
+
+| Token | Valor | Uso |
+|---|---|---|
+| `--ink-900` | `#171c26` | Fondo de sidebar y top-bar |
+| `--paper` | `#eef0ea` | Fondo del área de contenido (detrás del iframe) |
+| `--accent` (verde ficha) | `#3f6b52` | Estados activos, focus |
+| `--brass` (bronce) | `#b6863f` | Detalles puntuales: logo, borde del panel de bienvenida |
+| `--status-ok/bad/unknown` | verde/rojo/gris | Semánticos — no tocar sin razón (ver corrector ortográfico) |
+
+**Tipografía (cargada por CDN de Google Fonts en el `<head>` de `index.html`):**
+- `Space Grotesk` — títulos (sidebar, top-bar)
+- `Inter` — texto de interfaz
+- `IBM Plex Mono` — metadatos/badges (nombre de carpetas, versión, chip del corrector)
+
+Igual que con html2canvas/jsPDF/docx, esta fuente **no está precacheada por
+el Service Worker** (es un CDN externo). Si no hay internet la primera vez
+que se carga la app, cae automáticamente al fallback del sistema
+(`system-ui`) — no rompe nada, solo se ve con la tipografía por defecto
+del sistema operativo hasta que haya conexión.
+
+**Detalle de firma:** cada ítem del menú lateral tiene una pequeña
+"pestaña" (barra vertical) que asoma a la izquierda al pasar el mouse
+(verde) o cuando está seleccionado (bronce) — ver `.file-item::before` en
+`css/style.css`.
+
+**Chip de estado del corrector ortográfico:** en el top-bar, el indicador
+de conexión a LanguageTool dejó de ser un punto de color (`fa-circle`) y
+ahora es un chip de texto ("abc") cuyo borde/texto/relleno cambia según el
+estado (gris sin relleno = sin probar, verde con relleno = conectado, rojo
+con relleno = sin conexión). El HTML es estático (`<span id="langtool-
+status-icon">abc</span>`); `js/main.js` solo alterna las clases
+`langtool-status-online/offline/unknown` — no hubo que tocar JS.
+
+---
 
 | Aspecto | Tecnología |
 |---|---|
@@ -115,7 +160,8 @@ correspondiente en `vendor/` para que coincida.
 - **Mantenimiento:** si agregás/renombrás/borrás un archivo del proyecto,
   hay que sumarlo (o quitarlo) de la lista `PRECACHE_URLS` en `sw.js`. Si
   hacés un cambio grande y querés forzar que todos los usuarios reciban
-  la versión nueva de una, subí el número `CACHE_VERSION` (hoy: `'v1'`).
+  la versión nueva de una, subí el número `CACHE_VERSION` (hoy: `'v2.1.0'`,
+  se subió al rediseñar el shell del dashboard el 25-08-2026).
 - **Aviso de actualización:** cuando se publica una versión nueva mientras
   alguien tiene la app abierta, aparece un banner ("Hay una versión nueva
   de la app lista para usar. Actualizar ahora") — no se fuerza el refresh
@@ -177,8 +223,9 @@ ahora sí, con retrocompatibilidad (si el JSON no trae esa clave, no rompe).
 Si falla la conexión real a LanguageTool, aparece un modal (una vez por
 sesión, vía `sessionStorage`) avisando que el corrector no está disponible.
 Además, en el dashboard (junto a "Recargar"/"Pantalla completa") hay un
-ícono de estado (gris = sin probar, verde = conectado, rojo = sin
-conexión) que se actualiza vía `postMessage` desde el iframe del informe
+chip de estado ("abc"; gris sin relleno = sin probar, verde con relleno =
+conectado, rojo con relleno = sin conexión — ver sección de Diseño Visual
+más arriba) que se actualiza vía `postMessage` desde el iframe del informe
 hacia el dashboard.
 
 ---
@@ -195,6 +242,7 @@ hacia el dashboard.
 | `index.json` con rutas rotas / carpetas faltantes | Se había editado a mano en vez de regenerar con `build-index.js` | Nunca editar `index.json` a mano; siempre `node build-index.js` |
 | PDF de "Informe Genérico" se cortaba a la mitad (ej. "Conclusión" desaparecía) | El contenedor de captura (`#pdfPreview` / `.page-a4`) tiene, en pantallas angostas (≤1024px), un `max-height` + `overflow-y:auto` para poder scrollear el formulario. Si el PDF se generaba con la ventana angosta, ese mismo recorte visual afectaba la captura de `html2canvas` | En `downloadPDF()`, neutralizar `max-height`/`overflow` del contenedor justo antes de capturar, y restaurarlo después. De paso se corrigió una página en blanco sobrante por redondeo de milímetros en la paginación |
 | Bug reportado que resultó no ser reproducible tras un fix | Se sospechó que el Service Worker sirvió una copia vieja de `script.js` en caché (stale) antes de que el usuario hiciera hard-refresh / unregister del SW tras un fix reciente | Recordar: si un fix "no se nota", primero descartar caché del Service Worker (Application → Service Workers → Update / Unregister) antes de asumir que el fix no funciona |
+| **No es un bug:** en "Informe Genérico", el recuadro de "Clasificación" en la vista previa tiene fondo celeste/gris claro (no blanco) | Es a propósito (`.classification-box`/`.classification-obs` en `html_externos/generico/css/style.css`), para destacar visualmente el resultado — no afecta al Word ni al PDF exportado, que se ven normales | N/A — mencionado acá porque generó una consulta el 25-08-2026 |
 
 ---
 
