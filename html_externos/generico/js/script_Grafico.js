@@ -307,11 +307,61 @@ function renderGraficoAspectos(datos) {
   });
 
   cont.innerHTML = `
-    <svg viewBox="0 0 ${anchoTotal} ${altoTotal}" width="100%" height="${altoTotal}" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 ${anchoTotal} ${altoTotal}" width="${anchoTotal}" height="${altoTotal}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
       ${barras}
     </svg>
   `;
   cont.style.display = 'block';
+}
+
+/**
+ * Convierte el SVG del gráfico de aspectos (ya dibujado en pantalla) a un
+ * PNG en memoria, para poder insertarlo en el Word con docx.ImageRun
+ * (el gráfico es SVG y docx no soporta SVG directamente, solo imágenes
+ * rasterizadas). Devuelve null si no hay gráfico visible (sin aspectos
+ * graficables) — en ese caso el Word simplemente no incluye imagen, igual
+ * que el PDF no la incluiría.
+ */
+async function generarImagenGraficoParaWord() {
+  const cont = document.getElementById('graficoAspectosContainer');
+  const svgEl = cont ? cont.querySelector('svg') : null;
+  if (!cont || cont.style.display === 'none' || !svgEl) return null;
+
+  const svgWidth = parseInt(svgEl.getAttribute('width'), 10) || 600;
+  const svgHeight = parseInt(svgEl.getAttribute('height'), 10) || 200;
+  const escala = 2; // más nitidez dentro del documento Word
+
+  const canvas = document.createElement('canvas');
+  canvas.width = svgWidth * escala;
+  canvas.height = svgHeight * escala;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const svgString = new XMLSerializer().serializeToString(svgEl);
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  try {
+    const img = await new Promise(function(resolve, reject) {
+      const image = new Image();
+      image.onload = function() { resolve(image); };
+      image.onerror = reject;
+      image.src = url;
+    });
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+
+  const dataUrl = canvas.toDataURL('image/png');
+  const buffer = await (await fetch(dataUrl)).arrayBuffer();
+
+  // Ancho fijo prolijo dentro de la hoja Word, alto proporcional al original
+  const anchoWord = 500;
+  const altoWord = Math.round(anchoWord * (svgHeight / svgWidth));
+
+  return { buffer: buffer, width: anchoWord, height: altoWord };
 }
 
 const updatePreview = debounce(updatePreviewFn, 300);
@@ -569,6 +619,18 @@ window.downloadWord = async function() {
           children.push(new docx.Paragraph({ text: 'Aspectos Evaluados', heading: H2 }));
         } else {
           children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Aspectos Evaluados', bold: true, size: 26 })] }));
+        }
+
+        // Gráfico de barras (si hay al menos un aspecto con puntaje máximo > 0)
+        const imagenGrafico = await generarImagenGraficoParaWord();
+        if (imagenGrafico) {
+          children.push(new docx.Paragraph({
+            children: [new docx.ImageRun({
+              data: imagenGrafico.buffer,
+              transformation: { width: imagenGrafico.width, height: imagenGrafico.height }
+            })]
+          }));
+          children.push(new docx.Paragraph({ text: '' }));
         }
 
         aspectosBlocks.forEach(function(block) {
