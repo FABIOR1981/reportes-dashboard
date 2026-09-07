@@ -162,6 +162,14 @@
         scale: 3,
         useCORS: true,
         backgroundColor: '#ffffff',
+        // BUG CONOCIDO (histórico, ya documentado): sin esto, html2canvas mide
+        // el ancho de las palabras con métricas de fuente ligeramente distintas
+        // a como se ve en pantalla, y ciertas combinaciones de letras quedan
+        // superpuestas/pisadas — por ejemplo "Cargo:" se ve como "Cargα",
+        // "nacimiento:" como "nacimienta". Dibujar letra por letra (en vez de
+        // por palabra) evita ese cálculo de ancho incorrecto. Mismo fix que ya
+        // tenía SM Consultores, agregado acá porque a UDE le faltaba.
+        letterRendering: true,
         // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
         // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
         // para que el formulario se pueda usar en pantallas angostas/notebooks.
