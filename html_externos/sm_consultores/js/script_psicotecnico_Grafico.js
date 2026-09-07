@@ -132,11 +132,12 @@ function renderPreview(){
 }
 
 /**
- * Dibuja un gráfico de barras (SVG puro, sin librerías externas) con el
- * % logrado de cada competencia graficable (las que tienen "puntaje
- * máximo" > 0, expresado como 0-100%). Mismo patrón y misma paleta
- * semáforo que en Informe Genérico (con gráfico).
- * Si no hay ninguna graficable, oculta el contenedor y no dibuja nada.
+ * Dibuja un gráfico de aros de progreso (SVG puro, sin librerías externas)
+ * con el % logrado de cada competencia graficable (las que tienen "puntaje
+ * máximo" > 0, expresado como 0-100%). Un aro por competencia, en fila,
+ * mismo semáforo de colores que el resto del proyecto (verde ≥70%, bronce
+ * 40-69%, rojo <40%). Si no hay ninguna graficable, oculta el contenedor y
+ * no dibuja nada.
  */
 function renderGraficoCompetencias(datos) {
   const cont = document.getElementById('graficoCompetenciasContainer');
@@ -148,34 +149,73 @@ function renderGraficoCompetencias(datos) {
     return;
   }
 
-  const anchoTotal = 600;
-  const altoBarra = 26;
-  const espacio = 14;
-  const altoTotal = datos.length * (altoBarra + espacio) + espacio;
-  const anchoEtiqueta = 170;
-  const anchoBarraMax = anchoTotal - anchoEtiqueta - 60;
+  const porAro = 110;      // ancho asignado a cada aro dentro de la fila
+  const r = 38;             // radio del aro
+  const grosor = 10;        // grosor del trazo del aro
+  const cy = 55;             // centro vertical de los aros
+  const altoTotal = 150;
+  const anchoTotal = datos.length * porAro;
+  const circunferencia = 2 * Math.PI * r;
 
-  let barras = '';
+  let aros = '';
   datos.forEach(function(d, i) {
     const pct = Math.max(0, Math.min(100, (d.puntaje / d.maximo) * 100));
-    const y = espacio + i * (altoBarra + espacio);
-    const anchoBarra = (pct / 100) * anchoBarraMax;
+    const cx = porAro * i + porAro / 2;
+    const largoValor = (circunferencia * pct / 100).toFixed(1);
     const color = pct >= 70 ? '#3f6b52' : (pct >= 40 ? '#b6863f' : '#c1503f');
+    const lineas = wrapLabel(d.nombre, 13, 2);
 
-    barras += `
-      <text x="0" y="${y + altoBarra / 2 + 4}" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#333">${escapeHTML(d.nombre).slice(0, 26)}</text>
-      <rect x="${anchoEtiqueta}" y="${y}" width="${anchoBarraMax}" height="${altoBarra}" fill="#eef0ea" rx="4"></rect>
-      <rect x="${anchoEtiqueta}" y="${y}" width="${anchoBarra}" height="${altoBarra}" fill="${color}" rx="4"></rect>
-      <text x="${anchoEtiqueta + anchoBarraMax + 8}" y="${y + altoBarra / 2 + 4}" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#333">${Math.round(pct)}%</text>
+    let etiquetaSvg = '';
+    lineas.forEach(function(linea, j) {
+      etiquetaSvg += `<text x="${cx}" y="${cy + r + 17 + j * 13}" text-anchor="middle" font-size="10.5" font-family="Segoe UI, Arial, sans-serif" fill="#555">${escapeHTML(linea)}</text>`;
+    });
+
+    aros += `
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="${grosor}"></circle>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${grosor}" stroke-linecap="round" stroke-dasharray="${largoValor} 1000" transform="rotate(-90 ${cx} ${cy})"></circle>
+      <text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="15" font-family="Segoe UI, Arial, sans-serif" fill="#333">${Math.round(pct)}%</text>
+      ${etiquetaSvg}
     `;
   });
 
   cont.innerHTML = `
     <svg viewBox="0 0 ${anchoTotal} ${altoTotal}" width="${anchoTotal}" height="${altoTotal}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
-      ${barras}
+      ${aros}
     </svg>
   `;
   cont.style.display = 'block';
+}
+
+/**
+ * Corta el nombre de una competencia en hasta "maxLineas" líneas de como
+ * mucho "maxCharsPorLinea" caracteres cada una (para que entre debajo del
+ * aro sin desbordar). Si sobra texto, la última línea termina en "…". Es
+ * solo estético — el nombre completo sigue visible arriba, en el bloque
+ * de texto de "Competencias evaluadas".
+ */
+function wrapLabel(nombre, maxCharsPorLinea, maxLineas) {
+  const palabras = (nombre || '').trim().split(/\s+/);
+  const lineas = [];
+  let actual = '';
+  for (const palabra of palabras) {
+    const prueba = actual ? actual + ' ' + palabra : palabra;
+    if (prueba.length <= maxCharsPorLinea || !actual) {
+      actual = prueba;
+    } else {
+      lineas.push(actual);
+      actual = palabra;
+      if (lineas.length === maxLineas) break;
+    }
+  }
+  if (lineas.length < maxLineas && actual) lineas.push(actual);
+
+  const totalUsado = lineas.join(' ').length;
+  if (totalUsado < nombre.trim().length && lineas.length > 0) {
+    let ultima = lineas[lineas.length - 1].replace(/…$/, '');
+    if (ultima.length > maxCharsPorLinea - 1) ultima = ultima.slice(0, maxCharsPorLinea - 1);
+    lineas[lineas.length - 1] = ultima + '…';
+  }
+  return lineas.slice(0, maxLineas);
 }
 
 /**
