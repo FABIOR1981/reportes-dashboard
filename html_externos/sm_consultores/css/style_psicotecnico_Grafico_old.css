@@ -580,27 +580,23 @@
    el diálogo del navegador en vez de una impresora física.
    ========================================================================== */
 @media print {
-  /* Sacar #panel del todo (display:none, no solo visibility:hidden). Es
-     clave que sea display:none: la botonera compartida (_shared/botonera.js)
-     usa "position:fixed" para el botón de acción, y los navegadores
-     REPITEN los elementos position:fixed en TODAS las hojas al imprimir
-     sin importar que tengan visibility:hidden heredado — por eso el botón
-     "Descargar PDF" aparecía flotando en cada página. display:none sí lo
-     saca del todo, sin excepción. Como #panel es hermano de #previewWrap
-     (no su padre), sacarlo no afecta al resto del layout — #previewWrap
-     queda solo, ocupando el flujo normal del documento sin necesidad de
-     "position:absolute" ni trucos de posicionamiento.
-  */
-  #panel {
-    display: none !important;
+  /* Ocultar todo por defecto y mostrar solo la vista previa del informe */
+  body * {
+    visibility: hidden;
+  }
+  #previewWrap, #previewWrap * {
+    visibility: visible;
   }
   #previewWrap {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: auto;
     height: auto;
     padding: 0;
     margin: 0;
     background: #fff;
-    display: block;
+    display: block; /* pisa el "display:flex" que centra las páginas en pantalla */
   }
   .page {
     width: auto;
@@ -609,11 +605,6 @@
     margin: 0;
     page-break-after: always; /* cada .page (page1/page2/page3) = una hoja nueva */
   }
-  /* :last-of-type se fija por ETIQUETA (div), no por clase — como page1/2/3
-     son los únicos <div> directos dentro de #previewWrap, esto SÍ agarra
-     bien a page3 acá. Si en algún momento se agrega otro <div> hermano
-     después de page3 dentro de #previewWrap, hay que ajustar este selector
-     a algo explícito como "#page3" para no romper el corte de páginas. */
   .page:last-of-type {
     page-break-after: auto;
   }
