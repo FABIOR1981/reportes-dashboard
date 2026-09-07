@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v2.1.5';
+const CACHE_VERSION = 'v2.1.6';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -48,6 +48,10 @@ const PRECACHE_URLS = [
   './html_externos/sm_consultores/generador_informe_psicotecnico.html',
   './html_externos/sm_consultores/css/style_psicotecnico.css',
   './html_externos/sm_consultores/js/script_psicotecnico.js',
+
+  './html_externos/sm_consultores/generador_informe_psicotecnico_Grafico.html',
+  './html_externos/sm_consultores/css/style_psicotecnico_Grafico.css',
+  './html_externos/sm_consultores/js/script_psicotecnico_Grafico.js',
 
   './html_externos/ude/generador_informe_psicolaboral.html',
   './html_externos/ude/css/style_psicolaboral.css',
