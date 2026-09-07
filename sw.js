@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v2.1.6';
+const CACHE_VERSION = 'v2.1.8';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -44,6 +44,10 @@ const PRECACHE_URLS = [
   './html_externos/generico/informe_generico.html',
   './html_externos/generico/css/style.css',
   './html_externos/generico/js/script.js',
+
+  './html_externos/generico/informe_generico_Grafico.html',
+  './html_externos/generico/css/style_Grafico.css',
+  './html_externos/generico/js/script_Grafico.js',
 
   './html_externos/sm_consultores/generador_informe_psicotecnico.html',
   './html_externos/sm_consultores/css/style_psicotecnico.css',
@@ -102,7 +106,28 @@ self.addEventListener('fetch', function(event) {
   event.respondWith(
     caches.match(req).then(function(cached) {
       const networkFetch = fetch(req).then(function(res) {
-        if (res && res.ok) {
+        if (!res) return cached;
+
+        // Si la URL terminó resuelta a través de un redirect (ej. Netlify
+        // normalizando "pretty URLs", o el fallback SPA de netlify.toml
+        // mientras el deploy todavía no tenía este archivo), el Response
+        // que entrega fetch() queda marcado internamente como
+        // "redirected". Chrome NO permite usar ese objeto tal cual en
+        // respondWith() para una petición de navegación (que es lo que es
+        // cargar un informe dentro del iframe): tira "a redirected
+        // response was used for a request whose redirect mode is not
+        // follow". Se reconstruye como una respuesta "limpia" ANTES de
+        // cachearla, para que ni la copia en caché ni la que se devuelve
+        // ahora arrastren esa marca.
+        const resLimpia = res.redirected
+          ? new Response(res.body, {
+              status: res.status,
+              statusText: res.statusText,
+              headers: res.headers
+            })
+          : res;
+
+        if (resLimpia.ok) {
           // IMPORTANTE: clonar ACÁ, de forma síncrona, antes de cualquier
           // await/async gap. caches.open() es asíncrono (usa IndexedDB
           // por debajo) — si se clona recién adentro de su .then(), el
@@ -110,10 +135,10 @@ self.addEventListener('fetch', function(event) {
           // a la página (por el "return res" de más abajo), y clonar una
           // respuesta cuyo body ya se está leyendo tira
           // "Response body is already used".
-          const resParaCache = res.clone();
+          const resParaCache = resLimpia.clone();
           caches.open(CACHE_NAME).then(function(cache) { cache.put(req, resParaCache); });
         }
-        return res;
+        return resLimpia;
       }).catch(function() { return cached; });
 
       return cached || networkFetch;
