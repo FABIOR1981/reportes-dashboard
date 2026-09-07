@@ -292,11 +292,6 @@ window.downloadPDF = async function() {
   if (btn) btn.disabled = true;
   if (status) status.textContent = 'Generando PDF, por favor espera...';
 
-  // Declarados fuera del try para poder restaurarlos siempre en el finally,
-  // incluso si html2canvas tira un error a mitad de la captura.
-  let paginasEls = null;
-  let estilosOriginales = null;
-
   try{
     // Esperar a que las fuentes estén completamente cargadas antes de capturar.
     // Si html2canvas captura el texto antes de que la fuente termine de cargar,
@@ -310,37 +305,28 @@ window.downloadPDF = async function() {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageIds = ['page1','page2','page3'];
 
-    // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
-    // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
-    // para que el formulario se pueda usar en pantallas angostas/notebooks.
-    // Si el PDF se genera con la ventana en ese rango (algo muy común:
-    // notebook sin maximizar, o DevTools abierto), html2canvas captura la
-    // página "achatada" y al estirarla después a los 210mm fijos del PDF,
-    // todo el contenido (texto incluido) sale más chico que en el Word,
-    // con espacio en blanco de más al final de cada página. Se fuerza acá
-    // el tamaño real de A4 en px (794×1123, el mismo que usa la regla base
-    // de ".page") justo antes de capturar, y se restaura apenas termina —
-    // así la captura sale igual sin importar el ancho de ventana real.
-    const paginasEls_ = pageIds.map(id => document.getElementById(id));
-    const estilosOriginales_ = paginasEls_.map(el => ({
-      width: el.style.width,
-      minHeight: el.style.minHeight
-    }));
-    paginasEls = paginasEls_;
-    estilosOriginales = estilosOriginales_;
-    paginasEls.forEach(el => {
-      el.style.width = '794px';
-      el.style.minHeight = '1123px';
-    });
-
     for(let i=0; i<pageIds.length; i++){
-      const el = paginasEls[i];
+      const el = document.getElementById(pageIds[i]);
       const canvas = await html2canvas(el, {
         scale: 2,
         useCORS: true,
         backgroundColor:'#ffffff',
-        letterRendering: true // clave: dibuja letra por letra en vez de por palabra,
-                               // evita que el ancho de las palabras se calcule mal y se superpongan
+        letterRendering: true, // clave: dibuja letra por letra en vez de por palabra,
+                                // evita que el ancho de las palabras se calcule mal y se superpongan
+        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
+        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
+        // para que el formulario se pueda usar en pantallas angostas/notebooks.
+        // Si el PDF se genera con la ventana en ese rango (notebook sin
+        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
+        // página "achatada" y al estirarla después a los 210mm fijos del
+        // PDF, todo el contenido salía más chico que en el Word. Mismo fix
+        // ya usado en Informe Genérico: se le dice a html2canvas que
+        // renderice como si la ventana fuera de escritorio (windowWidth)
+        // y que capture exactamente al ancho real de ".page" en A4 — así
+        // ese @media nunca llega a dispararse durante la captura, sin
+        // importar el ancho real de la ventana.
+        windowWidth: 1200,
+        width: 794
       });
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdfWidth = 210;
@@ -356,15 +342,6 @@ window.downloadPDF = async function() {
     console.error(err);
     if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
   }finally{
-    // Restaurar el tamaño responsive real de ".page" pase lo que pase
-    // (éxito o error), para no dejar el formulario roto en pantallas
-    // angostas si algo falló a mitad de la captura.
-    if (paginasEls && estilosOriginales) {
-      paginasEls.forEach((el, i) => {
-        el.style.width = estilosOriginales[i].width;
-        el.style.minHeight = estilosOriginales[i].minHeight;
-      });
-    }
     if (btn) btn.disabled = false;
     setTimeout(()=>{ if (status) status.textContent=''; }, 4000);
   }

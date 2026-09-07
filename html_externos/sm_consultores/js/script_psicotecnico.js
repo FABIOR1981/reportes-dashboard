@@ -152,8 +152,22 @@ window.downloadPDF = async function() {
         scale: 2,
         useCORS: true,
         backgroundColor:'#ffffff',
-        letterRendering: true // clave: dibuja letra por letra en vez de por palabra,
-                               // evita que el ancho de las palabras se calcule mal y se superpongan
+        letterRendering: true, // clave: dibuja letra por letra en vez de por palabra,
+                                // evita que el ancho de las palabras se calcule mal y se superpongan
+        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
+        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
+        // para que el formulario se pueda usar en pantallas angostas/notebooks.
+        // Si el PDF se genera con la ventana en ese rango (notebook sin
+        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
+        // página "achatada" y al estirarla después a los 210mm fijos del
+        // PDF, todo el contenido salía más chico que en el Word. Mismo fix
+        // ya usado en Informe Genérico: se le dice a html2canvas que
+        // renderice como si la ventana fuera de escritorio (windowWidth)
+        // y que capture exactamente al ancho real de ".page" en A4 — así
+        // ese @media nunca llega a dispararse durante la captura, sin
+        // importar el ancho real de la ventana.
+        windowWidth: 1200,
+        width: 794
       });
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const pdfWidth = 210;

@@ -158,7 +158,25 @@
         await document.fonts.ready;
       }
       var page = document.getElementById('page1');
-      var canvas = await html2canvas(page, { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+      var canvas = await html2canvas(page, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
+        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
+        // para que el formulario se pueda usar en pantallas angostas/notebooks.
+        // Si el PDF se genera con la ventana en ese rango (notebook sin
+        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
+        // página "achatada" y al estirarla después al ancho fijo del PDF,
+        // todo el contenido salía más chico que en el Word. Mismo fix ya
+        // usado en Informe Genérico y SM Consultores: se le dice a
+        // html2canvas que renderice como si la ventana fuera de escritorio
+        // (windowWidth) y que capture exactamente al ancho real de ".page"
+        // en A4 — así ese @media nunca llega a dispararse durante la
+        // captura, sin importar el ancho real de la ventana.
+        windowWidth: 1200,
+        width: 794
+      });
       var imgData = canvas.toDataURL('image/png');
       var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
       var pdfWidth = pdf.internal.pageSize.getWidth();
