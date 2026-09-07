@@ -2,6 +2,21 @@
   command = "npm run build"
   publish = "."
 
+# Pretty URLs (post-processing de Netlify) redirige cualquier archivo .html
+# a una versión sin extensión (y en minúsculas). Eso rompe los informes
+# nuevos la primera vez que se piden: el Service Worker recibe una
+# respuesta marcada como "redirected" para una petición de navegación
+# (cargar el informe en el iframe) y Chrome la rechaza con "a redirected
+# response was used for a request whose redirect mode is not follow".
+# Los informes viejos no lo sufren solo porque ya estaban guardados en el
+# caché del Service Worker de antes. Se desactiva acá para que todos los
+# .html (nuevos y futuros) se sirvan siempre tal cual, sin redirect.
+[build.processing]
+  skip_processing = false
+
+[build.processing.html]
+  pretty_urls = false
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
