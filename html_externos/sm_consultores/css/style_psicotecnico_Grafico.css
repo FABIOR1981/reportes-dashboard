@@ -566,3 +566,59 @@
 .grafico-competencias svg text {
   user-select: none;
 }
+
+/* ==========================================================================
+   IMPRESIÓN / "Guardar como PDF" (window.print())
+   ==========================================================================
+   Reemplaza al viejo método de html2canvas+jsPDF para el botón "Descargar
+   PDF". En vez de sacarle una FOTO a la vista previa (que aproxima fuentes,
+   kerning y escalado de SVG y por eso arrastraba bugs de texto pisado y
+   gráficos cortados), esto usa el motor de impresión real del navegador:
+   el mismo que ya dibuja la vista previa en pantalla, así que el resultado
+   es idéntico al Word — texto vectorial real, sin aproximaciones.
+   Se dispara con window.print() y la persona elige "Guardar como PDF" en
+   el diálogo del navegador en vez de una impresora física.
+   ========================================================================== */
+@media print {
+  /* Ocultar todo por defecto y mostrar solo la vista previa del informe */
+  body * {
+    visibility: hidden;
+  }
+  #previewWrap, #previewWrap * {
+    visibility: visible;
+  }
+  #previewWrap {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    display: block; /* pisa el "display:flex" que centra las páginas en pantalla */
+  }
+  .page {
+    width: auto;
+    min-height: 0;
+    box-shadow: none;
+    margin: 0;
+    page-break-after: always; /* cada .page (page1/page2/page3) = una hoja nueva */
+  }
+  .page:last-of-type {
+    page-break-after: auto;
+  }
+  /* Los colores de fondo (banners, tabla, gráfico) no se imprimen por
+     defecto en la mayoría de los navegadores a menos que se pida
+     explícitamente — sin esto, "Objetivo"/"Conclusión" saldrían sin su
+     fondo verde-azulado y la tabla de DATOS sin su color. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

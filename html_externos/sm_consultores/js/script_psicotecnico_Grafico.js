@@ -286,65 +286,49 @@ document.getElementById('editCabezal').addEventListener('change', (e) => {
 
 
 // ---------- Descargar PDF ----------
-window.downloadPDF = async function() {
+window.downloadPDF = function() {
   const status = document.getElementById('status');
   const btn = document.querySelector('[data-action="pdf"]');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Generando PDF, por favor espera...';
+  if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
-  try{
-    // Esperar a que las fuentes estén completamente cargadas antes de capturar.
-    // Si html2canvas captura el texto antes de que la fuente termine de cargar,
-    // usa métricas de una fuente distinta a la que se ve en pantalla y las palabras
-    // quedan pegadas entre sí (el bug de "estándaresmínimos").
-    if (document.fonts && document.fonts.ready) {
-      await document.fonts.ready;
-    }
+  // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
+  // El método anterior le sacaba una "foto" (rasterizada) a la vista
+  // previa, y esa aproximación arrastraba tres bugs distintos con la
+  // misma raíz: texto más chico que en el Word (aproximación de fuente),
+  // letras pisadas tipo "Cargα" en vez de "Cargo:" (aproximación de
+  // kerning), y el gráfico de competencias cortado en el borde de la
+  // página (aproximación de cómo se escala un SVG). window.print() usa el
+  // mismo motor que ya dibuja la vista previa en pantalla — sin
+  // aproximaciones — así que el resultado sale idéntico al Word: texto
+  // vectorial real, kerning correcto, SVG escalado correctamente. El CSS
+  // de la sección "@media print" (en style_psicotecnico_Grafico.css) es
+  // el que define qué se ve en el PDF resultante (oculta el panel del
+  // formulario, muestra solo las 3 páginas, un salto de página por cada
+  // una, fuerza que se impriman los colores de fondo).
+  const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
+  const tituloOriginal = document.title;
+  // El navegador usa el <title> de la página como nombre sugerido en el
+  // diálogo de "Guardar como PDF" — lo dejamos armado con el mismo nombre
+  // que usaba el método anterior, para no perder esa comodidad.
+  document.title = `INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}`;
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageIds = ['page1','page2','page3'];
-
-    for(let i=0; i<pageIds.length; i++){
-      const el = document.getElementById(pageIds[i]);
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor:'#ffffff',
-        letterRendering: true, // clave: dibuja letra por letra en vez de por palabra,
-                                // evita que el ancho de las palabras se calcule mal y se superpongan
-        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
-        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
-        // para que el formulario se pueda usar en pantallas angostas/notebooks.
-        // Si el PDF se genera con la ventana en ese rango (notebook sin
-        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
-        // página "achatada" y al estirarla después a los 210mm fijos del
-        // PDF, todo el contenido salía más chico que en el Word. Mismo fix
-        // ya usado en Informe Genérico: se le dice a html2canvas que
-        // renderice como si la ventana fuera de escritorio (windowWidth)
-        // y que capture exactamente al ancho real de ".page" en A4 — así
-        // ese @media nunca llega a dispararse durante la captura, sin
-        // importar el ancho real de la ventana.
-        windowWidth: 1200,
-        width: 794
-      });
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdfWidth = 210;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      if(i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-    }
-
-    const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
-    pdf.save(`INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}.pdf`);
-    if (status) status.textContent = '✔ PDF descargado con éxito.';
-  }catch(err){
-    console.error(err);
-    if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
-  }finally{
+  const restaurar = function() {
+    document.title = tituloOriginal;
     if (btn) btn.disabled = false;
-    setTimeout(()=>{ if (status) status.textContent=''; }, 4000);
-  }
+    if (status) status.textContent = '';
+    window.removeEventListener('afterprint', restaurar);
+  };
+  // "afterprint" se dispara al cerrar el diálogo, se haya guardado el PDF
+  // o cancelado — es el momento correcto para restaurar todo, en vez de
+  // adivinar con un setTimeout fijo.
+  window.addEventListener('afterprint', restaurar);
+
+  // Pequeño respiro para que el navegador termine de aplicar el <title>
+  // nuevo antes de abrir el diálogo (en algunos navegadores, si se llama
+  // a print() en el mismo tick, el diálogo alcanza a abrirse todavía con
+  // el título viejo).
+  setTimeout(function(){ window.print(); }, 50);
 };
 
 // ============================================================
