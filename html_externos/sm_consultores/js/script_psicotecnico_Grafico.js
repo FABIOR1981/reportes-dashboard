@@ -628,22 +628,29 @@ window.downloadWord = async function() {
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [new TableRow({ children: [
           new TableCell({
-            width: { size: icon ? 90 : 100, type: WidthType.PERCENTAGE },
+            width: { size: icon ? 89 : 100, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 160, bottom: 160, left: 200, right: 160 },
+            margins: { top: 140, bottom: 140, left: 200, right: 160 },
             borders: noBorders(),
             children: [new Paragraph({ children: [
-              new TextRun({ text: title, bold: true, color: WHITE, size: 26, font: 'Calibri' })
+              new TextRun({ text: title, color: WHITE, size: 26, font: 'Calibri' })
             ]})]
           }),
           icon ? new TableCell({
+            width: { size: 1, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: WHITE },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+            borders: noBorders(),
+            children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+          }) : null,
+          icon ? new TableCell({
             width: { size: 10, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 160, bottom: 160, left: 60, right: 160 },
+            margins: { top: 140, bottom: 140, left: 60, right: 160 },
             borders: noBorders(),
             verticalAlign: VerticalAlign.CENTER,
             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-              new TextRun({ text: icon, color: WHITE, size: 24 })
+              new TextRun({ text: icon, color: WHITE, size: 22, font: 'Segoe UI Emoji' })
             ]})]
           }) : null
         ].filter(Boolean) })]
@@ -887,7 +894,7 @@ window.downloadWord = async function() {
       logoParagraphs,
       [separator, metaRow, datosTable],
       introParagraphs,
-      [sectionBanner('Objetivo', '🋶')],
+      [sectionBanner('Objetivo', '📋')],
       objetivoParagraphs,
       [new Paragraph({ children: [new PageBreak()] })],
       [escalaHeading],
