@@ -380,7 +380,7 @@ window.downloadWord = async function() {
     }
 
     async function getHeaderImageData(logoNombre, logoLeyenda) {
-      const outputWidth = 650;
+      const outputWidth = 560;
       const response = await fetch('img/cabezal.png');
       if (!response.ok) throw new Error('No se pudo cargar img/cabezal.png');
       const source = await createImageBitmap(await response.blob());
@@ -394,20 +394,20 @@ window.downloadWord = async function() {
       const textScale = source.width / outputWidth;
       context.fillStyle = '#FFFFFF';
       context.textAlign = 'left';
-      context.font = `${14 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${22 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText('Informe:', 76 * sourceScale, 125 * sourceScale);
-      context.font = `${25 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${42 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText('Resultados de Evaluación', 76 * sourceScale, 185 * sourceScale);
       context.fillText('Psicotécnica', 76 * sourceScale, 235 * sourceScale);
 
       context.textAlign = 'right';
-      context.font = `italic ${19 * textScale}px Georgia, "Times New Roman", serif`;
+      context.font = `italic ${30 * textScale}px Georgia, "Times New Roman", serif`;
       const logoLines = (logoNombre || 'Shalon Morales').split(/\s+/);
       logoLines.forEach((line, index) => {
-        context.fillText(line, 1470 * sourceScale, (337 + index * 38) * sourceScale);
+        context.fillText(line, 1470 * sourceScale, (337 + index * 48) * sourceScale);
       });
       context.fillStyle = '#CFE4E6';
-      context.font = `${7 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${11 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText((logoLeyenda || 'CONSULTORES').toUpperCase(), 1470 * sourceScale, 410 * sourceScale);
 
       const sourceWidth = source.width;
