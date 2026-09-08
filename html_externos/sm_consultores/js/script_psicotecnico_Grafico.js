@@ -603,7 +603,10 @@ window.downloadWord = async function() {
       rows: datosRows
     });
 
-    // 6. Texto introductorio
+    // 6. Texto introductorio (solo "A solicitud de..." — va ANTES del
+    // banner "Objetivo", igual que en la vista previa/HTML: <div
+    // class="intro-text"> está antes de <div class="section-title-row">
+    // "Objetivo").
     const introParagraphs = [
       new Paragraph({ spacing: { before: 240, after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
         new TextRun({ text: 'A solicitud de ', color: INK, size: 21, font: 'Calibri' }),
@@ -611,11 +614,6 @@ window.downloadWord = async function() {
         new TextRun({ text: ', se realizó una evaluación psicotécnica a la Sra./Sr. ', color: INK, size: 21, font: 'Calibri' }),
         new TextRun({ text: nombre || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
         new TextRun({ text: '.', color: INK, size: 21, font: 'Calibri' })
-      ]}),
-      new Paragraph({ spacing: { after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
-        new TextRun({ text: 'El presente informe tiene como objetivo evaluar las competencias de la/el postulante, para lo cual se llevó a cabo una entrevista psicolaboral. Dicha instancia tuvo como finalidad analizar las competencias necesarias para el adecuado desempeño de las tareas correspondientes al cargo ', color: INK, size: 21, font: 'Calibri' }),
-        new TextRun({ text: cargoEvaluado || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
-        new TextRun({ text: '. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.', color: INK, size: 21, font: 'Calibri' })
       ]})
     ];
 
@@ -647,19 +645,27 @@ window.downloadWord = async function() {
       });
     }
 
-    // La sección "Objetivo" es puramente un banner decorativo — el texto
-    // real ya está en el párrafo introductorio de más arriba, antes de
-    // este banner (igual que en la vista previa y en el PDF). No existe
-    // ningún campo "objetivoTexto" en el formulario.
-    // BUG CORREGIDO: antes esta línea era
-    //   const objText = enfoqueTexto || v('objetivoTexto');
-    // Como "objetivoTexto" nunca existió como campo real, el "||" siempre
-    // terminaba usando "enfoqueTexto" — que en realidad es el texto de la
-    // sección "Evaluación de Competencias" (ver más abajo, se usa de
-    // nuevo ahí correctamente). Eso hacía que el Word imprimiera el
-    // contenido de "Evaluación de Competencias" duplicado, metido por
-    // error debajo de "Objetivo".
-    const objetivoParagraphs = [];
+    // El párrafo "El presente informe tiene como objetivo..." va DESPUÉS
+    // del banner "Objetivo" — igual que en la vista previa/HTML, donde
+    // <div class="body-text"> aparece justo debajo de la fila del título
+    // "Objetivo", no antes. No existe un campo "objetivoTexto" separado
+    // en el formulario: este texto (con "cargoEvaluado" insertado) es el
+    // contenido real y único de esta sección.
+    // BUG CORREGIDO (dos partes):
+    //  1) Antes este párrafo estaba mezclado dentro de "introParagraphs",
+    //     por lo que se imprimía ANTES del banner "Objetivo" en vez de
+    //     después (justo al revés que en la vista previa).
+    //  2) Una corrección previa (ver historial) lo había dejado vacío del
+    //     todo para sacar un contenido duplicado que no correspondía —
+    //     correcto sacar lo duplicado, pero faltaba poner ACÁ el párrafo
+    //     que sí corresponde.
+    const objetivoParagraphs = [
+      new Paragraph({ spacing: { after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
+        new TextRun({ text: 'El presente informe tiene como objetivo evaluar las competencias de la/el postulante, para lo cual se llevó a cabo una entrevista psicolaboral. Dicha instancia tuvo como finalidad analizar las competencias necesarias para el adecuado desempeño de las tareas correspondientes al cargo ', color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: cargoEvaluado || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
+        new TextRun({ text: '. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.', color: INK, size: 21, font: 'Calibri' })
+      ]})
+    ];
 
     // ---------- PÁGINA 2 ----------
 
