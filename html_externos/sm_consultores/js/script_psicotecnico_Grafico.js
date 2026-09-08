@@ -380,7 +380,7 @@ window.downloadWord = async function() {
     }
 
     // ---------- Colores ----------
-    const TEAL    = '1a7a7a';
+    const TEAL    = '177789';
     const TEAL_LT = '2c8a8a';
     const WHITE   = 'FFFFFF';
     const INK     = '2C3E50';
@@ -414,7 +414,7 @@ window.downloadWord = async function() {
       } catch (e) { return null; }
     }
 
-    const bannerImg = await getImageData('#page1 .header-right img', 260);
+    const bannerImg = await getImageData('#page1 .header-right img', 200);
     const firmaImg  = await getImageData('#out-firmaImg', 140);
 
     // ---------- Datos del formulario ----------
@@ -469,13 +469,13 @@ window.downloadWord = async function() {
       borders: noBorders(),
       children: [
         new Paragraph({ spacing: { after: 80 }, children: [
-          new TextRun({ text: 'Informe:', color: WHITE, size: 18, font: 'Calibri' })
+          new TextRun({ text: 'Informe:', color: WHITE, size: 21, font: 'Segoe UI' })
         ]}),
         new Paragraph({ children: [
-          new TextRun({ text: 'Resultados de Evaluación', bold: true, color: WHITE, size: 36, font: 'Calibri' })
+          new TextRun({ text: 'Resultados de Evaluación', color: WHITE, size: 36, font: 'Segoe UI' })
         ]}),
         new Paragraph({ children: [
-          new TextRun({ text: 'Psicotécnica', bold: true, color: WHITE, size: 36, font: 'Calibri' })
+          new TextRun({ text: 'Psicotécnica', color: WHITE, size: 36, font: 'Segoe UI' })
         ]})
       ]
     });
@@ -484,7 +484,7 @@ window.downloadWord = async function() {
     if (bannerImg) {
       bannerRowChildren.push(new TableCell({
         width: { size: 35, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.CLEAR, fill: TEAL },
+        shading: { type: ShadingType.CLEAR, fill: 'EAF3F4' },
         margins: { top: 120, bottom: 120, left: 120, right: 120 },
         borders: noBorders(),
         verticalAlign: VerticalAlign.CENTER,
