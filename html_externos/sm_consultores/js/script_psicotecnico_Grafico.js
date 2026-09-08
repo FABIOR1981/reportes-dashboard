@@ -379,6 +379,46 @@ window.downloadWord = async function() {
       return el ? el.value.trim() : '';
     }
 
+    async function getHeaderImageData(logoNombre, logoLeyenda) {
+      const response = await fetch('img/cabezal.png');
+      if (!response.ok) throw new Error('No se pudo cargar img/cabezal.png');
+      const source = await createImageBitmap(await response.blob());
+      const canvas = document.createElement('canvas');
+      canvas.width = source.width;
+      canvas.height = source.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(source, 0, 0);
+
+      const scale = source.width / 1505;
+      context.fillStyle = '#FFFFFF';
+      context.textAlign = 'left';
+      context.font = `${14 * scale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText('Informe:', 76 * scale, 125 * scale);
+      context.font = `${25 * scale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText('Resultados de Evaluación', 76 * scale, 185 * scale);
+      context.fillText('Psicotécnica', 76 * scale, 235 * scale);
+
+      context.textAlign = 'right';
+      context.font = `italic ${19 * scale}px Georgia, "Times New Roman", serif`;
+      const logoLines = (logoNombre || 'Shalon Morales').split(/\s+/);
+      logoLines.forEach((line, index) => {
+        context.fillText(line, 1470 * scale, (337 + index * 38) * scale);
+      });
+      context.fillStyle = '#CFE4E6';
+      context.font = `${7 * scale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText((logoLeyenda || 'CONSULTORES').toUpperCase(), 1470 * scale, 410 * scale);
+
+      const sourceWidth = source.width;
+      const sourceHeight = source.height;
+      source.close();
+      const imageResponse = await fetch(canvas.toDataURL('image/png'));
+      return {
+        buf: await imageResponse.arrayBuffer(),
+        w: 720,
+        h: Math.round(720 * sourceHeight / sourceWidth)
+      };
+    }
+
     // ---------- Colores ----------
     const TEAL    = '177789';
     const TEAL_LT = '2c8a8a';
@@ -414,9 +454,6 @@ window.downloadWord = async function() {
       } catch (e) { return null; }
     }
 
-    const bannerImg = await getImageData('#page1 .header-right img', 200);
-    const firmaImg  = await getImageData('#out-firmaImg', 140);
-
     // ---------- Datos del formulario ----------
     const fechaInforme     = v('fechaInforme');
     const elaboradoPor     = v('elaboradoPor');
@@ -436,6 +473,9 @@ window.downloadWord = async function() {
     const enfoqueTexto     = v('enfoqueTexto');
     const conclusionTexto  = v('conclusionTexto');
     const oportunidadTexto = v('oportunidadTexto');
+
+    const headerImg = await getHeaderImageData(logoNombre, logoLeyenda);
+    const firmaImg  = await getImageData('#out-firmaImg', 140);
 
     let fechaHoraEval = fmtDateLong(fechaEval);
     if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
@@ -462,57 +502,20 @@ window.downloadWord = async function() {
     // ---------- Construcción del documento ----------
 
     // 1. HEADER BANNER
-    const bannerLeft = new TableCell({
-      width: { size: bannerImg ? 65 : 100, type: WidthType.PERCENTAGE },
-      shading: { type: ShadingType.CLEAR, fill: TEAL },
-      margins: { top: 280, bottom: 280, left: 240, right: 200 },
-      borders: noBorders(),
-      children: [
-        new Paragraph({ spacing: { after: 80 }, children: [
-          new TextRun({ text: 'Informe:', color: WHITE, size: 21, font: 'Segoe UI' })
-        ]}),
-        new Paragraph({ children: [
-          new TextRun({ text: 'Resultados de Evaluación', color: WHITE, size: 36, font: 'Segoe UI' })
-        ]}),
-        new Paragraph({ children: [
-          new TextRun({ text: 'Psicotécnica', color: WHITE, size: 36, font: 'Segoe UI' })
-        ]})
-      ]
-    });
-
-    const bannerRowChildren = [bannerLeft];
-    if (bannerImg) {
-      bannerRowChildren.push(new TableCell({
-        width: { size: 35, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.CLEAR, fill: 'EAF3F4' },
-        margins: { top: 120, bottom: 120, left: 120, right: 120 },
-        borders: noBorders(),
-        verticalAlign: VerticalAlign.CENTER,
-        children: [new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [new ImageRun({ data: bannerImg.buf, transformation: { width: bannerImg.w, height: bannerImg.h } })]
-        })]
-      }));
-    }
-
-    const bannerTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TableRow({ children: bannerRowChildren })]
+    const bannerImage = new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new ImageRun({
+        data: headerImg.buf,
+        transformation: { width: headerImg.w, height: headerImg.h }
+      })]
     });
 
     // 2. Logo + Fecha
-    const logoParagraphs = [
-      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 160, after: 40 }, children: [
-        new TextRun({ text: logoNombre, bold: true, color: TEAL, size: 28, font: 'Calibri' })
-      ]}),
-      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 80 }, children: [
-        new TextRun({ text: logoLeyenda.toUpperCase(), color: GRAY, size: 16, font: 'Calibri' })
-      ]}),
-      new Paragraph({ spacing: { after: 60 }, children: [
+    const logoParagraphs = [new Paragraph({ spacing: { after: 60 }, children: [
         new TextRun({ text: 'Fecha: ', color: INK, size: 20, font: 'Calibri' }),
         new TextRun({ text: fmtDateLong(fechaInforme), bold: true, color: TEAL, size: 20, font: 'Calibri' })
-      ]})
-    ];
+      ]})];
 
     // 3. Línea separadora
     const separator = new Paragraph({
@@ -878,7 +881,7 @@ window.downloadWord = async function() {
 
     // ---------- Ensamblar documento ----------
     const children = [].concat(
-      [bannerTable],
+      [bannerImage],
       logoParagraphs,
       [separator, metaRow, datosTable],
       introParagraphs,
