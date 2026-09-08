@@ -456,6 +456,17 @@ window.downloadWord = async function() {
       } catch (e) { return null; }
     }
 
+    async function getStaticImageData(path, width) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error('No se pudo cargar ' + path);
+      const blob = await response.blob();
+      const image = await createImageBitmap(blob);
+      const height = Math.round(width * image.height / image.width);
+      const buffer = await blob.arrayBuffer();
+      image.close();
+      return { buf: buffer, w: width, h: height };
+    }
+
     // ---------- Datos del formulario ----------
     const fechaInforme     = v('fechaInforme');
     const elaboradoPor     = v('elaboradoPor');
@@ -478,6 +489,8 @@ window.downloadWord = async function() {
 
     const headerImg = await getHeaderImageData(logoNombre, logoLeyenda);
     const firmaImg  = await getImageData('#out-firmaImg', 140);
+    const tablaImg  = await getStaticImageData('img/tabla.png', 60);
+    const dianaImg  = await getStaticImageData('img/diana.png', 60);
 
     let fechaHoraEval = fmtDateLong(fechaEval);
     if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
@@ -623,12 +636,12 @@ window.downloadWord = async function() {
     ];
 
     // 7. Sección Objetivo (banner teal)
-    function sectionBanner(title, icon) {
+    function sectionBanner(title, iconImage) {
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [new TableRow({ children: [
           new TableCell({
-            width: { size: icon ? 89 : 100, type: WidthType.PERCENTAGE },
+            width: { size: iconImage ? 89 : 100, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: TEAL },
             margins: { top: 140, bottom: 140, left: 200, right: 160 },
             borders: noBorders(),
@@ -636,21 +649,21 @@ window.downloadWord = async function() {
               new TextRun({ text: title, color: WHITE, size: 26, font: 'Calibri' })
             ]})]
           }),
-          icon ? new TableCell({
+          iconImage ? new TableCell({
             width: { size: 1, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: WHITE },
             margins: { top: 0, bottom: 0, left: 0, right: 0 },
             borders: noBorders(),
             children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
           }) : null,
-          icon ? new TableCell({
+          iconImage ? new TableCell({
             width: { size: 10, type: WidthType.PERCENTAGE },
-            shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 140, bottom: 140, left: 60, right: 160 },
+            shading: { type: ShadingType.CLEAR, fill: WHITE },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
             borders: noBorders(),
             verticalAlign: VerticalAlign.CENTER,
             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-              new TextRun({ text: icon, color: WHITE, size: 22, font: 'Segoe UI Emoji' })
+              new ImageRun({ data: iconImage.buf, transformation: { width: iconImage.w, height: iconImage.h } })
             ]})]
           }) : null
         ].filter(Boolean) })]
@@ -741,7 +754,7 @@ window.downloadWord = async function() {
     // ---------- PÁGINA 3 ----------
 
     // Sección Evaluación de Competencias
-    const evalBanner = sectionBanner('Evaluación de Competencias', '🎯');
+    const evalBanner = sectionBanner('Evaluación de Competencias', dianaImg);
 
     // Enfoque
     const enfoqueParagraphs = [];
@@ -756,7 +769,7 @@ window.downloadWord = async function() {
     }
 
     // Sección Conclusión
-    const concBanner = sectionBanner('Conclusión', '🎯');
+    const concBanner = sectionBanner('Conclusión', dianaImg);
 
     // Conclusión
     const conclusionParagraphs = [];
@@ -894,7 +907,7 @@ window.downloadWord = async function() {
       logoParagraphs,
       [separator, metaRow, datosTable],
       introParagraphs,
-      [sectionBanner('Objetivo', '📋')],
+      [sectionBanner('Objetivo', tablaImg)],
       objetivoParagraphs,
       [new Paragraph({ children: [new PageBreak()] })],
       [escalaHeading],
