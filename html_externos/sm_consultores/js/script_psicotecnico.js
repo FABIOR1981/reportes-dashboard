@@ -236,8 +236,50 @@ window.downloadWord = async function() {
       return el ? el.value.trim() : '';
     }
 
+    async function getHeaderImageData(logoNombre, logoLeyenda) {
+      const outputWidth = 605;
+      const response = await fetch('img/cabezal.png');
+      if (!response.ok) throw new Error('No se pudo cargar img/cabezal.png');
+      const source = await createImageBitmap(await response.blob());
+      const canvas = document.createElement('canvas');
+      canvas.width = source.width;
+      canvas.height = source.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(source, 0, 0);
+
+      const sourceScale = source.width / 1505;
+      const textScale = source.width / outputWidth;
+      context.fillStyle = '#FFFFFF';
+      context.textAlign = 'left';
+      context.font = `${14 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText('Informe:', 76 * sourceScale, 125 * sourceScale);
+      context.font = `${25 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText('Resultados de Evaluación', 76 * sourceScale, 185 * sourceScale);
+      context.fillText('Psicotécnica', 76 * sourceScale, 235 * sourceScale);
+
+      context.textAlign = 'right';
+      context.font = `italic ${19 * textScale}px Georgia, "Times New Roman", serif`;
+      const logoLines = (logoNombre || 'Shalon Morales').split(/\s+/);
+      logoLines.forEach((line, index) => {
+        context.fillText(line, 1470 * sourceScale, (337 + index * 42) * sourceScale);
+      });
+      context.fillStyle = '#CFE4E6';
+      context.font = `${7 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.fillText((logoLeyenda || 'CONSULTORES').toUpperCase(), 1470 * sourceScale, 410 * sourceScale);
+
+      const sourceWidth = source.width;
+      const sourceHeight = source.height;
+      source.close();
+      const imageResponse = await fetch(canvas.toDataURL('image/png'));
+      return {
+        buf: await imageResponse.arrayBuffer(),
+        w: outputWidth,
+        h: Math.round(outputWidth * sourceHeight / sourceWidth)
+      };
+    }
+
     // ---------- Colores ----------
-    const TEAL    = '1a7a7a';
+    const TEAL    = '177789';
     const TEAL_LT = '2c8a8a';
     const WHITE   = 'FFFFFF';
     const INK     = '2C3E50';
@@ -271,8 +313,55 @@ window.downloadWord = async function() {
       } catch (e) { return null; }
     }
 
-    const bannerImg = await getImageData('#page1 .header-right img', 260);
-    const firmaImg  = await getImageData('#out-firmaImg', 140);
+    async function getStaticImageData(path, width) {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error('No se pudo cargar ' + path);
+      const blob = await response.blob();
+      const image = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      const stack = [];
+      const visited = new Uint8Array(canvas.width * canvas.height);
+      const isBorderWhite = (index) => pixels.data[index] > 220 &&
+        pixels.data[index + 1] > 220 && pixels.data[index + 2] > 220 && pixels.data[index + 3] > 0;
+      const add = (x, y) => {
+        const position = y * canvas.width + x;
+        if (visited[position]) return;
+        visited[position] = 1;
+        const index = position * 4;
+        if (isBorderWhite(index)) stack.push([x, y]);
+      };
+      for (let x = 0; x < canvas.width; x++) {
+        add(x, 0);
+        add(x, canvas.height - 1);
+      }
+      for (let y = 1; y < canvas.height - 1; y++) {
+        add(0, y);
+        add(canvas.width - 1, y);
+      }
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        const index = (y * canvas.width + x) * 4;
+        pixels.data[index + 3] = 0;
+        if (x > 0) add(x - 1, y);
+        if (x < canvas.width - 1) add(x + 1, y);
+        if (y > 0) add(x, y - 1);
+        if (y < canvas.height - 1) add(x, y + 1);
+      }
+      context.putImageData(pixels, 0, 0);
+      const cleanedResponse = await fetch(canvas.toDataURL('image/png'));
+      const height = Math.round(width * image.height / image.width);
+      const buffer = await cleanedResponse.arrayBuffer();
+      image.close();
+      return { buf: buffer, w: width, h: height };
+    }
+
+    const tablaImg = await getStaticImageData('img/tabla.png', 60);
+    const dianaImg = await getStaticImageData('img/diana.png', 60);
 
     // ---------- Datos del formulario ----------
     const fechaInforme     = v('fechaInforme');
@@ -293,6 +382,9 @@ window.downloadWord = async function() {
     const enfoqueTexto     = v('enfoqueTexto');
     const conclusionTexto  = v('conclusionTexto');
     const oportunidadTexto = v('oportunidadTexto');
+
+    const headerImg = await getHeaderImageData(logoNombre, logoLeyenda);
+    const firmaImg  = await getImageData('#out-firmaImg', 140);
 
     let fechaHoraEval = fmtDateLong(fechaEval);
     if (horaEval) fechaHoraEval += ` / Hora: ${horaEval}`;
@@ -319,57 +411,20 @@ window.downloadWord = async function() {
     // ---------- Construcción del documento ----------
 
     // 1. HEADER BANNER
-    const bannerLeft = new TableCell({
-      width: { size: bannerImg ? 65 : 100, type: WidthType.PERCENTAGE },
-      shading: { type: ShadingType.CLEAR, fill: TEAL },
-      margins: { top: 280, bottom: 280, left: 240, right: 200 },
-      borders: noBorders(),
-      children: [
-        new Paragraph({ spacing: { after: 80 }, children: [
-          new TextRun({ text: 'Informe:', color: WHITE, size: 18, font: 'Calibri' })
-        ]}),
-        new Paragraph({ children: [
-          new TextRun({ text: 'Resultados de Evaluación', bold: true, color: WHITE, size: 36, font: 'Calibri' })
-        ]}),
-        new Paragraph({ children: [
-          new TextRun({ text: 'Psicotécnica', bold: true, color: WHITE, size: 36, font: 'Calibri' })
-        ]})
-      ]
-    });
-
-    const bannerRowChildren = [bannerLeft];
-    if (bannerImg) {
-      bannerRowChildren.push(new TableCell({
-        width: { size: 35, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.CLEAR, fill: TEAL },
-        margins: { top: 120, bottom: 120, left: 120, right: 120 },
-        borders: noBorders(),
-        verticalAlign: VerticalAlign.CENTER,
-        children: [new Paragraph({
-          alignment: AlignmentType.CENTER,
-          children: [new ImageRun({ data: bannerImg.buf, transformation: { width: bannerImg.w, height: bannerImg.h } })]
-        })]
-      }));
-    }
-
-    const bannerTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TableRow({ children: bannerRowChildren })]
+    const bannerImage = new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+      children: [new ImageRun({
+        data: headerImg.buf,
+        transformation: { width: headerImg.w, height: headerImg.h }
+      })]
     });
 
     // 2. Logo + Fecha
-    const logoParagraphs = [
-      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 160, after: 40 }, children: [
-        new TextRun({ text: logoNombre, bold: true, color: TEAL, size: 28, font: 'Calibri' })
-      ]}),
-      new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 80 }, children: [
-        new TextRun({ text: logoLeyenda.toUpperCase(), color: GRAY, size: 16, font: 'Calibri' })
-      ]}),
-      new Paragraph({ spacing: { after: 60 }, children: [
+    const logoParagraphs = [new Paragraph({ spacing: { after: 60 }, children: [
         new TextRun({ text: 'Fecha: ', color: INK, size: 20, font: 'Calibri' }),
         new TextRun({ text: fmtDateLong(fechaInforme), bold: true, color: TEAL, size: 20, font: 'Calibri' })
-      ]})
-    ];
+      ]})];
 
     // 3. Línea separadora
     const separator = new Paragraph({
@@ -394,7 +449,7 @@ window.downloadWord = async function() {
           width: { size: 50, type: WidthType.PERCENTAGE },
           borders: noBorders(),
           children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [
-            new TextRun({ text: 'Consultoría ', color: INK, size: 19, font: 'Calibri' }),
+            new TextRun({ text: 'Consultoría: ', color: INK, size: 19, font: 'Calibri' }),
             new TextRun({ text: consultoria || '–', bold: true, color: INK, size: 19, font: 'Calibri' })
           ]})]
         })
@@ -443,7 +498,7 @@ window.downloadWord = async function() {
     [
       ['NOMBRE', nombre],
       ['CARGO POSTULACIÓN:', cargoPostulacion],
-      ['FECHA DE NAC.:', fmtDate(fechaNac)],
+      ['FECHA DE NAC:', fmtDate(fechaNac)],
       ['EDAD', edad],
       ['C.I.', ci],
       ['CONTACTO.', contacto],
@@ -469,35 +524,37 @@ window.downloadWord = async function() {
         new TextRun({ text: nombre || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
         new TextRun({ text: '.', color: INK, size: 21, font: 'Calibri' })
       ]}),
-      new Paragraph({ spacing: { after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
-        new TextRun({ text: 'El presente informe tiene como objetivo evaluar las competencias de la/el postulante, para lo cual se llevó a cabo una entrevista psicolaboral. Dicha instancia tuvo como finalidad analizar las competencias necesarias para el adecuado desempeño de las tareas correspondientes al cargo ', color: INK, size: 21, font: 'Calibri' }),
-        new TextRun({ text: cargoEvaluado || '–', bold: true, color: INK, size: 21, font: 'Calibri' }),
-        new TextRun({ text: '. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.', color: INK, size: 21, font: 'Calibri' })
-      ]})
     ];
 
     // 7. Sección Objetivo (banner teal)
-    function sectionBanner(title, icon) {
+    function sectionBanner(title, iconImage) {
       return new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [new TableRow({ children: [
           new TableCell({
-            width: { size: icon ? 90 : 100, type: WidthType.PERCENTAGE },
+            width: { size: iconImage ? 89 : 100, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 160, bottom: 160, left: 200, right: 160 },
+            margins: { top: 140, bottom: 140, left: 200, right: 160 },
             borders: noBorders(),
             children: [new Paragraph({ children: [
-              new TextRun({ text: title, bold: true, color: WHITE, size: 26, font: 'Calibri' })
+              new TextRun({ text: title, color: WHITE, size: 26, font: 'Calibri' })
             ]})]
           }),
-          icon ? new TableCell({
+          iconImage ? new TableCell({
+            width: { size: 1, type: WidthType.PERCENTAGE },
+            shading: { type: ShadingType.CLEAR, fill: WHITE },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
+            borders: noBorders(),
+            children: [new Paragraph({ children: [new TextRun({ text: '' })] })]
+          }) : null,
+          iconImage ? new TableCell({
             width: { size: 10, type: WidthType.PERCENTAGE },
             shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 160, bottom: 160, left: 60, right: 160 },
+            margins: { top: 0, bottom: 0, left: 0, right: 0 },
             borders: noBorders(),
             verticalAlign: VerticalAlign.CENTER,
             children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
-              new TextRun({ text: icon, color: WHITE, size: 24 })
+              new ImageRun({ data: iconImage.buf, transformation: { width: iconImage.w, height: iconImage.h } })
             ]})]
           }) : null
         ].filter(Boolean) })]
@@ -563,7 +620,7 @@ window.downloadWord = async function() {
     // ---------- PÁGINA 3 ----------
 
     // Sección Evaluación de Competencias
-    const evalBanner = sectionBanner('Evaluación de Competencias', '🎯');
+    const evalBanner = sectionBanner('Evaluación de Competencias', dianaImg);
 
     // Enfoque
     const enfoqueParagraphs = [];
@@ -578,7 +635,7 @@ window.downloadWord = async function() {
     }
 
     // Sección Conclusión
-    const concBanner = sectionBanner('Conclusión', '🎯');
+    const concBanner = sectionBanner('Conclusión', dianaImg);
 
     // Conclusión
     const conclusionParagraphs = [];
@@ -675,7 +732,7 @@ window.downloadWord = async function() {
         spacing: { before: 300, after: 200 },
         alignment: AlignmentType.JUSTIFIED,
         children: [new TextRun({
-          text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (consultoria || 'la consultoría') + '.',
+          text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (solicitante || 'la empresa') + ' y de ' + (consultoria || 'SM Consultores') + '.',
           color: GRAY, size: 18, font: 'Calibri'
         })]
       })
@@ -712,11 +769,11 @@ window.downloadWord = async function() {
 
     // ---------- Ensamblar documento ----------
     const children = [].concat(
-      [bannerTable],
+      [bannerImage],
       logoParagraphs,
       [separator, metaRow, datosTable],
       introParagraphs,
-      [sectionBanner('Objetivo', '🋶')],
+      [sectionBanner('Objetivo', tablaImg)],
       objetivoParagraphs,
       [new Paragraph({ children: [new PageBreak()] })],
       [escalaHeading],
