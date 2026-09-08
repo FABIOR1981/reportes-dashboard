@@ -380,7 +380,7 @@ window.downloadWord = async function() {
     }
 
     async function getHeaderImageData(logoNombre, logoLeyenda) {
-      const outputWidth = 560;
+      const outputWidth = 520;
       const response = await fetch('img/cabezal.png');
       if (!response.ok) throw new Error('No se pudo cargar img/cabezal.png');
       const source = await createImageBitmap(await response.blob());
