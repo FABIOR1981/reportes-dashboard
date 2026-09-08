@@ -461,8 +461,44 @@ window.downloadWord = async function() {
       if (!response.ok) throw new Error('No se pudo cargar ' + path);
       const blob = await response.blob();
       const image = await createImageBitmap(blob);
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d');
+      context.drawImage(image, 0, 0);
+      const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+      const stack = [];
+      const visited = new Uint8Array(canvas.width * canvas.height);
+      const isBorderWhite = (index) => pixels.data[index] > 220 &&
+        pixels.data[index + 1] > 220 && pixels.data[index + 2] > 220 && pixels.data[index + 3] > 0;
+      const add = (x, y) => {
+        const position = y * canvas.width + x;
+        if (visited[position]) return;
+        visited[position] = 1;
+        const index = position * 4;
+        if (isBorderWhite(index)) stack.push([x, y]);
+      };
+      for (let x = 0; x < canvas.width; x++) {
+        add(x, 0);
+        add(x, canvas.height - 1);
+      }
+      for (let y = 1; y < canvas.height - 1; y++) {
+        add(0, y);
+        add(canvas.width - 1, y);
+      }
+      while (stack.length) {
+        const [x, y] = stack.pop();
+        const index = (y * canvas.width + x) * 4;
+        pixels.data[index + 3] = 0;
+        if (x > 0) add(x - 1, y);
+        if (x < canvas.width - 1) add(x + 1, y);
+        if (y > 0) add(x, y - 1);
+        if (y < canvas.height - 1) add(x, y + 1);
+      }
+      context.putImageData(pixels, 0, 0);
+      const cleanedResponse = await fetch(canvas.toDataURL('image/png'));
       const height = Math.round(width * image.height / image.width);
-      const buffer = await blob.arrayBuffer();
+      const buffer = await cleanedResponse.arrayBuffer();
       image.close();
       return { buf: buffer, w: width, h: height };
     }
