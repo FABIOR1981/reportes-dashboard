@@ -647,18 +647,19 @@ window.downloadWord = async function() {
       });
     }
 
-    // Texto del objetivo (del preview o del input enfoqueTexto)
+    // La sección "Objetivo" es puramente un banner decorativo — el texto
+    // real ya está en el párrafo introductorio de más arriba, antes de
+    // este banner (igual que en la vista previa y en el PDF). No existe
+    // ningún campo "objetivoTexto" en el formulario.
+    // BUG CORREGIDO: antes esta línea era
+    //   const objText = enfoqueTexto || v('objetivoTexto');
+    // Como "objetivoTexto" nunca existió como campo real, el "||" siempre
+    // terminaba usando "enfoqueTexto" — que en realidad es el texto de la
+    // sección "Evaluación de Competencias" (ver más abajo, se usa de
+    // nuevo ahí correctamente). Eso hacía que el Word imprimiera el
+    // contenido de "Evaluación de Competencias" duplicado, metido por
+    // error debajo de "Objetivo".
     const objetivoParagraphs = [];
-    const objText = enfoqueTexto || v('objetivoTexto');
-    if (objText) {
-      objText.split(/\r?\n/).forEach(p => {
-        if (p.trim()) objetivoParagraphs.push(new Paragraph({
-          alignment: AlignmentType.JUSTIFIED,
-          spacing: { after: 120, before: 120 },
-          children: [new TextRun({ text: p.trim(), color: INK, size: 21, font: 'Calibri' })]
-        }));
-      });
-    }
 
     // ---------- PÁGINA 2 ----------
 
