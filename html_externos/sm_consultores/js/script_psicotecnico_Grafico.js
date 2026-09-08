@@ -902,7 +902,7 @@ window.downloadWord = async function() {
         spacing: { before: 300, after: 200 },
         alignment: AlignmentType.JUSTIFIED,
         children: [new TextRun({
-          text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (consultoria || 'la consultoría') + '.',
+          text: 'Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' + (solicitante || 'la empresa') + ' y de ' + (consultoria || 'SM Consultores') + '.',
           color: GRAY, size: 18, font: 'Calibri'
         })]
       })
