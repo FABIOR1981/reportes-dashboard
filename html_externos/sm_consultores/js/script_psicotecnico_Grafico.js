@@ -394,20 +394,20 @@ window.downloadWord = async function() {
       const textScale = source.width / outputWidth;
       context.fillStyle = '#FFFFFF';
       context.textAlign = 'left';
-      context.font = `${17 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${14 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText('Informe:', 76 * sourceScale, 125 * sourceScale);
-      context.font = `${32 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${25 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText('Resultados de Evaluación', 76 * sourceScale, 185 * sourceScale);
       context.fillText('Psicotécnica', 76 * sourceScale, 235 * sourceScale);
 
       context.textAlign = 'right';
-      context.font = `italic ${24 * textScale}px Georgia, "Times New Roman", serif`;
+      context.font = `italic ${19 * textScale}px Georgia, "Times New Roman", serif`;
       const logoLines = (logoNombre || 'Shalon Morales').split(/\s+/);
       logoLines.forEach((line, index) => {
-        context.fillText(line, 1470 * sourceScale, (337 + index * 48) * sourceScale);
+        context.fillText(line, 1470 * sourceScale, (337 + index * 42) * sourceScale);
       });
       context.fillStyle = '#CFE4E6';
-      context.font = `${8 * textScale}px "Segoe UI", Arial, sans-serif`;
+      context.font = `${7 * textScale}px "Segoe UI", Arial, sans-serif`;
       context.fillText((logoLeyenda || 'CONSULTORES').toUpperCase(), 1470 * sourceScale, 410 * sourceScale);
 
       const sourceWidth = source.width;
@@ -542,7 +542,7 @@ window.downloadWord = async function() {
           width: { size: 50, type: WidthType.PERCENTAGE },
           borders: noBorders(),
           children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [
-            new TextRun({ text: 'Consultoría ', color: INK, size: 19, font: 'Calibri' }),
+            new TextRun({ text: 'Consultoría: ', color: INK, size: 19, font: 'Calibri' }),
             new TextRun({ text: consultoria || '–', bold: true, color: INK, size: 19, font: 'Calibri' })
           ]})]
         })
@@ -591,7 +591,7 @@ window.downloadWord = async function() {
     [
       ['NOMBRE', nombre],
       ['CARGO POSTULACIÓN:', cargoPostulacion],
-      ['FECHA DE NAC.:', fmtDate(fechaNac)],
+      ['FECHA DE NAC:', fmtDate(fechaNac)],
       ['EDAD', edad],
       ['C.I.', ci],
       ['CONTACTO.', contacto],
