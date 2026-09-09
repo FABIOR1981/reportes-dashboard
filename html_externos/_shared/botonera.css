@@ -136,6 +136,89 @@
   min-height: 16px;
 }
 
+.archivo-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.38);
+}
+
+.archivo-modal {
+  width: min(420px, 100%);
+  padding: 24px;
+  border: 1px solid #dbe3ec;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.22);
+  color: #263746;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.archivo-modal h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.archivo-modal label {
+  display: block;
+  margin-bottom: 8px;
+  color: #52616d;
+  font-size: 13px;
+}
+
+.archivo-modal-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #b8c7d4;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.archivo-modal-input:focus-within {
+  border-color: #2874a6;
+  box-shadow: 0 0 0 3px rgba(40, 116, 166, 0.14);
+}
+
+.archivo-modal-input input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px;
+  border: 0;
+  outline: 0;
+  color: #263746;
+  font: inherit;
+  font-size: 14px;
+}
+
+.archivo-modal-input span {
+  padding-right: 10px;
+  color: #71808c;
+  font-size: 13px;
+}
+
+.archivo-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.archivo-modal-actions button {
+  padding: 9px 14px;
+  border: 1px solid #cbd5df;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}
+
+.archivo-modal-cancel { background: #fff; color: #52616d; }
+.archivo-modal-confirm { border-color: #1a5276 !important; background: #1a5276; color: #fff; }
+
 /* Spell panel */
 #spellPanel {
   margin-top: 10px;

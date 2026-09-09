@@ -381,5 +381,55 @@ window.Botonera = (function() {
     mostrarStatus('🗑 Formulario limpiado.');
   }
 
-  return { init: init };
+  function pedirNombreArchivo(nombreInicial, extension) {
+    return new Promise(function(resolve) {
+      const anterior = document.getElementById('nombreArchivoModal');
+      if (anterior) anterior.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'nombreArchivoModal';
+      modal.className = 'archivo-modal-overlay';
+      modal.innerHTML =
+        '<div class="archivo-modal" role="dialog" aria-modal="true" aria-labelledby="nombreArchivoTitulo">' +
+          '<h2 id="nombreArchivoTitulo">Nombre del archivo</h2>' +
+          '<label for="nombreArchivoInput">Escribí cómo querés guardar el informe</label>' +
+          '<div class="archivo-modal-input">' +
+            '<input id="nombreArchivoInput" type="text" value="' + escapeHTML(nombreInicial) + '" autocomplete="off">' +
+            '<span>.' + escapeHTML(extension) + '</span>' +
+          '</div>' +
+          '<div class="archivo-modal-actions">' +
+            '<button type="button" class="archivo-modal-cancel">Cancelar</button>' +
+            '<button type="button" class="archivo-modal-confirm">Descargar</button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(modal);
+
+      const input = modal.querySelector('#nombreArchivoInput');
+      const cerrar = function(resultado) {
+        modal.remove();
+        resolve(resultado);
+      };
+      const confirmar = function() {
+        const nombre = input.value.trim()
+          .replace(/[\\/:*?"<>|]/g, '_')
+          .replace(/\s+/g, '_');
+        if (nombre) cerrar(nombre + '.' + extension);
+        else input.focus();
+      };
+
+      modal.querySelector('.archivo-modal-cancel').addEventListener('click', function() { cerrar(null); });
+      modal.querySelector('.archivo-modal-confirm').addEventListener('click', confirmar);
+      modal.addEventListener('click', function(event) {
+        if (event.target === modal) cerrar(null);
+      });
+      input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') confirmar();
+        if (event.key === 'Escape') cerrar(null);
+      });
+      input.focus();
+      input.select();
+    });
+  }
+
+  return { init: init, pedirNombreArchivo: pedirNombreArchivo };
 })();

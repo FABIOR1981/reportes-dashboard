@@ -272,7 +272,7 @@ async function waitForFonts() {
 // ============================================================
 //  CONTRATO: window.downloadPDF
 // ============================================================
-window.downloadPDF = function() {
+window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
   const status = document.getElementById('status');
   if (btn) btn.disabled = true;
@@ -280,6 +280,16 @@ window.downloadPDF = function() {
   if (!hasContent()) {
     if (status) status.textContent = '⚠ El documento está vacío. Agregá contenido antes de descargar.';
     if (btn) btn.disabled = false;
+    return;
+  }
+
+  const nombreArchivo = await Botonera.pedirNombreArchivo(
+    sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico'),
+    'pdf'
+  );
+  if (!nombreArchivo) {
+    if (btn) btn.disabled = false;
+    if (status) status.textContent = '';
     return;
   }
 
@@ -296,9 +306,8 @@ window.downloadPDF = function() {
   // que ya están puestas en el CSS (@media print) sobre tablas, <hr> y
   // los recuadros de clasificación — así que todo ese cálculo manual deja
   // de hacer falta. El resultado, de paso, sale idéntico al Word.
-  const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico');
   const tituloOriginal = document.title;
-  document.title = nombreArchivo;
+  document.title = nombreArchivo.replace(/\.pdf$/i, '');
 
   const restaurar = function() {
     document.title = tituloOriginal;
@@ -329,6 +338,12 @@ window.downloadWord = async function() {
       if (status) status.textContent = '⚠ Las librerías necesarias aún se están cargando. Intentá de nuevo en unos segundos.';
       return;
     }
+
+    const nombreArchivo = await Botonera.pedirNombreArchivo(
+      sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico'),
+      'docx'
+    );
+    if (!nombreArchivo) return;
 
     // Verificar que HeadingLevel existe, si no usar alternativa
     const H1 = docx.HeadingLevel ? docx.HeadingLevel.HEADING_1 : undefined;
@@ -518,7 +533,7 @@ window.downloadWord = async function() {
     const link = document.createElement('a');
     const blobUrl = URL.createObjectURL(blob);
     link.href = blobUrl;
-    link.download = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.docx';
+    link.download = nombreArchivo;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
