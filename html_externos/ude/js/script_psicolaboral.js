@@ -142,65 +142,41 @@
     updatePreview();
   };
 
-  window.downloadPDF = async function(){
+  window.downloadPDF = function(){
     var btn = document.querySelector('[data-action="pdf"]');
     var status = document.getElementById('status');
     if(!btn) return;
-    // IMPORTANTE: no usar btn.textContent para mostrar "Generando..." dentro del botón.
-    // El botón contiene un <span class="tooltip"> interno; asignar textContent lo
-    // reemplaza por un único nodo de texto plano y el tooltip desaparece para siempre.
-    // El feedback de progreso se muestra en el panel #status en su lugar.
     btn.disabled = true;
-    if (status) status.textContent = 'Generando PDF, por favor espera...';
+    if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
-    try {
-      if(document.fonts && document.fonts.ready){
-        await document.fonts.ready;
-      }
-      var page = document.getElementById('page1');
-      var canvas = await html2canvas(page, {
-        scale: 3,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        // BUG CONOCIDO (histórico, ya documentado): sin esto, html2canvas mide
-        // el ancho de las palabras con métricas de fuente ligeramente distintas
-        // a como se ve en pantalla, y ciertas combinaciones de letras quedan
-        // superpuestas/pisadas — por ejemplo "Cargo:" se ve como "Cargα",
-        // "nacimiento:" como "nacimienta". Dibujar letra por letra (en vez de
-        // por palabra) evita ese cálculo de ancho incorrecto. Mismo fix que ya
-        // tenía SM Consultores, agregado acá porque a UDE le faltaba.
-        letterRendering: true,
-        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
-        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
-        // para que el formulario se pueda usar en pantallas angostas/notebooks.
-        // Si el PDF se genera con la ventana en ese rango (notebook sin
-        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
-        // página "achatada" y al estirarla después al ancho fijo del PDF,
-        // todo el contenido salía más chico que en el Word. Mismo fix ya
-        // usado en Informe Genérico y SM Consultores: se le dice a
-        // html2canvas que renderice como si la ventana fuera de escritorio
-        // (windowWidth) y que capture exactamente al ancho real de ".page"
-        // en A4 — así ese @media nunca llega a dispararse durante la
-        // captura, sin importar el ancho real de la ventana.
-        windowWidth: 1200,
-        width: 794
-      });
-      var imgData = canvas.toDataURL('image/png');
-      var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-      var pdfWidth = pdf.internal.pageSize.getWidth();
-      var pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
+    // El método anterior le sacaba una "foto" (rasterizada) a la vista
+    // previa, y esa aproximación arrastraba bugs de texto pisado tipo
+    // "Cargα" en vez de "Cargo:" (aproximación de kerning) y de tamaño
+    // de fuente distinto al Word (aproximación de escala). window.print()
+    // usa el mismo motor que ya dibuja la vista previa en pantalla — sin
+    // aproximaciones — así que el resultado sale idéntico al Word. El CSS
+    // de la sección "@media print" (en style_psicolaboral.css) es el que
+    // define qué se ve en el PDF resultante (oculta el panel del
+    // formulario, muestra solo la página, fuerza que se impriman los
+    // colores de fondo).
+    var nombre = (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_');
+    var tituloOriginal = document.title;
+    // El navegador usa el <title> de la página como nombre sugerido en el
+    // diálogo de "Guardar como PDF".
+    document.title = 'Informe_Psicolaboral_' + nombre;
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      var nombre = (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_');
-      pdf.save('Informe_Psicolaboral_' + nombre + '.pdf');
-      if (status) status.textContent = '✔ PDF descargado con éxito.';
-    } catch(e){
-      if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
-      alert('Error al generar PDF: ' + e.message);
-    } finally {
+    var restaurar = function() {
+      document.title = tituloOriginal;
       btn.disabled = false;
-      if (status) setTimeout(function(){ status.textContent = ''; }, 4000);
-    }
+      if (status) status.textContent = '';
+      window.removeEventListener('afterprint', restaurar);
+    };
+    // "afterprint" se dispara al cerrar el diálogo, se haya guardado el
+    // PDF o cancelado.
+    window.addEventListener('afterprint', restaurar);
+
+    setTimeout(function(){ window.print(); }, 50);
   };
 
   // ---------- Descargar como Word (.docx nativo, sin imagen) ----------

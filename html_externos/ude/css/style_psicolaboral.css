@@ -128,3 +128,53 @@ textarea{resize:vertical;min-height:90px;}
     padding: 20px 14px;
   }
 }
+
+/* ==========================================================================
+   IMPRESIÓN / "Guardar como PDF" (window.print())
+   ==========================================================================
+   Reemplaza al viejo método de html2canvas+jsPDF para el botón "Descargar
+   PDF". En vez de sacarle una FOTO a la vista previa (que aproxima fuentes,
+   kerning y escalado de SVG y por eso arrastraba bugs de texto pisado tipo
+   "Cargα" en vez de "Cargo:"), esto usa el motor de impresión real del
+   navegador: el mismo que ya dibuja la vista previa en pantalla, así que el
+   resultado es idéntico al Word — texto vectorial real, sin aproximaciones.
+   Se dispara con window.print() y la persona elige "Guardar como PDF" en
+   el diálogo del navegador en vez de una impresora física.
+   ========================================================================== */
+@media print {
+  /* Ocultar todo por defecto y mostrar solo la vista previa del informe.
+     Es clave que sea display:none (no visibility:hidden): la botonera
+     compartida (_shared/botonera.js) usa "position:fixed" para el botón
+     de acción, y los navegadores REPITEN los elementos position:fixed en
+     TODAS las hojas al imprimir sin importar que tengan visibility:hidden
+     heredado — por eso el botón "Descargar PDF" aparecería flotando en
+     cada página si solo se usara visibility:hidden. */
+  #panel {
+    display: none !important;
+  }
+  #previewWrap {
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    display: block;
+  }
+  .page {
+    width: auto;
+    min-height: 0;
+    box-shadow: none;
+    margin: 0;
+  }
+  /* Los colores de fondo (encabezado, tabla) no se imprimen por defecto en
+     la mayoría de los navegadores a menos que se pida explícitamente. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

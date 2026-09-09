@@ -127,65 +127,32 @@ document.getElementById('editCabezal').addEventListener('change', (e) => {
 
 
 // ---------- Descargar PDF ----------
-window.downloadPDF = async function() {
+window.downloadPDF = function() {
   const status = document.getElementById('status');
   const btn = document.querySelector('[data-action="pdf"]');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Generando PDF, por favor espera...';
+  if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
-  try{
-    // Esperar a que las fuentes estén completamente cargadas antes de capturar.
-    // Si html2canvas captura el texto antes de que la fuente termine de cargar,
-    // usa métricas de una fuente distinta a la que se ve en pantalla y las palabras
-    // quedan pegadas entre sí (el bug de "estándaresmínimos").
-    if (document.fonts && document.fonts.ready) {
-      await document.fonts.ready;
-    }
+  // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
+  // El método anterior le sacaba una "foto" (rasterizada) a la vista
+  // previa, y esa aproximación arrastraba bugs de texto pisado, tamaño de
+  // fuente distinto al Word, y gráficos cortados. window.print() usa el
+  // mismo motor que ya dibuja la vista previa en pantalla — sin
+  // aproximaciones — así que el resultado sale idéntico al Word. El CSS
+  // de la sección "@media print" (en style_psicotecnico.css) es el que
+  // define qué se ve en el PDF resultante.
+  const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
+  const tituloOriginal = document.title;
+  document.title = `INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}`;
 
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pageIds = ['page1','page2','page3'];
-
-    for(let i=0; i<pageIds.length; i++){
-      const el = document.getElementById(pageIds[i]);
-      const canvas = await html2canvas(el, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor:'#ffffff',
-        letterRendering: true, // clave: dibuja letra por letra en vez de por palabra,
-                                // evita que el ancho de las palabras se calcule mal y se superpongan
-        // BUG CONOCIDO: @media (max-width:1024px) en el CSS le saca la
-        // proporción A4 fija a ".page" (la deja "width:100%; min-height:auto")
-        // para que el formulario se pueda usar en pantallas angostas/notebooks.
-        // Si el PDF se genera con la ventana en ese rango (notebook sin
-        // maximizar, DevTools abierto, etc.), html2canvas capturaba la
-        // página "achatada" y al estirarla después a los 210mm fijos del
-        // PDF, todo el contenido salía más chico que en el Word. Mismo fix
-        // ya usado en Informe Genérico: se le dice a html2canvas que
-        // renderice como si la ventana fuera de escritorio (windowWidth)
-        // y que capture exactamente al ancho real de ".page" en A4 — así
-        // ese @media nunca llega a dispararse durante la captura, sin
-        // importar el ancho real de la ventana.
-        windowWidth: 1200,
-        width: 794
-      });
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      const pdfWidth = 210;
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      if(i > 0) pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-    }
-
-    const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
-    pdf.save(`INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}.pdf`);
-    if (status) status.textContent = '✔ PDF descargado con éxito.';
-  }catch(err){
-    console.error(err);
-    if (status) status.textContent = '⚠ Error al generar el PDF. Revisá la consola.';
-  }finally{
+  const restaurar = function() {
+    document.title = tituloOriginal;
     if (btn) btn.disabled = false;
-    setTimeout(()=>{ if (status) status.textContent=''; }, 4000);
-  }
+    if (status) status.textContent = '';
+    window.removeEventListener('afterprint', restaurar);
+  };
+  window.addEventListener('afterprint', restaurar);
+  setTimeout(function(){ window.print(); }, 50);
 };
 
 // ============================================================

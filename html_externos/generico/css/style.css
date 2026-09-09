@@ -463,6 +463,15 @@ body.pdf-capturing .preview-panel {
     padding: 0;
   }
 
+  /* La botonera compartida (_shared/botonera.js) usa "position:fixed" para
+     el botón de acción, y los navegadores REPITEN los elementos
+     position:fixed en TODAS las hojas al imprimir — por eso hace falta
+     sacarlo con display:none explícito (no alcanza con que su contenedor
+     esté oculto de otra forma). */
+  #actions {
+    display: none !important;
+  }
+
   .container {
     display: block;
     max-width: 100%;
@@ -489,5 +498,27 @@ body.pdf-capturing .preview-panel {
 
   .report-body {
     white-space: normal;
+  }
+
+  /* Reemplaza al algoritmo JS de "cortes seguros" que se eliminó de
+     downloadPDF() (calcularCortesSeguros/cortesPagina): con impresión
+     nativa, el navegador ya sabe no partir estos elementos a la mitad
+     entre dos hojas con solo pedírselo por CSS. */
+  hr, table, tr, .clasif-box {
+    page-break-inside: avoid;
+  }
+
+  /* Los colores de fondo (título, clasificación) no se imprimen por
+     defecto en la mayoría de los navegadores a menos que se pida
+     explícitamente. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+
+  @page {
+    size: A4;
+    margin: 0;
   }
 }
