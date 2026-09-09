@@ -127,10 +127,20 @@ document.getElementById('editCabezal').addEventListener('change', (e) => {
 
 
 // ---------- Descargar PDF ----------
-window.downloadPDF = function() {
+window.downloadPDF = async function() {
   const status = document.getElementById('status');
   const btn = document.querySelector('[data-action="pdf"]');
   if (btn) btn.disabled = true;
+
+  const nombreArchivo = await Botonera.pedirNombreArchivo(
+    'INFORME_EVALUACION_PSICOTECNICA_' + (val('nombre') || 'postulante').trim().replace(/\s+/g, '_'),
+    'pdf'
+  );
+  if (!nombreArchivo) {
+    if (btn) btn.disabled = false;
+    return;
+  }
+
   if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
   // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
@@ -141,9 +151,8 @@ window.downloadPDF = function() {
   // aproximaciones — así que el resultado sale idéntico al Word. El CSS
   // de la sección "@media print" (en style_psicotecnico.css) es el que
   // define qué se ve en el PDF resultante.
-  const nombreArchivo = (val('nombre') || 'postulante').trim().replace(/\s+/g,'_');
   const tituloOriginal = document.title;
-  document.title = `INFORME_EVALUACION_PSICOTECNICA_${nombreArchivo}`;
+  document.title = nombreArchivo.replace(/\.pdf$/i, '');
 
   const restaurar = function() {
     document.title = tituloOriginal;
@@ -178,6 +187,11 @@ window.downloadWord = async function() {
       alert('La librería docx no está cargada. Verificá la etiqueta <script> en el HTML.');
       return;
     }
+    const nombreArchivoElegido = await Botonera.pedirNombreArchivo(
+      'Informe_Psicotecnico_' + (val('nombre') || 'postulante').trim().replace(/\s+/g, '_'),
+      'docx'
+    );
+    if (!nombreArchivoElegido) return;
     const {
       Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
       WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType,
@@ -768,7 +782,7 @@ window.downloadWord = async function() {
     const a = document.createElement('a');
     const nombreArchivo = (nombre || 'postulante').replace(/\s+/g, '_');
     a.href = url;
-    a.download = 'Informe_Psicotecnico_' + nombreArchivo + '.docx';
+    a.download = nombreArchivoElegido;
     document.body.appendChild(a);
     a.click();
     a.remove();
