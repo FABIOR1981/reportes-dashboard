@@ -41,9 +41,9 @@ window.Botonera = (function() {
     if (!container) return;
 
     container.innerHTML =
-      '<button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">' +
+      '<button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF" disabled>' +
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="18.5" font-size="7" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">PDF</text></svg>' +
-        '<span class="tooltip">Descargar PDF</span>' +
+        '<span class="tooltip">Descarga de PDF deshabilitada temporalmente</span>' +
       '</button>' +
       '<button class="btn btn-primary" data-action="word" aria-label="Descargar Word">' +
         '<svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><text x="12" y="18" font-size="9" font-weight="700" font-family="Arial, sans-serif" text-anchor="middle" fill="currentColor" stroke="none">W</text></svg>' +
