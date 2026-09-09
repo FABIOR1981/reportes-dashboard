@@ -504,8 +504,19 @@ body.pdf-capturing .preview-panel {
      downloadPDF() (calcularCortesSeguros/cortesPagina): con impresión
      nativa, el navegador ya sabe no partir estos elementos a la mitad
      entre dos hojas con solo pedírselo por CSS. */
-  hr, table, tr, .clasif-box {
+  hr, table, tr, .classification-box, .classification-obs {
     page-break-inside: avoid;
+  }
+  /* .classification-box (el rótulo "Con observaciones") y .classification-obs
+     (el texto de seguimiento debajo) son DOS <div> separados, no uno solo.
+     page-break-inside:avoid protege a cada uno de partirse por dentro, pero
+     no evita que el navegador meta un salto de página JUSTO ENTRE los dos.
+     page-break-after:avoid en el primero soluciona eso: le dice "no cortes
+     la hoja inmediatamente después de este bloque", así quedan siempre
+     juntos (los dos en la hoja actual, o los dos empujados a la siguiente).
+  */
+  .classification-box {
+    page-break-after: avoid;
   }
 
   /* Los colores de fondo (título, clasificación) no se imprimen por
