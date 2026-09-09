@@ -148,15 +148,6 @@
     if(!btn) return;
     btn.disabled = true;
 
-    var nombreArchivo = await Botonera.pedirNombreArchivo(
-      'Informe_Psicolaboral_' + (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_'),
-      'pdf'
-    );
-    if (!nombreArchivo) {
-      btn.disabled = false;
-      return;
-    }
-
     if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
     // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
@@ -173,7 +164,7 @@
     var tituloOriginal = document.title;
     // El navegador usa el <title> de la página como nombre sugerido en el
     // diálogo de "Guardar como PDF".
-    document.title = nombreArchivo.replace(/\.pdf$/i, '');
+    document.title = 'Informe_Psicolaboral_' + (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_');
 
     var restaurar = function() {
       document.title = tituloOriginal;
@@ -202,11 +193,7 @@
 
     try {
       var docx = window.docx;
-      var nombreArchivoElegido = await Botonera.pedirNombreArchivo(
-        'Informe_Psicolaboral_' + (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_'),
-        'docx'
-      );
-      if (!nombreArchivoElegido) return;
+      var nombreArchivoElegido = 'Informe_Psicolaboral_' + (document.getElementById('apellidos').value || 'informe').replace(/\s+/g,'_') + '.docx';
 
       var Document = docx.Document, Packer = docx.Packer, Paragraph = docx.Paragraph,
           TextRun = docx.TextRun, Table = docx.Table, TableRow = docx.TableRow,
@@ -404,15 +391,7 @@
       });
 
       var blob = await Packer.toBlob(doc);
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      var nombre = (apellidos || 'informe').replace(/\s+/g,'_');
-      a.href = url;
-      a.download = nombreArchivoElegido;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      await Botonera.guardarBlob(blob, nombreArchivoElegido);
       if (status) status.textContent = '✔ Word descargado con éxito.';
     } catch(e){
       console.error(e);

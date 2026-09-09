@@ -386,16 +386,6 @@ window.downloadPDF = async function() {
     return;
   }
 
-  const nombreArchivo = await Botonera.pedirNombreArchivo(
-    sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico'),
-    'pdf'
-  );
-  if (!nombreArchivo) {
-    if (btn) btn.disabled = false;
-    if (status) status.textContent = '';
-    return;
-  }
-
   if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
   // MIGRADO de html2canvas+jsPDF a window.print() nativo del navegador.
@@ -408,8 +398,9 @@ window.downloadPDF = async function() {
   // (@media print) sobre tablas, <hr>, los recuadros de clasificación y
   // el gráfico de aspectos — así que todo ese cálculo manual deja de
   // hacer falta. El resultado, de paso, sale idéntico al Word.
+  const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico');
   const tituloOriginal = document.title;
-  document.title = nombreArchivo.replace(/\.pdf$/i, '');
+  document.title = nombreArchivo;
 
   const restaurar = function() {
     document.title = tituloOriginal;
@@ -441,11 +432,7 @@ window.downloadWord = async function() {
       return;
     }
 
-    const nombreArchivo = await Botonera.pedirNombreArchivo(
-      sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico'),
-      'docx'
-    );
-    if (!nombreArchivo) return;
+    const nombreArchivo = sanitizeFilename(document.getElementById('tituloInforme').value.trim() || 'Informe_Generico') + '.docx';
 
     // Verificar que HeadingLevel existe, si no usar alternativa
     const H1 = docx.HeadingLevel ? docx.HeadingLevel.HEADING_1 : undefined;
@@ -644,14 +631,7 @@ window.downloadWord = async function() {
     });
 
     const blob = await docx.Packer.toBlob(doc);
-    const link = document.createElement('a');
-    const blobUrl = URL.createObjectURL(blob);
-    link.href = blobUrl;
-    link.download = nombreArchivo;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 5000);
+    await Botonera.guardarBlob(blob, nombreArchivo);
 
     if (status) status.textContent = '✔ Documento Word descargado con éxito.';
   } catch (e) {

@@ -431,5 +431,36 @@ window.Botonera = (function() {
     });
   }
 
-  return { init: init, pedirNombreArchivo: pedirNombreArchivo };
+  async function guardarBlob(blob, nombreSugerido) {
+    if (typeof window.showSaveFilePicker === 'function') {
+      const extension = nombreSugerido.toLowerCase().endsWith('.docx') ? '.docx' : '.json';
+      const handle = await window.showSaveFilePicker({
+        suggestedName: nombreSugerido,
+        types: [{
+          description: extension === '.docx' ? 'Documento Word' : 'Archivo',
+          accept: { [blob.type || 'application/octet-stream']: [extension] }
+        }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return true;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombreSugerido;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+    return false;
+  }
+
+  return {
+    init: init,
+    pedirNombreArchivo: pedirNombreArchivo,
+    guardarBlob: guardarBlob
+  };
 })();
