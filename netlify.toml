@@ -21,3 +21,12 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# sw.js NUNCA debe quedar cacheado: si el navegador (o algún CDN
+# intermedio) sirve una copia vieja de este archivo, el Service Worker
+# nunca detecta que hay una versión nueva y sigue usando el CACHE_NAME
+# viejo para siempre, aunque el resto del sitio ya se haya actualizado.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
