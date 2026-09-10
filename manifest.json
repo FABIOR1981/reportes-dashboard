@@ -1,7 +1,7 @@
 {
   "name": "Panel de Reportes",
   "short_name": "Reportes",
-  "description": "Generador de informes psicolaborales y psicotécnicos.",
+  "description": "Generador de informes.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
