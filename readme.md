@@ -1,8 +1,8 @@
 # Reportes Dashboard
 
-Dashboard dinámico para reportes HTML. Permite centralizar visualizaciones e informes autocontenidos en un panel navegable con menú lateral.
+Dashboard web para centralizar y generar informes profesionales de selección y evaluación de personal. Cada informe funciona como una aplicación HTML independiente, con formulario, vista previa en tiempo real y exportación a PDF y Word.
 
-**Versión:** 1.0.0
+El proyecto es un sitio estático: no requiere backend ni base de datos. Se puede publicar en Netlify y también instalar como PWA para trabajar con recursos locales cuando están disponibles.
 
 ---
 
@@ -11,49 +11,51 @@ Dashboard dinámico para reportes HTML. Permite centralizar visualizaciones e in
 ```
 reportes-dashboard/
 ├── index.html              # Dashboard principal (barra lateral + iframe)
-├── index.json              # Índice generado automáticamente
+├── index.json              # Índice generado automáticamente; no editar a mano
 ├── build-index.js          # Script Node para regenerar el índice
 ├── package.json            # Scripts de build
 ├── netlify.toml            # Configuración de despliegue
+├── manifest.json           # Configuración de la PWA
+├── sw.js                   # Service Worker y caché offline
 ├── css/                    # Estilos del dashboard
-├── js/                     # Lógica del dashboard (main.js)
-├── old/                    # Versiones anteriores (referencia)
-└── html_externos/          # 📂 Reportes HTML organizados por área
+├── js/main.js              # Lógica del dashboard y registro del Service Worker
+├── icons/                  # Iconos de la PWA
+├── documentacion/          # Arquitectura y guías de desarrollo
+└── html_externos/          # Informes organizados por área
     ├── _shared/            # Código compartido entre informes
-    │   ├── botonera.css    # Estilos de botones unificados
-    │   └── botonera.js     # Lógica compartida (guardar, cargar, ortografía, limpiar)
-    ├── sm consultores/     # Informe psicotécnico
-    │   ├── generador_informe_psicotecnico.html
-    │   ├── css/style.css
-    │   └── js/script.js
+    │   ├── botonera.css    # Estilos de la botonera y sus modales
+    │   ├── botonera.js     # Guardar, cargar, ortografía, limpiar y exportar
+    │   ├── diccionario-base.js
+    │   └── vendor/         # Copias locales de html2canvas, jsPDF y docx
+    ├── generico/           # Informe genérico, con variantes con/sin gráfico
+    ├── sm_consultores/     # Informe psicotécnico, con variantes con/sin gráfico
     └── ude/                # Informe psicolaboral
-        ├── generador_informe_psicolaboral.html
-        ├── css/style.css
-        └── js/script.js
 ```
 
 ---
 
-## 🚀 Cómo agregar un nuevo reporte
+## 🚀 Cómo agregar un nuevo informe
 
-1. Colocá el archivo `.html` del reporte dentro de `html_externos/`, en la subcarpeta que corresponda (o creá una nueva).
-2. (Opcional) Agregale una etiqueta `<title>` dentro del `<head>` del HTML para que ese sea el nombre mostrado en el menú.
-3. Regenerá el índice:
+1. Creá una carpeta dentro de `html_externos/` y agregá el HTML principal junto con sus recursos relativos (`css/` y `js/`).
+2. Agregá un `nombre.txt` si querés definir el nombre de la carpeta que se mostrará en el menú.
+3. Incluí la botonera compartida (`../_shared/botonera.css`, `../_shared/botonera.js` y `<div class="btn-toolbar" id="actions"></div>`).
+4. Agregá una etiqueta `<title>` dentro del `<head>` para definir el nombre del informe en el índice.
+5. Regenerá el índice:
 
 ```bash
 npm run build
 ```
 
-Esto ejecuta `build-index.js` y actualiza `index.json` con la nueva estructura de carpetas y archivos.
+Esto ejecuta `build-index.js` y actualiza `index.json` con todos los archivos `.html` encontrados dentro de `html_externos/`. El índice no debe editarse manualmente.
 
-4. Recargá `index.html` en el navegador (o hacé deploy) para ver el reporte en el menú.
+6. Recargá `index.html` en el navegador o hacé deploy para ver el informe en el menú.
 
 ---
 
 ## 🛠️ Desarrollo local
 
 ```bash
-# Clonar el repositorio
+# Clonar el repositorio (opcional)
 git clone https://github.com/FABIOR1981/reportes-dashboard.git
 cd reportes-dashboard
 
@@ -64,13 +66,13 @@ npm run build
 npx serve .
 ```
 
-> El proyecto no tiene dependencias de build más allá de Node.js (usa únicamente el módulo `fs` nativo).
+Hace falta un servidor HTTP para que funcionen correctamente `fetch()`, los iframes y el Service Worker. El proyecto no tiene dependencias de build: `build-index.js` usa únicamente módulos nativos de Node.js.
 
 ---
 
 ## 🧩 Arquitectura de los informes
 
-Cada informe en `html_externos/` es una aplicación HTML autocontenida que comparte funcionalidades mediante la **botonera unificada**:
+Cada informe en `html_externos/` es una aplicación HTML autocontenida que comparte funcionalidades mediante la **botonera unificada**. Las variantes con gráfico agregan la generación del gráfico y su inclusión en las exportaciones.
 
 ### Botonera compartida (`_shared/`)
 
@@ -105,13 +107,21 @@ Cada `script.js` de informe debe:
 
 ---
 
+## 📴 PWA y modo offline
+
+`manifest.json` permite instalar el dashboard como aplicación. `sw.js` precarga el shell del dashboard, la botonera compartida, las librerías locales y los recursos de los informes registrados.
+
+Si se agrega o mueve un recurso que deba funcionar sin conexión, actualizá también la lista `PRECACHE_URLS` de `sw.js`. Las librerías de exportación se intentan cargar primero desde CDN y tienen copias locales en `html_externos/_shared/vendor/` como respaldo.
+
 ## ☁️ Despliegue (Netlify)
 
 El repositorio incluye `netlify.toml` con la siguiente configuración:
 
 - **Build command**: `npm run build` (genera `index.json` antes de publicar).
 - **Publish directory**: `.` (raíz del proyecto).
-- **Redirects**: todas las rutas (`/*`) redirigen a `index.html` (SPA fallback).
+- **Pretty URLs**: están desactivadas para que los HTML cargados dentro de iframes y el Service Worker se resuelvan sin redirecciones.
+- **SPA fallback**: las rutas desconocidas (`/*`) sirven `index.html`.
+- **Caché**: `sw.js` se sirve con `no-cache` para que las actualizaciones se detecten correctamente.
 
 Al conectar el repo en Netlify, cada nuevo push regenera automáticamente el índice de reportes y publica la última versión.
 
@@ -120,12 +130,14 @@ Al conectar el repo en Netlify, cada nuevo push regenera automáticamente el ín
 ## 📄 Notas
 
 - `index.json` se genera automáticamente — no debe editarse manualmente, ya que se sobrescribe en cada build.
-- Los reportes dentro de `html_externos/` deben ser archivos `.html` autocontenidos (o con sus propios recursos relativos), ya que se cargan directamente en un `iframe`.
-- La carpeta `old/` contiene versiones anteriores de reportes, guardadas como referencia. `build-index.js` no la escanea, por lo que su contenido no aparece en el dashboard.
-- La carpeta `_shared/` contiene código reutilizable. Si accedés a un informe directamente (sin pasar por el dashboard), asegurate de que las rutas `../_shared/` resuelvan correctamente desde la ubicación del informe.
+- Los informes dentro de `html_externos/` se cargan directamente en un `iframe`; sus recursos deben usar rutas relativas válidas.
+- `build-index.js` escanea automáticamente las carpetas y los archivos `.html` dentro de `html_externos/`.
+- La carpeta `_shared/` contiene código reutilizable. Si accedés a un informe directamente, verificá que las rutas `../_shared/` resuelvan correctamente.
+- Para conocer el contrato completo de un informe, consultá [`documentacion/contexto_arquitectura_dashboard.md`](documentacion/contexto_arquitectura_dashboard.md).
+- Para crear un informe nuevo con la estructura esperada, consultá [`documentacion/prompt_nuevo_informe.md`](documentacion/prompt_nuevo_informe.md).
 
 ---
 
-## 📌 Versión
+## 📌 Estado
 
-v1.0.0
+Versión del paquete: `1.0.0`. La estructura de informes y la documentación pueden evolucionar independientemente de esta versión.
