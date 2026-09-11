@@ -1,7 +1,8 @@
 // ============================================================
-//  INFORME GENÉRICO – exportWord.js
+//  INFORME GENÉRICO (con gráfico) – exportWord_Grafico.js
 //  Contrato: define window.downloadWord
-//  Depende de: utils.js (hasContent, sanitizeFilename), docx (vendor)
+//  Depende de: utils.js (hasContent, sanitizeFilename),
+//  grafico.js (generarImagenGraficoParaWord), docx (vendor)
 // ============================================================
 
 // ============================================================
@@ -134,6 +135,18 @@ window.downloadWord = async function() {
           children.push(new docx.Paragraph({ text: 'Aspectos Evaluados', heading: H2 }));
         } else {
           children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Aspectos Evaluados', bold: true, size: 26 })] }));
+        }
+
+        // Gráfico de barras (si hay al menos un aspecto con puntaje máximo > 0)
+        const imagenGrafico = await generarImagenGraficoParaWord();
+        if (imagenGrafico) {
+          children.push(new docx.Paragraph({
+            children: [new docx.ImageRun({
+              data: imagenGrafico.buffer,
+              transformation: { width: imagenGrafico.width, height: imagenGrafico.height }
+            })]
+          }));
+          children.push(new docx.Paragraph({ text: '' }));
         }
 
         aspectosBlocks.forEach(function(block) {

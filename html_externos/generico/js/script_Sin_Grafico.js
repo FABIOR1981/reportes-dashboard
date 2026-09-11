@@ -1,9 +1,11 @@
 // ============================================================
-//  INFORME GENÉRICO – script.js
+//  INFORME GENÉRICO (sin gráfico) – script_Sin_Grafico.js
 //  Orquestador: listeners del formulario + Botonera.init()
 //  Contrato del proyecto: define window.downloadPDF y window.downloadWord
-//  (definidas en exportPdf.js y exportWord.js, cargados antes que este archivo)
-//  Depende de: utils.js, vistaPrevia.js, exportPdf.js, exportWord.js
+//  (definidas en exportPdf_Sin_Grafico.js y exportWord_Sin_Grafico.js,
+//  cargados antes que este archivo)
+//  Depende de: utils.js, vistaPrevia_Sin_Grafico.js,
+//  exportPdf_Sin_Grafico.js, exportWord_Sin_Grafico.js
 // ============================================================
 
 function init() {

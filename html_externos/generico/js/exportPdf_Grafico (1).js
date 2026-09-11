@@ -1,5 +1,5 @@
 // ============================================================
-//  INFORME GENÉRICO (con gráfico) – exportPdf.js
+//  INFORME GENÉRICO (con gráfico) – exportPdf_Grafico.js
 //  Contrato: define window.downloadPDF
 //  Depende de: utils.js (hasContent, sanitizeFilename)
 // ============================================================

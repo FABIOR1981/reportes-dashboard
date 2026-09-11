@@ -1,7 +1,12 @@
 // ============================================================
 //  INFORME GENÉRICO – utils.js
+//  Único archivo 100% compartido entre las variantes "sin gráfico" y
+//  "con gráfico" — no lleva sufijo porque no tiene una versión distinta.
 //  Utilidades genéricas sin estado.
-//  Usado por: vistaPrevia.js, exportPdf.js, exportWord.js, script.js
+//  Usado por: vistaPrevia_Sin_Grafico.js / vistaPrevia_Grafico.js,
+//  exportPdf_Sin_Grafico.js / exportPdf_Grafico.js,
+//  exportWord_Sin_Grafico.js / exportWord_Grafico.js,
+//  script_Sin_Grafico.js / script_Grafico.js
 // ============================================================
 
 // Escapar HTML para prevenir XSS

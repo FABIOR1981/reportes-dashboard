@@ -1,5 +1,5 @@
 // ============================================================
-//  INFORME GENÉRICO – vistaPrevia.js
+//  INFORME GENÉRICO (sin gráfico) – vistaPrevia_Sin_Grafico.js
 //  Bloques dinámicos de "aspectos" + render de la vista previa (#page1)
 //  Depende de: utils.js (escapeHTML, debounce)
 // ============================================================
