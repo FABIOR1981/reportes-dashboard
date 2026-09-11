@@ -23,8 +23,16 @@ usá el contexto del archivo adjunto y el documento de ejemplo que también adju
 html_externos/[carpeta]/
 ├── generador_informe_[nombre].html
 ├── css/style.css
-└── js/script.js
+└── js/
+    ├── utils.js
+    ├── vistaPrevia.js
+    ├── exportPdf.js
+    ├── exportWord.js
+    └── script.js
 ```
+(si el informe va a tener una variante con gráfico desde el vamos, avisalo
+acá mismo y la estructura suma `grafico_Grafico.js` + el sufijo
+`_Sin_Grafico`/`_Grafico` en los otros 5 archivos — ver requisito 8)
 
 **Requisitos obligatorios (contrato del proyecto):**
 1. El HTML debe incluir la botonera compartida:
@@ -32,9 +40,13 @@ html_externos/[carpeta]/
    `<script src="../_shared/botonera.js"></script>`, con el `<div class="btn-toolbar" id="actions">`
    y los botones `data-action="pdf|word|save|load|spellcheck|reset"` tal cual están
    documentados en la sección 4 de `CONTEXTO_ARQUITECTURA_DASHBOARD.md`.
-2. El `script.js` debe definir `window.downloadPDF()` y `window.downloadWord()`,
-   y llamar a `Botonera.init({...})` al final, con `camposGuardables`, `camposOrtografia`
-   y (si aplica) `onResetExtra`/`onLoadExtra` ajustados a los campos de este informe.
+2. `exportPdf.js` debe definir `window.downloadPDF()` y `exportWord.js` debe
+   definir `window.downloadWord()`. `script.js` (el orquestador) llama a
+   `Botonera.init({...})` al final, con `camposGuardables`, `camposOrtografia`
+   y (si aplica) `onResetExtra`/`onLoadExtra` ajustados a los campos de este
+   informe. El código de arranque (listeners, carga de datos por defecto)
+   va envuelto en `function init(){...}` + `DOMContentLoaded`, nunca
+   "suelto" a nivel superior del archivo.
 3. **Regla del tooltip (obligatoria):** dentro de `downloadPDF`/`downloadWord`
    NUNCA asignar `btn.textContent` ni `btn.innerHTML` al botón de acción — eso rompe
    el `<span class="tooltip">` interno de forma permanente. Usar `btn.disabled` +
@@ -43,16 +55,28 @@ html_externos/[carpeta]/
 4. Vista previa en vivo: los campos del formulario deben reflejarse en tiempo real
    en un `<div id="page1">` (u otras páginas `page2`, `page3` si el diseño lo requiere),
    igual que en los informes existentes.
-5. Exportar a PDF con `html2canvas` + `jsPDF` (captura de la vista previa) y a Word
-   con la librería `docx@8.5.0` (documento nativo, no imagen), replicando lo más
-   fielmente posible el diseño del documento de referencia adjunto (colores, tablas,
-   tipografía, logo/firma si corresponde).
+5. Exportar a PDF con `window.print()` + CSS `@media print` (NO usar
+   `html2canvas`+`jsPDF` — ese método quedó descartado por bugs de
+   rasterización; ver "Key learnings" de `CONTEXTO_ARQUITECTURA_DASHBOARD.md`)
+   y a Word con la librería `docx@8.5.0` (documento nativo, no imagen),
+   replicando lo más fielmente posible el diseño del documento de referencia
+   adjunto (colores, tablas, tipografía, logo/firma si corresponde).
 6. No modificar `_shared/botonera.js` ni `_shared/botonera.css` — el informe nuevo
    debe funcionar solo con lo que ya existe ahí.
 7. Al final, decime si hace falta algún ajuste en `build-index.js` o `index.json`
    (normalmente no, porque el build escanea `html_externos/` automáticamente),
    y agregá una fila nueva a la tabla de la sección 6 de `CONTEXTO_ARQUITECTURA_DASHBOARD.md`
    comparando este informe con los existentes.
+8. **División de JS obligatoria desde el inicio** (ver sección
+   "🧩 CONVENCIÓN DE DIVISIÓN DE JS POR INFORME" de
+   `CONTEXTO_ARQUITECTURA_DASHBOARD.md`): nunca generar un `script.js`
+   monolítico. Dividir siempre en `utils.js` / `vistaPrevia.js` /
+   `exportPdf.js` / `exportWord.js` / `script.js` desde la primera
+   versión — no como una refactorización posterior. Si el informe tiene
+   variante con gráfico, sumar `grafico_Grafico.js` y aplicar el sufijo
+   `_Sin_Grafico` / `_Grafico` a los otros 5 (excepto `utils.js`, que se
+   comparte sin sufijo solo si su contenido queda 100% idéntico entre
+   las dos variantes).
 
 **Adjunto:**
 1. `CONTEXTO_ARQUITECTURA_DASHBOARD.md` (contexto del proyecto)
@@ -69,6 +93,9 @@ html_externos/[carpeta]/
 - Guardá siempre la versión más reciente de `CONTEXTO_ARQUITECTURA_DASHBOARD.md` para adjuntar
   (si en algún momento actualizás la arquitectura o encontrás un bug nuevo, agregalo
   ahí primero, así el próximo informe ya nace corregido).
-- Después de recibir los archivos, probá el flujo completo (Descargar PDF, Descargar
-  Word, Guardar, Cargar, Ortografía, Limpiar) antes de subirlo al repo — igual que
-  hicimos con los dos informes existentes.
+- Después de recibir los archivos, verificá primero con `node --check` cada
+  archivo `.js`, y que el orden de los `<script>` en el HTML respete
+  `utils → grafico (si existe) → vistaPrevia → exportPdf → exportWord → script`.
+  Recién después probá el flujo completo (Descargar PDF, Descargar Word,
+  Guardar, Cargar, Ortografía, Limpiar) en el navegador antes de subirlo al
+  repo — igual que hicimos con los informes existentes.

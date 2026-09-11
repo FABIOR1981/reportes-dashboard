@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe Psicolaboral (nuevo)</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>window.html2canvas || document.write('<script src="../_shared/vendor/html2canvas.min.js"><\/script>')</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>(window.jspdf && window.jspdf.jsPDF) || document.write('<script src="../_shared/vendor/jspdf.umd.min.js"><\/script>')</script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+<script>window.docx || document.write('<script src="../_shared/vendor/docx.umd.min.js"><\/script>')</script>
+<link rel="stylesheet" href="css/style_psicolaboral.css">
+
+  <link rel="stylesheet" href="../_shared/botonera.css">
+  <script src="../_shared/diccionario-base.js"></script>
+  <script src="../_shared/botonera.js"></script>
+</head>
+<body>
+
+<div id="panel">
+  <h1>Generador de Informe Psicolaboral</h1>
+  <p class="sub">Completá los datos de la entrevista. La vista previa se actualiza en tiempo real.</p>
+
+  <fieldset>
+    <legend>Datos del encabezado</legend>
+    <div class="row2">
+      <div><label>Ciudad</label><input type="text" id="ciudad" value="Montevideo"></div>
+      <div><label>Fecha del informe</label><input type="date" id="fechaInforme" value="2026-08-06"></div>
+    </div>
+    <label>Institución / Cliente</label>
+    <input type="text" id="institucion" value="Universidad de la Empresa" spellcheck="true">
+    <div class="row2">
+      <div><label>Título del informe</label><input type="text" id="tituloInforme" value="Informe de Evaluación Psicolaboral" spellcheck="true"></div>
+      <div><label>Prefijo</label><input type="text" id="prefijo" value="al" placeholder="Ej: al / a la"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Datos del postulante</legend>
+    <div class="row2">
+      <div><label>Apellidos</label><input type="text" id="apellidos" value="Pérez"></div>
+      <div><label>Nombres</label><input type="text" id="nombres" value="María"></div>
+    </div>
+    <div class="row2">
+      <div><label>Cargo al que postula</label><input type="text" id="cargo" value="Auxiliar Administrativo"></div>
+      <div><label>CI</label><input type="text" id="ci" placeholder="Ej: 1.234.567-8"></div>
+    </div>
+    <div class="row2">
+      <div><label>Fecha de nacimiento</label><input type="date" id="fechaNacimiento"></div>
+      <div><label>Contacto</label><input type="text" id="contacto" placeholder="Ej: 099 123 456"></div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Desarrollo del informe</legend>
+    <label>Texto de evaluación (desarrollo)</label>
+    <textarea id="evaluacion" style="min-height:160px;" placeholder="Describí la entrevista, percepciones, competencias observadas, trayectoria laboral, ajuste al perfil del cargo..." spellcheck="true"></textarea>
+    <label>Conclusión</label>
+    <textarea id="conclusion" style="min-height:100px;" placeholder="Ej: A partir de los datos relevados y analizados, se concluye que..." spellcheck="true"></textarea>
+  </fieldset>
+
+  <fieldset>
+    <legend>Recomendación final</legend>
+    <div class="radio-group">
+      <label><input type="radio" name="recom" value="Recomendable" checked> Recomendable</label>
+      <label><input type="radio" name="recom" value="Recomendable con Observación"> Recomendable con Observación</label>
+      <label><input type="radio" name="recom" value="No Recomendable"> No Recomendable</label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Datos del profesional</legend>
+    <div class="row2">
+      <div><label>Nombre completo</label><input type="text" id="profNombre" value="Lic. Psic. Rita Morales"></div>
+      <div><label>Celular</label><input type="text" id="profCel" value="099140274"></div>
+    </div>
+    <label>Especialidad / Cargo</label>
+    <input type="text" id="profCargo" value="Licenciada en Psicología - Especializada en Selección de Personal" spellcheck="true">
+  </fieldset>
+
+  <div class="btn-toolbar" id="actions"></div>
+  <!-- El contenido de esta barra (botones + íconos) lo genera
+       botonera.js -> renderToolbar(), para no duplicarlo en los 3
+       informes. Ver html_externos/_shared/botonera.js -->
+  <div id="status"></div>
+  <div id="spellPanel"></div>
+  <div id="dicPanel">
+    <label>Diccionario técnico personalizado (palabras que nunca se marcan como error)</label>
+    <div id="dicAddRow">
+      <input type="text" id="dicInput" placeholder="Agregar palabra... ej: psicolaboral">
+      <button type="button" id="dicAddBtn">+ Agregar</button>
+    </div>
+    <div id="dicList"></div>
+  </div>
+</div>
+
+<div id="previewWrap">
+  <div class="page" id="page1">
+    <div class="doc-header">
+      <div class="date" id="prevCiudadFecha">Montevideo, fecha</div>
+      <div class="institution" id="prevInstitucion">Lic. Psic. Rita Morales</div>
+      <div class="subtitle" id="prevTitulo">Informe de Evaluación Psicolaboral</div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-grid">
+        <div class="info-item"><span class="info-label">Postulante:</span><span class="info-value" id="prevNombre">Pérez, María</span></div>
+        <div class="info-item"><span class="info-label">Cargo:</span><span class="info-value" id="prevCargo">Auxiliar Administrativo</span></div>
+        <div class="info-item"><span class="info-label">Edad:</span><span class="info-value" id="prevEdad">28</span></div>
+        <div class="info-item"><span class="info-label">CI:</span><span class="info-value" id="prevCI">--</span></div>
+        <div class="info-item"><span class="info-label">Fecha de nacimiento:</span><span class="info-value" id="prevFechaNac">--</span></div>
+        <div class="info-item"><span class="info-label">Contacto:</span><span class="info-value" id="prevContacto">--</span></div>
+      </div>
+    </div>
+
+    <div class="doc-body" id="prevBody">
+      <p>A solicitud de <strong id="prevInstBody">Universidad de la Empresa</strong>, se realizó entrevista psicolaboral al postulante <strong id="prevNomBody">Pérez, María</strong>.</p>
+      <!-- El "al" de arriba se recalcula dinámicamente con el campo Prefijo al cargar la vista previa -->
+      <p>La misma tuvo como finalidad evaluar competencias transversales en instancia de entrevista, a los efectos de desempeñar tareas como <strong id="prevCargoBody">Auxiliar Administrativo</strong>.</p>
+      <p style="color:#aaa;font-style:italic;">[Aquí se desarrolla el texto de evaluación con las observaciones de la entrevista...]</p>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-section-title">Conclusión</div>
+      <p id="prevConclusion"><span style="color:#aaa;font-style:italic;">[Conclusión del informe...]</span></p>
+    </div>
+
+    <table class="recom-table">
+      <tr><td>Recomendable</td><td id="prevRec1"><span class="check-box checked"></span></td></tr>
+      <tr><td>Recomendable con Observación</td><td id="prevRec2"><span class="check-box"></span></td></tr>
+      <tr><td>No Recomendable</td><td id="prevRec3"><span class="check-box"></span></td></tr>
+    </table>
+
+    <p style="margin-top:20px;font-size:11px;white-space:nowrap;">Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de UDE.</p>
+
+    <div class="firma-block">
+      <div class="firma-line"></div>
+      <div class="firma-nombre" id="prevProfNombre">Lic. Psic. Rita Morales</div>
+      <div class="firma-cargo" id="prevProfCargo">Licenciada en Psicología</div>
+      <div class="firma-mat" id="prevProfMat">Especializada en Selección de Personal - Cel. 099140274</div>
+    </div>
+
+    <div class="page-number">1</div>
+  </div>
+</div>
+
+<script src="js/utils.js"></script>
+<script src="js/vistaPrevia.js"></script>
+<script src="js/exportPdf.js"></script>
+<script src="js/exportWord.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
