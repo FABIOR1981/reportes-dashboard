@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v3.0.2';
+const CACHE_VERSION = 'v3.0.3';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
