@@ -21,7 +21,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v3.0.3';
+const CACHE_VERSION = 'v3.0.4';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 const PRECACHE_URLS = [
@@ -43,19 +43,37 @@ const PRECACHE_URLS = [
 
   './html_externos/generico/informe_generico.html',
   './html_externos/generico/css/style.css',
-  './html_externos/generico/js/script.js',
+  './html_externos/generico/js/utils.js',
+  './html_externos/generico/js/vistaPrevia_Sin_Grafico.js',
+  './html_externos/generico/js/exportPdf_Sin_Grafico.js',
+  './html_externos/generico/js/exportWord_Sin_Grafico.js',
+  './html_externos/generico/js/script_Sin_Grafico.js',
 
   './html_externos/generico/informe_generico_Grafico.html',
   './html_externos/generico/css/style_Grafico.css',
+  './html_externos/generico/js/utils.js',
+  './html_externos/generico/js/grafico_Grafico.js',
+  './html_externos/generico/js/vistaPrevia_Grafico.js',
+  './html_externos/generico/js/exportPdf_Grafico.js',
+  './html_externos/generico/js/exportWord_Grafico.js',
   './html_externos/generico/js/script_Grafico.js',
 
   './html_externos/sm_consultores/generador_informe_psicotecnico.html',
   './html_externos/sm_consultores/css/style_psicotecnico.css',
-  './html_externos/sm_consultores/js/script_psicotecnico.js',
+  './html_externos/sm_consultores/js/utils.js',
+  './html_externos/sm_consultores/js/vistaPrevia_Sin_Grafico.js',
+  './html_externos/sm_consultores/js/exportPdf_Sin_Grafico.js',
+  './html_externos/sm_consultores/js/exportWord_Sin_Grafico.js',
+  './html_externos/sm_consultores/js/script_Sin_Grafico.js',
 
   './html_externos/sm_consultores/generador_informe_psicotecnico_Grafico.html',
   './html_externos/sm_consultores/css/style_psicotecnico_Grafico.css',
-  './html_externos/sm_consultores/js/script_psicotecnico_Grafico.js',
+  './html_externos/sm_consultores/js/utils.js',
+  './html_externos/sm_consultores/js/grafico_Grafico.js',
+  './html_externos/sm_consultores/js/vistaPrevia_Grafico.js',
+  './html_externos/sm_consultores/js/exportPdf_Grafico.js',
+  './html_externos/sm_consultores/js/exportWord_Grafico.js',
+  './html_externos/sm_consultores/js/script_Grafico.js',
 
   './html_externos/sm_consultores/img/cabezal.png',
   './html_externos/sm_consultores/img/diana.png',
