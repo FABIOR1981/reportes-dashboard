@@ -22,7 +22,7 @@
 // actualización.
 // ============================================================
 
-const CACHE_VERSION = 'v3.0.4';
+const CACHE_VERSION = 'v3.0.5';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
 // La lista de archivos a precachear YA NO vive acá a mano — la genera
