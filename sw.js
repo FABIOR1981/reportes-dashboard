@@ -5,10 +5,11 @@
 // dashboard y los 3 generadores abran y funcionen sin conexión
 // (siempre que ya se hayan abierto al menos una vez con internet).
 //
-// IMPORTANTE: si agregás/renombrás/movés algún archivo del
-// proyecto, hay que sumarlo también a PRECACHE_URLS de acá abajo
-// y subir el número de CACHE_VERSION, para que los usuarios que
-// ya tenían la app instalada reciban la actualización.
+// IMPORTANTE: la lista de archivos a precachear se genera sola
+// (ver build-precache.js / precache-manifest.json más abajo) — no
+// hay que tocar nada acá cuando agregás/renombrás/movés un archivo
+// del proyecto. Lo único que sigue siendo manual es subir el número
+// de CACHE_VERSION cuando el cambio sea grande (ver por qué más abajo).
 //
 // El número de acá abajo es la ÚNICA fuente de verdad de la
 // versión: el badge que se ve en el sidebar (index.html) lo lee
@@ -24,70 +25,21 @@
 const CACHE_VERSION = 'v3.0.4';
 const CACHE_NAME = 'reportes-dashboard-' + CACHE_VERSION;
 
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './manifest.json',
-  './css/style.css',
-  './js/main.js',
-  './index.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-
-  './html_externos/_shared/botonera.css',
-  './html_externos/_shared/botonera.js',
-  './html_externos/_shared/diccionario-base.js',
-  './html_externos/_shared/vendor/html2canvas.min.js',
-  './html_externos/_shared/vendor/jspdf.umd.min.js',
-  './html_externos/_shared/vendor/docx.umd.min.js',
-
-  './html_externos/generico/informe_generico.html',
-  './html_externos/generico/css/style.css',
-  './html_externos/generico/js/utils.js',
-  './html_externos/generico/js/vistaPrevia_Sin_Grafico.js',
-  './html_externos/generico/js/exportPdf_Sin_Grafico.js',
-  './html_externos/generico/js/exportWord_Sin_Grafico.js',
-  './html_externos/generico/js/script_Sin_Grafico.js',
-
-  './html_externos/generico/informe_generico_Grafico.html',
-  './html_externos/generico/css/style_Grafico.css',
-  './html_externos/generico/js/utils.js',
-  './html_externos/generico/js/grafico_Grafico.js',
-  './html_externos/generico/js/vistaPrevia_Grafico.js',
-  './html_externos/generico/js/exportPdf_Grafico.js',
-  './html_externos/generico/js/exportWord_Grafico.js',
-  './html_externos/generico/js/script_Grafico.js',
-
-  './html_externos/sm_consultores/generador_informe_psicotecnico.html',
-  './html_externos/sm_consultores/css/style_psicotecnico.css',
-  './html_externos/sm_consultores/js/utils.js',
-  './html_externos/sm_consultores/js/vistaPrevia_Sin_Grafico.js',
-  './html_externos/sm_consultores/js/exportPdf_Sin_Grafico.js',
-  './html_externos/sm_consultores/js/exportWord_Sin_Grafico.js',
-  './html_externos/sm_consultores/js/script_Sin_Grafico.js',
-
-  './html_externos/sm_consultores/generador_informe_psicotecnico_Grafico.html',
-  './html_externos/sm_consultores/css/style_psicotecnico_Grafico.css',
-  './html_externos/sm_consultores/js/utils.js',
-  './html_externos/sm_consultores/js/grafico_Grafico.js',
-  './html_externos/sm_consultores/js/vistaPrevia_Grafico.js',
-  './html_externos/sm_consultores/js/exportPdf_Grafico.js',
-  './html_externos/sm_consultores/js/exportWord_Grafico.js',
-  './html_externos/sm_consultores/js/script_Grafico.js',
-
-  './html_externos/sm_consultores/img/cabezal.png',
-  './html_externos/sm_consultores/img/diana.png',
-  './html_externos/sm_consultores/img/tabla.png',
-
-  './html_externos/ude/generador_informe_psicolaboral.html',
-  './html_externos/ude/css/style_psicolaboral.css',
-  './html_externos/ude/js/script_psicolaboral.js'
-];
+// La lista de archivos a precachear YA NO vive acá a mano — la genera
+// build-precache.js escaneando el proyecto (mismo mecanismo que
+// build-index.js con index.json) y la escribe en precache-manifest.json.
+// Si agregás/renombrás/borrás un archivo, no hay que tocar nada acá: el
+// próximo "npm run build" lo detecta solo. Lo único que SIGUE siendo
+// manual es CACHE_VERSION de arriba (ver la explicación grande al
+// principio de este archivo sobre por qué eso no se puede automatizar).
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) { return cache.addAll(PRECACHE_URLS); })
+    fetch('./precache-manifest.json')
+      .then(function(res) { return res.json(); })
+      .then(function(urls) {
+        return caches.open(CACHE_NAME).then(function(cache) { return cache.addAll(urls); });
+      })
       .then(function() { return self.skipWaiting(); })
   );
 });

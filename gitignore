@@ -1,0 +1,7 @@
+# Generados por el build (node build-index.js / node build-precache.js)
+# — NUNCA editar estos dos a mano, ver contexto_arquitectura_dashboard.md
+index.json
+precache-manifest.json
+
+# Dependencias de Node (si en algún momento se instala algo con npm)
+node_modules/
