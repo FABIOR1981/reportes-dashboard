@@ -137,18 +137,6 @@ window.downloadWord = async function() {
           children.push(new docx.Paragraph({ children: [new docx.TextRun({ text: 'Aspectos Evaluados', bold: true, size: 26 })] }));
         }
 
-        // Gráfico de barras (si hay al menos un aspecto con puntaje máximo > 0)
-        const imagenGrafico = await generarImagenGraficoParaWord();
-        if (imagenGrafico) {
-          children.push(new docx.Paragraph({
-            children: [new docx.ImageRun({
-              data: imagenGrafico.buffer,
-              transformation: { width: imagenGrafico.width, height: imagenGrafico.height }
-            })]
-          }));
-          children.push(new docx.Paragraph({ text: '' }));
-        }
-
         aspectosBlocks.forEach(function(block) {
           const nombre = block.querySelector('.asp-nombre').value.trim();
           const puntaje = block.querySelector('.asp-puntaje').value.trim();
@@ -178,6 +166,21 @@ window.downloadWord = async function() {
             }
           }
         });
+
+        // Gráfico (si hay al menos un aspecto con puntaje máximo > 0) — va
+        // DESPUÉS del listado de aspectos, igual que en la vista previa
+        // (ver informe_generico_Grafico.html: aspectosOutContainer antes
+        // que graficoAspectosContainer).
+        const imagenGrafico = await generarImagenGraficoParaWord();
+        if (imagenGrafico) {
+          children.push(new docx.Paragraph({ text: '' }));
+          children.push(new docx.Paragraph({
+            children: [new docx.ImageRun({
+              data: imagenGrafico.buffer,
+              transformation: { width: imagenGrafico.width, height: imagenGrafico.height }
+            })]
+          }));
+        }
       }
     }
 
