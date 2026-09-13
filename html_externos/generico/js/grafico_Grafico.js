@@ -13,7 +13,7 @@
  * cuando el usuario elige una opción en el modal. Vive acá (no en
  * tipoGrafico.js) porque este archivo es el dueño de todo lo relacionado
  * al dibujo del gráfico — tipoGrafico.js solo la lee/escribe.
- * Valores posibles: 'barras' | 'aros' (más adelante: 'lollipop' | 'radar')
+ * Valores posibles: 'barras' | 'aros' | 'lollipop' | 'radar' | 'waffle'
  */
 let tipoGraficoActual = 'barras';
 
@@ -41,6 +41,9 @@ function renderGraficoAspectos(datos) {
       break;
     case 'radar':
       dibujarRadar(cont, datos);
+      break;
+    case 'waffle':
+      dibujarWaffle(cont, datos);
       break;
     case 'barras':
     default:
@@ -179,6 +182,51 @@ function dibujarLollipop(cont, datos) {
       <line x1="${xInicio}" y1="${y}" x2="${xFin.toFixed(1)}" y2="${y}" stroke="${color}" stroke-width="2" stroke-linecap="round"></line>
       <circle cx="${xFin.toFixed(1)}" cy="${y}" r="6" fill="${color}" stroke="#fff" stroke-width="2"></circle>
       <text x="${anchoEtiqueta + anchoLineaMax + 12}" y="${y + 4}" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#333" font-weight="500">${Math.round(pct)}%</text>
+    `;
+  });
+
+  cont.innerHTML = `
+    <svg viewBox="0 0 ${anchoTotal} ${altoTotal}" width="${anchoTotal}" height="${altoTotal}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+      ${filas}
+    </svg>
+  `;
+  cont.style.display = 'block';
+}
+
+/**
+ * Dibuja un pictograma (waffle): una fila de 10 cuadrados por aspecto,
+ * rellenando de a uno según el % logrado (redondeado a la decena más
+ * cercana). Mismo layout de dos columnas (etiqueta a la izquierda, %
+ * a la derecha) y misma paleta de color por umbral que dibujarBarras.
+ */
+function dibujarWaffle(cont, datos) {
+  const anchoTotal = 600;
+  const cuadSize = 20;
+  const gapCuad = 4;
+  const numCuad = 10;
+  const altoFila = 30;
+  const espacio = 14;
+  const altoTotal = datos.length * (altoFila + espacio) + espacio;
+  const anchoEtiqueta = 170;
+
+  let filas = '';
+  datos.forEach(function(d, i) {
+    const pct = Math.max(0, Math.min(100, (d.puntaje / d.maximo) * 100));
+    const llenos = Math.round(pct / 10);
+    const y = espacio + i * (altoFila + espacio);
+    const color = pct >= 70 ? '#3f6b52' : (pct >= 40 ? '#b6863f' : '#c1503f');
+
+    let cuadrados = '';
+    for (let c = 0; c < numCuad; c++) {
+      const x = anchoEtiqueta + c * (cuadSize + gapCuad);
+      const relleno = c < llenos ? color : '#eef0ea';
+      cuadrados += `<rect x="${x}" y="${y}" width="${cuadSize}" height="${cuadSize}" rx="3" fill="${relleno}"></rect>`;
+    }
+
+    filas += `
+      <text x="0" y="${y + cuadSize / 2 + 4}" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#333">${escapeHTML(d.nombre).slice(0, 26)}</text>
+      ${cuadrados}
+      <text x="${anchoEtiqueta + numCuad * (cuadSize + gapCuad) + 4}" y="${y + cuadSize / 2 + 4}" font-size="12" font-family="Segoe UI, Arial, sans-serif" fill="#333" font-weight="500">${Math.round(pct)}%</text>
     `;
   });
 

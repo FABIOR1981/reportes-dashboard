@@ -31,7 +31,8 @@ const OPCIONES_TIPO_GRAFICO = [
   { valor: 'barras', etiqueta: 'Barras horizontales', dibujar: dibujarBarras, minimoAspectos: 1 },
   { valor: 'aros', etiqueta: 'Aros de progreso', dibujar: dibujarAros, minimoAspectos: 1 },
   { valor: 'lollipop', etiqueta: 'Puntos y línea', dibujar: dibujarLollipop, minimoAspectos: 1 },
-  { valor: 'radar', etiqueta: 'Radar (telaraña)', dibujar: dibujarRadar, minimoAspectos: 3 }
+  { valor: 'radar', etiqueta: 'Radar (telaraña)', dibujar: dibujarRadar, minimoAspectos: 3 },
+  { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoAspectos: 1 }
 ];
 
 function initTipoGrafico() {
