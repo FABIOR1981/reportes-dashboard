@@ -1,16 +1,26 @@
 // ============================================================
-//  INFORME GENÉRICO (con gráfico) – grafico.js
-//  Dibuja el gráfico de barras SVG de aspectos evaluados y lo
+//  INFORME GENÉRICO (con gráfico) – grafico_Grafico.js
+//  Dibuja el gráfico de aspectos evaluados (varios estilos posibles) y lo
 //  rasteriza a PNG para poder insertarlo en el Word.
 //  Depende de: utils.js (escapeHTML)
-//  Del que dependen: vistaPrevia.js (llama a renderGraficoAspectos),
-//  exportWord.js (llama a generarImagenGraficoParaWord)
+//  Del que dependen: vistaPrevia_Grafico.js (llama a renderGraficoAspectos),
+//  exportWord_Grafico.js (llama a generarImagenGraficoParaWord),
+//  tipoGrafico.js (lee/cambia la variable tipoGraficoActual de acá abajo)
 // ============================================================
 
 /**
- * Dibuja un gráfico de barras (SVG puro, sin librerías externas) con el
- * % logrado de cada aspecto graficable (los que tienen "puntaje máximo" > 0).
- * Si no hay ninguno graficable, oculta el contenedor y no dibuja nada.
+ * Tipo de gráfico actualmente seleccionado. Lo cambia tipoGrafico.js
+ * cuando el usuario elige una opción en el modal. Vive acá (no en
+ * tipoGrafico.js) porque este archivo es el dueño de todo lo relacionado
+ * al dibujo del gráfico — tipoGrafico.js solo la lee/escribe.
+ * Valores posibles: 'barras' | 'aros' (más adelante: 'lollipop' | 'radar')
+ */
+let tipoGraficoActual = 'barras';
+
+/**
+ * Punto de entrada: decide qué función de dibujo llamar según
+ * tipoGraficoActual. Si no hay datos graficables, oculta el contenedor
+ * sin importar el tipo elegido.
  */
 function renderGraficoAspectos(datos) {
   const cont = document.getElementById('graficoAspectosContainer');
@@ -22,6 +32,22 @@ function renderGraficoAspectos(datos) {
     return;
   }
 
+  switch (tipoGraficoActual) {
+    case 'aros':
+      dibujarAros(cont, datos);
+      break;
+    case 'barras':
+    default:
+      dibujarBarras(cont, datos);
+      break;
+  }
+}
+
+/**
+ * Dibuja un gráfico de barras horizontales (SVG puro, sin librerías
+ * externas) con el % logrado de cada aspecto graficable.
+ */
+function dibujarBarras(cont, datos) {
   const anchoTotal = 600;
   const altoBarra = 26;
   const espacio = 14;
@@ -50,6 +76,74 @@ function renderGraficoAspectos(datos) {
     </svg>
   `;
   cont.style.display = 'block';
+}
+
+/**
+ * Dibuja aros de progreso, uno por aspecto, en fila (Opción B del mockup).
+ * Algoritmo portado de sm_consultores/js/grafico_Grafico.js
+ * (renderGraficoCompetencias) — misma geometría de círculo, adaptado a la
+ * forma de datos de este informe ({nombre, puntaje, maximo}).
+ */
+function dibujarAros(cont, datos) {
+  const porAro = 110;      // ancho asignado a cada aro dentro de la fila
+  const r = 38;             // radio del aro
+  const grosor = 10;        // grosor del trazo del aro
+  const cy = 55;             // centro vertical de los aros
+  const altoTotal = 150;
+  const anchoTotal = datos.length * porAro;
+  const circunferencia = 2 * Math.PI * r;
+
+  let aros = '';
+  datos.forEach(function(d, i) {
+    const pct = Math.max(0, Math.min(100, (d.puntaje / d.maximo) * 100));
+    const cx = porAro * i + porAro / 2;
+    const largoValor = (circunferencia * pct / 100).toFixed(1);
+    const color = pct >= 70 ? '#3f6b52' : (pct >= 40 ? '#b6863f' : '#c1503f');
+    const lineas = wrapLabel(d.nombre, 13, 2);
+
+    let etiquetaSvg = '';
+    lineas.forEach(function(linea, j) {
+      etiquetaSvg += `<text x="${cx}" y="${cy + r + 17 + j * 13}" text-anchor="middle" font-size="10.5" font-family="Segoe UI, Arial, sans-serif" fill="#555">${escapeHTML(linea)}</text>`;
+    });
+
+    aros += `
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e5e7eb" stroke-width="${grosor}"></circle>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="${grosor}" stroke-linecap="round" stroke-dasharray="${largoValor} 1000" transform="rotate(-90 ${cx} ${cy})"></circle>
+      <text x="${cx}" y="${cy + 5}" text-anchor="middle" font-size="15" font-family="Segoe UI, Arial, sans-serif" fill="#333">${Math.round(pct)}%</text>
+      ${etiquetaSvg}
+    `;
+  });
+
+  cont.innerHTML = `
+    <svg viewBox="0 0 ${anchoTotal} ${altoTotal}" width="${anchoTotal}" height="${altoTotal}" style="width:100%;height:auto;display:block;" xmlns="http://www.w3.org/2000/svg">
+      ${aros}
+    </svg>
+  `;
+  cont.style.display = 'block';
+}
+
+/**
+ * Corta el nombre de un aspecto en hasta "maxLineas" líneas de como mucho
+ * "maxCharsPorLinea" caracteres cada una, para que entre debajo del aro
+ * sin desbordar (usado solo por dibujarAros). Portado de
+ * sm_consultores/js/grafico_Grafico.js (wrapLabel).
+ */
+function wrapLabel(nombre, maxCharsPorLinea, maxLineas) {
+  const palabras = (nombre || '').trim().split(/\s+/);
+  const lineas = [];
+  let actual = '';
+  for (const palabra of palabras) {
+    const prueba = actual ? actual + ' ' + palabra : palabra;
+    if (prueba.length <= maxCharsPorLinea || !actual) {
+      actual = prueba;
+    } else {
+      lineas.push(actual);
+      actual = palabra;
+      if (lineas.length === maxLineas) break;
+    }
+  }
+  if (actual) lineas.push(actual);
+  return lineas.slice(0, maxLineas);
 }
 
 /**

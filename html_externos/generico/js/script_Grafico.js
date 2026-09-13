@@ -5,7 +5,7 @@
 //  (definidas en exportPdf_Grafico.js y exportWord_Grafico.js,
 //  cargados antes que este archivo)
 //  Depende de: utils.js, grafico_Grafico.js, vistaPrevia_Grafico.js,
-//  exportPdf_Grafico.js, exportWord_Grafico.js
+//  tipoGrafico.js, exportPdf_Grafico.js, exportWord_Grafico.js
 // ============================================================
 
 function init() {
@@ -46,6 +46,8 @@ function init() {
       updatePreview();
     });
   }
+
+  initTipoGrafico();
 
   if (typeof Botonera !== 'undefined') {
     Botonera.init({

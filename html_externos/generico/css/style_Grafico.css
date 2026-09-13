@@ -541,3 +541,83 @@ body.pdf-capturing .preview-panel {
     margin: 0;
   }
 }
+
+/* ============================================================
+   Modal de selección de tipo de gráfico (tipoGrafico.js)
+   Paleta consistente con el resto de este archivo (azules/grises),
+   no toca botonera.css — este modal es exclusivo de este informe.
+   ============================================================ */
+.tipoGrafico-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.tipoGrafico-modal {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 360px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.tipoGrafico-modal h2 {
+  margin: 0 0 1rem 0;
+  font-size: 16px;
+  color: #1e3a8a;
+}
+
+.tipoGrafico-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tipoGrafico-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f9fafb;
+}
+
+.tipoGrafico-opcion:has(input:checked) {
+  border-color: #1e3a8a;
+  background: #f0f9ff;
+}
+
+.tipoGrafico-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.tipoGrafico-modal-actions button {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tipoGrafico-modal-cancel {
+  background: #fff;
+  color: #4b5563;
+}
+
+.tipoGrafico-modal-confirm {
+  background: #1e3a8a;
+  border-color: #1e3a8a;
+  color: #fff;
+}
