@@ -20,7 +20,7 @@ reportes-dashboard/
 ├── css/                    # Estilos del dashboard
 ├── js/main.js              # Lógica del dashboard y registro del Service Worker
 ├── icons/                  # Iconos de la PWA
-├── documentacion/          # Arquitectura y guías de desarrollo
+├── documentacion/          # Aviso: la documentación está en documentacion-central
 └── html_externos/          # Informes organizados por área
     ├── _shared/            # Código compartido entre informes
     │   ├── botonera.css    # Estilos de la botonera y sus modales
@@ -133,8 +133,8 @@ Al conectar el repo en Netlify, cada nuevo push regenera automáticamente el ín
 - Los informes dentro de `html_externos/` se cargan directamente en un `iframe`; sus recursos deben usar rutas relativas válidas.
 - `build-index.js` escanea automáticamente las carpetas y los archivos `.html` dentro de `html_externos/`.
 - La carpeta `_shared/` contiene código reutilizable. Si accedés a un informe directamente, verificá que las rutas `../_shared/` resuelvan correctamente.
-- Para conocer el contrato completo de un informe, consultá [`documentacion/contexto_arquitectura_dashboard.md`](documentacion/contexto_arquitectura_dashboard.md).
-- Para crear un informe nuevo con la estructura esperada, consultá [`documentacion/prompt_nuevo_informe.md`](documentacion/prompt_nuevo_informe.md).
+- Para conocer el contrato completo de un informe, consultá [`contexto_arquitectura_dashboard.md`](https://github.com/FABIOR1981/documentacion-central/blob/main/reportes-dashboard/documentacion/contexto_arquitectura_dashboard.md).
+- Para crear un informe nuevo con la estructura esperada, consultá [`prompt_nuevo_informe.md`](https://github.com/FABIOR1981/documentacion-central/blob/main/reportes-dashboard/documentacion/prompt_nuevo_informe.md).
 
 ---
 
