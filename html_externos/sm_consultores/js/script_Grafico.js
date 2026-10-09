@@ -4,8 +4,8 @@
 //  Contrato del proyecto: define window.downloadPDF y window.downloadWord
 //  (definidas en exportPdf_Grafico.js y exportWord_Grafico.js, cargados
 //  antes que este archivo)
-//  Depende de: utils.js, grafico_Grafico.js, vistaPrevia_Grafico.js,
-//  exportPdf_Grafico.js, exportWord_Grafico.js
+//  Depende de: utils.js, grafico_Grafico.js, tipoGrafico.js,
+//  vistaPrevia_Grafico.js, exportPdf_Grafico.js, exportWord_Grafico.js
 //
 //  NOTA DE ARQUITECTURA: ver la misma nota en script_Sin_Grafico.js sobre
 //  por qué este informe pasó a usar init() + DOMContentLoaded (antes no lo
@@ -17,6 +17,7 @@ function init() {
   defaultComps.forEach(addCompBlock);
   renderPreview();
   document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); renderPreview(); });
+  initTipoGrafico(); // botón "Tipo de gráfico" (modal de estilos)
 
   // ---------- Listeners del formulario ----------
   document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
@@ -58,9 +59,12 @@ function init() {
         document.getElementById('compContainer').innerHTML = '';
         data.competencias.forEach(addCompBlock);
       }
+      // Estilo de gráfico guardado (JSON viejo sin este dato: se deja el actual)
+      aplicarTipoGraficoGuardado(data.tipoGrafico);
       renderPreview();
     },
     onSaveExtra: function(data) {
+      data.tipoGrafico = tipoGraficoActual;
       const bloques = document.querySelectorAll('#compContainer .comp-block');
       data.competencias = Array.from(bloques).map(function(block) {
         return {
