@@ -32,7 +32,7 @@ const OPCIONES_TIPO_GRAFICO = [
   { valor: 'radar', etiqueta: 'Radar (telaraña)', dibujar: dibujarRadar, minimoCompetencias: 3 },
   { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoCompetencias: 1 },
   { valor: 'torta', etiqueta: 'Torta por nivel', dibujar: dibujarTorta, minimoCompetencias: 1 },
-  { valor: 'anillo', etiqueta: 'Anillo por nivel', dibujar: dibujarAnillo, minimoCompetencias: 1 }
+  { valor: 'anillo', etiqueta: 'Anillo por competencia', dibujar: dibujarAnillo, minimoCompetencias: 1 }
 ];
 
 function initTipoGrafico() {

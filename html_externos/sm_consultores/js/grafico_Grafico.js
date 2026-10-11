@@ -242,22 +242,14 @@ function dibujarWaffle(cont, datos) {
 }
 
 /**
- * Torta y anillo: distribución de las competencias por nivel de logro,
- * con el MISMO semáforo del resto de los estilos (Alto ≥70%, Medio
- * 40-69%, Bajo <40%). Cada porción es la cantidad de competencias que
- * cayeron en ese nivel; los niveles vacíos no se dibujan. La leyenda va
- * dentro del propio SVG (con los nombres de las competencias de cada
- * nivel) para que salga igual en el PDF y en el Word.
+ * Torta: distribución de las competencias por nivel de logro, con el
+ * MISMO semáforo del resto de los estilos (Alto ≥70%, Medio 40-69%, Bajo
+ * <40%). Cada porción es la cantidad de competencias que cayeron en ese
+ * nivel; los niveles vacíos no se dibujan. La leyenda va dentro del
+ * propio SVG (con los nombres de las competencias de cada nivel) para que
+ * salga igual en el PDF y en el Word.
  */
 function dibujarTorta(cont, datos) {
-  dibujarDistribucionPorNivel(cont, datos, false);
-}
-
-function dibujarAnillo(cont, datos) {
-  dibujarDistribucionPorNivel(cont, datos, true);
-}
-
-function dibujarDistribucionPorNivel(cont, datos, esAnillo) {
   const niveles = [
     { etiqueta: 'Alto (70% o más)', color: colorPorcentaje(100), nombres: [] },
     { etiqueta: 'Medio (40% a 69%)', color: colorPorcentaje(50), nombres: [] },
@@ -275,7 +267,6 @@ function dibujarDistribucionPorNivel(cont, datos, esAnillo) {
   const cx = 115;
   const cy = 115;
   const R = 95;
-  const rInterno = esAnillo ? 56 : 0;
   const presentes = niveles.filter(function(n) { return n.nombres.length > 0; });
 
   function punto(anguloDeg, radio) {
@@ -288,48 +279,25 @@ function dibujarDistribucionPorNivel(cont, datos, esAnillo) {
   presentes.forEach(function(n) {
     const fraccion = n.nombres.length / total;
     const barrido = fraccion * 360;
-    const pctRedondeado = Math.round(fraccion * 100);
 
     if (presentes.length === 1) {
       // Un solo nivel = círculo completo (un arco de 360° no se puede dibujar con un path)
-      porciones += esAnillo
-        ? `<circle cx="${cx}" cy="${cy}" r="${(R + rInterno) / 2}" fill="none" stroke="${n.color}" stroke-width="${R - rInterno}"></circle>`
-        : `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${n.color}"></circle>`;
+      porciones += `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${n.color}"></circle>`;
     } else {
-      const a0 = angulo;
-      const a1 = angulo + barrido;
+      const e0 = punto(angulo, R);
+      const e1 = punto(angulo + barrido, R);
       const grande = barrido > 180 ? 1 : 0;
-      const e0 = punto(a0, R);
-      const e1 = punto(a1, R);
-      let d;
-      if (esAnillo) {
-        const i0 = punto(a0, rInterno);
-        const i1 = punto(a1, rInterno);
-        d = `M ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} ` +
-            `L ${i1.x.toFixed(2)} ${i1.y.toFixed(2)} A ${rInterno} ${rInterno} 0 ${grande} 0 ${i0.x.toFixed(2)} ${i0.y.toFixed(2)} Z`;
-      } else {
-        d = `M ${cx} ${cy} L ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} Z`;
-      }
+      const d = `M ${cx} ${cy} L ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} Z`;
       porciones += `<path d="${d}" fill="${n.color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"></path>`;
     }
 
     // Porcentaje dentro de la porción (solo si hay lugar)
     if (fraccion >= 0.1) {
-      const radioTexto = esAnillo ? (R + rInterno) / 2 : R * 0.62;
-      const pt = punto(angulo + barrido / 2, radioTexto);
-      porciones += `<text x="${pt.x.toFixed(1)}" y="${(pt.y + 5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${pctRedondeado}%</text>`;
+      const pt = punto(angulo + barrido / 2, R * 0.62);
+      porciones += `<text x="${pt.x.toFixed(1)}" y="${(pt.y + 5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${Math.round(fraccion * 100)}%</text>`;
     }
     angulo += barrido;
   });
-
-  // Texto central del anillo
-  let centro = '';
-  if (esAnillo) {
-    centro = `
-      <text x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="26" ${FUENTE_GRAFICO} fill="#333">${total}</text>
-      <text x="${cx}" y="${cy + 22}" text-anchor="middle" font-size="11" ${FUENTE_GRAFICO} fill="#555">${total === 1 ? 'competencia' : 'competencias'}</text>
-    `;
-  }
 
   // Leyenda a la derecha: nivel, cantidad, % y nombres de las competencias
   const xLeyenda = 250;
@@ -347,6 +315,91 @@ function dibujarDistribucionPorNivel(cont, datos, esAnillo) {
       ${lineasNombres.map(function(linea, j) {
         return `<text x="${xLeyenda + 20}" y="${y + 28 + j * 13}" font-size="11" ${FUENTE_GRAFICO} fill="#555">${escapeHTML(linea)}</text>`;
       }).join('')}
+    `;
+  });
+
+  envolverSvg(cont, anchoTotal, altoTotal, porciones + leyenda);
+}
+
+/**
+ * Anillo: UNA porción por competencia. El tamaño de cada porción es su
+ * puntaje sobre el total de puntos obtenidos, y el color sigue el mismo
+ * semáforo de los otros estilos según el % de ESA competencia. Como varias
+ * porciones pueden compartir color, cada una lleva un número y la leyenda
+ * lista "N. competencia — puntaje/máximo (%)". En el centro se muestra el
+ * total de puntos obtenidos sobre el total posible.
+ */
+function dibujarAnillo(cont, datos) {
+  const anchoTotal = 600;
+  const altoFila = 22;
+  const altoTotal = Math.max(230, datos.length * altoFila + 30);
+  const cx = 115;
+  const cy = altoTotal / 2;
+  const R = 95;
+  const rInterno = 56;
+
+  const totalPuntos = datos.reduce(function(acc, d) { return acc + Math.max(0, d.puntaje); }, 0);
+  const totalMaximo = datos.reduce(function(acc, d) { return acc + d.maximo; }, 0);
+  const conPuntos = datos.filter(function(d) { return d.puntaje > 0; });
+
+  function punto(anguloDeg, radio) {
+    const rad = (Math.PI / 180) * anguloDeg;
+    return { x: cx + radio * Math.cos(rad), y: cy + radio * Math.sin(rad) };
+  }
+
+  let porciones = '';
+  if (totalPuntos <= 0) {
+    // Nadie sumó puntos: anillo gris vacío
+    porciones += `<circle cx="${cx}" cy="${cy}" r="${(R + rInterno) / 2}" fill="none" stroke="#e5e7eb" stroke-width="${R - rInterno}"></circle>`;
+  } else if (conPuntos.length === 1) {
+    // Una sola porción = anillo completo (un arco de 360° no se puede dibujar con un path)
+    const d = conPuntos[0];
+    porciones += `<circle cx="${cx}" cy="${cy}" r="${(R + rInterno) / 2}" fill="none" stroke="${colorPorcentaje(porcentaje(d))}" stroke-width="${R - rInterno}"></circle>`;
+    porciones += `<text x="${cx}" y="${cy - R + 24}" text-anchor="middle" font-size="12" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${datos.indexOf(d) + 1}</text>`;
+  } else {
+    let angulo = -90;
+    datos.forEach(function(d, i) {
+      if (d.puntaje <= 0) return;
+      const fraccion = d.puntaje / totalPuntos;
+      const barrido = fraccion * 360;
+      const a0 = angulo;
+      const a1 = angulo + barrido;
+      const grande = barrido > 180 ? 1 : 0;
+      const e0 = punto(a0, R);
+      const e1 = punto(a1, R);
+      const i0 = punto(a0, rInterno);
+      const i1 = punto(a1, rInterno);
+      const trazo = `M ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} ` +
+                    `L ${i1.x.toFixed(2)} ${i1.y.toFixed(2)} A ${rInterno} ${rInterno} 0 ${grande} 0 ${i0.x.toFixed(2)} ${i0.y.toFixed(2)} Z`;
+      porciones += `<path d="${trazo}" fill="${colorPorcentaje(porcentaje(d))}" stroke="#fff" stroke-width="2" stroke-linejoin="round"></path>`;
+
+      // Número de la competencia dentro de su porción (si hay lugar)
+      if (barrido >= 14) {
+        const pt = punto(a0 + barrido / 2, (R + rInterno) / 2);
+        porciones += `<text x="${pt.x.toFixed(1)}" y="${(pt.y + 4).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${i + 1}</text>`;
+      }
+      angulo += barrido;
+    });
+  }
+
+  // Centro: puntos obtenidos / puntos posibles
+  const centro = `
+    <text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="22" ${FUENTE_GRAFICO} fill="#333">${totalPuntos}/${totalMaximo}</text>
+    <text x="${cx}" y="${cy + 20}" text-anchor="middle" font-size="11" ${FUENTE_GRAFICO} fill="#555">puntos</text>
+  `;
+
+  // Leyenda: una fila por competencia, centrada verticalmente
+  const xLeyenda = 250;
+  const yInicio = (altoTotal - datos.length * altoFila) / 2;
+  let leyenda = '';
+  datos.forEach(function(d, i) {
+    const pct = porcentaje(d);
+    const y = yInicio + i * altoFila;
+    const nombre = wrapLabel(d.nombre, 34, 1)[0] || '';
+    leyenda += `
+      <rect x="${xLeyenda}" y="${y + 3}" width="12" height="12" rx="2" fill="${colorPorcentaje(pct)}"></rect>
+      <text x="${xLeyenda + 20}" y="${y + 13}" font-size="12" ${FUENTE_GRAFICO} fill="#333">${i + 1}. ${escapeHTML(nombre)}</text>
+      <text x="${anchoTotal - 4}" y="${y + 13}" text-anchor="end" font-size="12" font-weight="600" ${FUENTE_GRAFICO} fill="#333">${d.puntaje}/${d.maximo} (${Math.round(pct)}%)</text>
     `;
   });
 
