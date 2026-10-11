@@ -5,7 +5,8 @@
 //  tipoGraficoActual (definida en grafico_Grafico.js) y dispara un
 //  redibujado llamando a renderPreview().
 //  Depende de: grafico_Grafico.js (tipoGraficoActual, dibujarAros,
-//  dibujarBarras, dibujarLollipop, dibujarRadar, dibujarWaffle),
+//  dibujarBarras, dibujarLollipop, dibujarRadar, dibujarWaffle,
+//  dibujarTorta, dibujarAnillo),
 //  vistaPrevia_Grafico.js (renderPreview)
 //  Del que depende: script_Grafico.js (llama a initTipoGrafico() en su
 //  init() y a aplicarTipoGraficoGuardado() al cargar un JSON)
@@ -18,7 +19,7 @@ const EJEMPLO_COMPETENCIAS_MODAL = [
   { nombre: 'Responsabilidad', puntaje: 4, maximo: 5 },
   { nombre: 'Cap. resolutiva', puntaje: 4, maximo: 5 },
   { nombre: 'Adhesión a normas', puntaje: 3, maximo: 5 },
-  { nombre: 'Proactividad', puntaje: 2, maximo: 5 }
+  { nombre: 'Proactividad', puntaje: 1, maximo: 5 }
 ];
 
 // Cada opción sabe su propia función de dibujo real — así la miniatura del
@@ -29,7 +30,9 @@ const OPCIONES_TIPO_GRAFICO = [
   { valor: 'barras', etiqueta: 'Barras horizontales', dibujar: dibujarBarras, minimoCompetencias: 1 },
   { valor: 'lollipop', etiqueta: 'Puntos y línea', dibujar: dibujarLollipop, minimoCompetencias: 1 },
   { valor: 'radar', etiqueta: 'Radar (telaraña)', dibujar: dibujarRadar, minimoCompetencias: 3 },
-  { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoCompetencias: 1 }
+  { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoCompetencias: 1 },
+  { valor: 'torta', etiqueta: 'Torta por nivel', dibujar: dibujarTorta, minimoCompetencias: 1 },
+  { valor: 'anillo', etiqueta: 'Anillo por nivel', dibujar: dibujarAnillo, minimoCompetencias: 1 }
 ];
 
 function initTipoGrafico() {

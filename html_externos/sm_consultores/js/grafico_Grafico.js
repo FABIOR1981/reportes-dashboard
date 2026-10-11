@@ -1,6 +1,6 @@
 // ============================================================
 //  SM CONSULTORES (con gráfico) – grafico_Grafico.js
-//  Dibuja el gráfico de competencias (SVG, 5 estilos posibles) y lo
+//  Dibuja el gráfico de competencias (SVG, 7 estilos posibles) y lo
 //  rasteriza a PNG para insertarlo en el Word.
 //  Exclusivo de esta variante (no tiene par en "sin gráfico").
 //  Del que dependen: vistaPrevia_Grafico.js (llama a
@@ -24,7 +24,7 @@ function escapeHTML(str) {
  * cuando la persona elige una opción en el modal (o al cargar un JSON
  * guardado). Vive acá porque este archivo es el dueño de todo lo
  * relacionado al dibujo — tipoGrafico.js solo la lee/escribe.
- * Valores posibles: 'aros' | 'barras' | 'lollipop' | 'radar' | 'waffle'
+ * Valores posibles: 'aros' | 'barras' | 'lollipop' | 'radar' | 'waffle' | 'torta' | 'anillo'
  * Por defecto 'aros' (el estilo que tenía este informe antes de poder elegir).
  */
 let tipoGraficoActual = 'aros';
@@ -66,6 +66,12 @@ function renderGraficoCompetencias(datos) {
       break;
     case 'waffle':
       dibujarWaffle(cont, datos);
+      break;
+    case 'torta':
+      dibujarTorta(cont, datos);
+      break;
+    case 'anillo':
+      dibujarAnillo(cont, datos);
       break;
     case 'aros':
     default:
@@ -233,6 +239,118 @@ function dibujarWaffle(cont, datos) {
   });
 
   envolverSvg(cont, anchoTotal, altoTotal, filas);
+}
+
+/**
+ * Torta y anillo: distribución de las competencias por nivel de logro,
+ * con el MISMO semáforo del resto de los estilos (Alto ≥70%, Medio
+ * 40-69%, Bajo <40%). Cada porción es la cantidad de competencias que
+ * cayeron en ese nivel; los niveles vacíos no se dibujan. La leyenda va
+ * dentro del propio SVG (con los nombres de las competencias de cada
+ * nivel) para que salga igual en el PDF y en el Word.
+ */
+function dibujarTorta(cont, datos) {
+  dibujarDistribucionPorNivel(cont, datos, false);
+}
+
+function dibujarAnillo(cont, datos) {
+  dibujarDistribucionPorNivel(cont, datos, true);
+}
+
+function dibujarDistribucionPorNivel(cont, datos, esAnillo) {
+  const niveles = [
+    { etiqueta: 'Alto (70% o más)', color: colorPorcentaje(100), nombres: [] },
+    { etiqueta: 'Medio (40% a 69%)', color: colorPorcentaje(50), nombres: [] },
+    { etiqueta: 'Bajo (menos de 40%)', color: colorPorcentaje(0), nombres: [] }
+  ];
+  datos.forEach(function(d) {
+    const pct = porcentaje(d);
+    const idx = pct >= 70 ? 0 : (pct >= 40 ? 1 : 2);
+    niveles[idx].nombres.push(d.nombre);
+  });
+
+  const total = datos.length;
+  const anchoTotal = 600;
+  const altoTotal = 230;
+  const cx = 115;
+  const cy = 115;
+  const R = 95;
+  const rInterno = esAnillo ? 56 : 0;
+  const presentes = niveles.filter(function(n) { return n.nombres.length > 0; });
+
+  function punto(anguloDeg, radio) {
+    const rad = (Math.PI / 180) * anguloDeg;
+    return { x: cx + radio * Math.cos(rad), y: cy + radio * Math.sin(rad) };
+  }
+
+  let porciones = '';
+  let angulo = -90;
+  presentes.forEach(function(n) {
+    const fraccion = n.nombres.length / total;
+    const barrido = fraccion * 360;
+    const pctRedondeado = Math.round(fraccion * 100);
+
+    if (presentes.length === 1) {
+      // Un solo nivel = círculo completo (un arco de 360° no se puede dibujar con un path)
+      porciones += esAnillo
+        ? `<circle cx="${cx}" cy="${cy}" r="${(R + rInterno) / 2}" fill="none" stroke="${n.color}" stroke-width="${R - rInterno}"></circle>`
+        : `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${n.color}"></circle>`;
+    } else {
+      const a0 = angulo;
+      const a1 = angulo + barrido;
+      const grande = barrido > 180 ? 1 : 0;
+      const e0 = punto(a0, R);
+      const e1 = punto(a1, R);
+      let d;
+      if (esAnillo) {
+        const i0 = punto(a0, rInterno);
+        const i1 = punto(a1, rInterno);
+        d = `M ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} ` +
+            `L ${i1.x.toFixed(2)} ${i1.y.toFixed(2)} A ${rInterno} ${rInterno} 0 ${grande} 0 ${i0.x.toFixed(2)} ${i0.y.toFixed(2)} Z`;
+      } else {
+        d = `M ${cx} ${cy} L ${e0.x.toFixed(2)} ${e0.y.toFixed(2)} A ${R} ${R} 0 ${grande} 1 ${e1.x.toFixed(2)} ${e1.y.toFixed(2)} Z`;
+      }
+      porciones += `<path d="${d}" fill="${n.color}" stroke="#fff" stroke-width="2" stroke-linejoin="round"></path>`;
+    }
+
+    // Porcentaje dentro de la porción (solo si hay lugar)
+    if (fraccion >= 0.1) {
+      const radioTexto = esAnillo ? (R + rInterno) / 2 : R * 0.62;
+      const pt = punto(angulo + barrido / 2, radioTexto);
+      porciones += `<text x="${pt.x.toFixed(1)}" y="${(pt.y + 5).toFixed(1)}" text-anchor="middle" font-size="14" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${pctRedondeado}%</text>`;
+    }
+    angulo += barrido;
+  });
+
+  // Texto central del anillo
+  let centro = '';
+  if (esAnillo) {
+    centro = `
+      <text x="${cx}" y="${cy + 6}" text-anchor="middle" font-size="26" ${FUENTE_GRAFICO} fill="#333">${total}</text>
+      <text x="${cx}" y="${cy + 22}" text-anchor="middle" font-size="11" ${FUENTE_GRAFICO} fill="#555">${total === 1 ? 'competencia' : 'competencias'}</text>
+    `;
+  }
+
+  // Leyenda a la derecha: nivel, cantidad, % y nombres de las competencias
+  const xLeyenda = 250;
+  const altoEntrada = 66;
+  const yInicio = Math.max(14, (altoTotal - presentes.length * altoEntrada) / 2 + 6);
+  let leyenda = '';
+  presentes.forEach(function(n, i) {
+    const y = yInicio + i * altoEntrada;
+    const cant = n.nombres.length;
+    const pct = Math.round(cant / total * 100);
+    const lineasNombres = wrapLabel(n.nombres.join(', '), 52, 2);
+    leyenda += `
+      <rect x="${xLeyenda}" y="${y}" width="12" height="12" rx="2" fill="${n.color}"></rect>
+      <text x="${xLeyenda + 20}" y="${y + 11}" font-size="13" font-weight="600" ${FUENTE_GRAFICO} fill="#333">${n.etiqueta}: ${cant} (${pct}%)</text>
+      ${lineasNombres.map(function(linea, j) {
+        return `<text x="${xLeyenda + 20}" y="${y + 28 + j * 13}" font-size="11" ${FUENTE_GRAFICO} fill="#555">${escapeHTML(linea)}</text>`;
+      }).join('')}
+    `;
+  });
+
+  envolverSvg(cont, anchoTotal, altoTotal, porciones + centro + leyenda);
 }
 
 /**
