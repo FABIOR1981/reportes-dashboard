@@ -472,8 +472,8 @@ async function generarImagenGraficoParaWord() {
   const buffer = await (await fetch(canvas.toDataURL('image/png'))).arrayBuffer();
 
   // Los estilos en filas quedan muy altos con muchas competencias: se limita el alto
-  const altoMaxWord = 380;
-  let anchoWord = 500;
+  const altoMaxWord = 520;
+  let anchoWord = 680;
   let altoWord = Math.round(anchoWord * (svgHeight / svgWidth));
   if (altoWord > altoMaxWord) {
     altoWord = altoMaxWord;

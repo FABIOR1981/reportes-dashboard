@@ -18,7 +18,7 @@ window.downloadWord = async function () {
 
     const TEAL = '177789', WHITE = 'FFFFFF', INK = '2C3E50', GRAY = '5D6D7E', GRAY_BG = 'F0F4F8', BORDER = 'D0D7DE';
     const v = id => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-    const run = (text, o) => new TextRun(Object.assign({ text: text, color: INK, size: 21, font: 'Calibri' }, o));
+    const run = (text, o) => new TextRun(Object.assign({ text: text, color: INK, size: 22, font: 'Calibri' }, o));
     const noBorders = () => { const n = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' }; return { top: n, bottom: n, left: n, right: n }; };
     const thinBorders = () => { const b = { style: BorderStyle.SINGLE, size: 4, color: BORDER }; return { top: b, bottom: b, left: b, right: b }; };
     const pct = n => ({ size: n, type: WidthType.PERCENTAGE });
@@ -34,13 +34,13 @@ window.downloadWord = async function () {
 
     // Cabezal: la imagen base + los mismos textos que se ven en la vista previa
     async function cabezal() {
-      const outW = 605;
+      const outW = 700; // ancho útil con márgenes de 700 twips en A4
       const src = await cargarBitmap('img/cabezal.png');
       const canvas = document.createElement('canvas');
       canvas.width = src.width; canvas.height = src.height;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(src, 0, 0);
-      const sS = src.width / 1505, tS = src.width / outW;
+      const sS = src.width / 1505, tS = src.width / 605; // los textos se diseñaron sobre 605 px de ancho
       ctx.fillStyle = '#FFFFFF'; ctx.textAlign = 'left';
       ctx.font = `${14 * tS}px "Segoe UI", Arial, sans-serif`;
       ctx.fillText('Informe:', 76 * sS, 125 * sS);
@@ -280,7 +280,10 @@ window.downloadWord = async function () {
       cierre
     );
 
-    const blob = await Packer.toBlob(new Document({ sections: [{ properties: {}, children: children }] }));
+    const blob = await Packer.toBlob(new Document({ sections: [{
+      properties: { page: { margin: { top: 700, right: 700, bottom: 700, left: 700 } } },
+      children: children
+    }] }));
     await Botonera.guardarBlob(blob, 'Informe_Psicotecnico_ACE_' + (nombre || 'postulante').replace(/\s+/g, '_') + '.docx');
     if (status) status.textContent = '✔ Word descargado con éxito.';
   } catch (e) {
