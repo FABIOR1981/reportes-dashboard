@@ -231,7 +231,7 @@
   .dic-del:hover{color:#c0392b;}
 
   /* ---------- PANEL DERECHO: VISTA PREVIA ---------- */
-  #preview{
+  #previewWrap{
     flex:1;
     padding:30px;
     display:flex;
@@ -512,7 +512,7 @@
     min-width: 0;
     height: auto;
   }
-  #preview {
+  #previewWrap {
     height: auto;
     padding: 20px;
   }
@@ -583,7 +583,7 @@
     min-height: 0;
     background: #fff;
   }
-  #preview {
+  #previewWrap {
     width: auto;
     height: auto;
     padding: 0;
@@ -723,7 +723,7 @@
 }
 
 @media (max-width: 768px) {
-  #preview {
+  #previewWrap {
     min-width: 0;
   }
   .header {
@@ -834,6 +834,122 @@
   padding: 8px;
 }
 
+.ace-comp-input {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: #fbfdfd;
+}
+
+.ace-comp-input .row2 {
+  gap: 10px;
+}
+
+.ace-comp-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ace-comp-heading label {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+.ace-comp-remove,
+.ace-add-comp {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 9px;
+  color: var(--teal-dark);
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.ace-comp-remove:hover,
+.ace-add-comp:hover {
+  background: var(--teal-light);
+}
+
+.ace-comp-remove:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ace-comp-remove {
+  color: #9b3d3d;
+}
+
+.ace-add-comp {
+  width: 100%;
+  border-color: var(--teal);
+  font-weight: 600;
+}
+
+.ace-comp-input textarea {
+  min-height: 54px;
+}
+
+#page2 .section-title {
+  font-size: 16px;
+}
+
+.graph-summary {
+  margin: 8px 0 12px;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ace-section-icon {
+  display: block;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.comp-summary-details {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.comp-summary-description {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.25;
+}
+
+.firma-block .firma-fallback {
+  display: inline-block;
+  min-width: 190px;
+  text-align: center;
+}
+
+.firma-fallback .firma-cursive {
+  font-family: 'Brush Script MT', 'Segoe Script', cursive;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.firma-fallback .firma-caps {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.firma-fallback .firma-tiny {
+  margin-top: 3px;
+  color: #8a9599;
+  font-size: 7px;
+  letter-spacing: 1.5px;
+}
+
 #out-firmaImg {
   width: 150px;
   height: auto;
@@ -866,6 +982,13 @@
 }
 
 @media print {
+  #previewWrap {
+    display: block;
+    width: auto;
+    height: auto;
+    padding: 0;
+    overflow: visible;
+  }
   .page {
     width: 210mm;
     min-height: 297mm;
