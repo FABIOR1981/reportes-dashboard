@@ -29,6 +29,7 @@ reportes-dashboard/
     │   └── vendor/         # Copias locales de html2canvas, jsPDF y docx
     ├── generico/           # Informe genérico, con variantes con/sin gráfico
     ├── sm_consultores/     # Informe psicotécnico, con variantes con/sin gráfico
+    ├── sm_consultores_ace/ # Informe psicotécnico ACE (gráfico de columnas, 3 páginas)
     └── ude/                # Informe psicolaboral
 ```
 
@@ -107,7 +108,24 @@ Cada `script.js` de informe debe:
 
 ---
 
-## 📴 PWA y modo offline
+## � Puntaje y clasificación (`sm_consultores_ace`)
+
+El informe ACE calcula el porcentaje global (suma de puntajes obtenidos / suma de puntajes máximos de las competencias graficables). Ese porcentaje define la frase `{nivel}` del pie de gráfico y **sugiere** la clasificación final:
+
+| Puntaje | Frase del nivel | Clasificación sugerida |
+|---------|-----------------|------------------------|
+| 85% o más | desempeño sobresaliente | Recomendable |
+| 70% a 84% | desempeño satisfactorio con buen potencial de desarrollo | Recomendable |
+| 50% a 69% | desempeño aceptable con aspectos a desarrollar | Recomendable con observación |
+| menos de 50% | desempeño por debajo de lo esperado | No recomendable |
+
+La clasificación se marca sola mientras se cargan los puntajes, pero es solo una sugerencia: al elegir una opción a mano, deja de actualizarse hasta limpiar el formulario. Los cortes están en `nivelDesempeno()` y `clasifSugerida()` (`js/vistaprevia.js`).
+
+El pie de gráfico es editable y admite los marcadores `{obtenido}`, `{maximo}`, `{porcentaje}` y `{nivel}`, y `**negrita**`.
+
+---
+
+## �📴 PWA y modo offline
 
 `manifest.json` permite instalar el dashboard como aplicación. `sw.js` precarga el shell del dashboard, la botonera compartida, las librerías locales y los recursos de los informes registrados.
 

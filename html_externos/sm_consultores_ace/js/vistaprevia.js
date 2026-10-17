@@ -16,6 +16,28 @@ const defaultComps = [
 
 const compContainer = document.getElementById('compContainer');
 
+// Si la persona elige la clasificación a mano, deja de sugerirse automáticamente
+let clasifManual = false;
+
+function porcentajeGlobal() {
+  let obtenido = 0, maximo = 0;
+  compContainer.querySelectorAll('.comp-block').forEach(block => {
+    const max = parseFloat(block.querySelector('.c-maximo').value) || 0;
+    if (block.querySelector('.c-nombre').value.trim() && max > 0) {
+      obtenido += parseFloat(block.querySelector('.c-puntaje').value) || 0;
+      maximo += max;
+    }
+  });
+  return maximo ? Math.round(obtenido / maximo * 100) : null;
+}
+
+// >=70% Recomendable; 50-69% con observación; <50% No recomendable
+function clasifSugerida(pct) {
+  if (pct >= 70) return 'RECOMENDABLE';
+  if (pct >= 50) return 'RECOMENDABLE CON OBSERVACIÓN';
+  return 'NO RECOMENDABLE';
+}
+
 function addCompBlock(data) {
   data = data || { nombre: '', puntaje: 2, maximo: 3 };
   const div = document.createElement('div');
@@ -64,6 +86,18 @@ function updatePreview() {
   lista.innerHTML = val('fortalezasTexto').split(/\r?\n/).filter(t => t.trim())
     .map(t => `<li>${escapeHTML(t.trim())}</li>`).join('');
 
+  const pctGlobal = porcentajeGlobal();
+  const sugerida = pctGlobal === null ? '' : clasifSugerida(pctGlobal);
+  if (sugerida && !clasifManual) {
+    document.querySelectorAll('input[name=clasif]').forEach(r => { r.checked = r.value === sugerida; });
+  }
+  const hint = document.getElementById('clasifSugerencia');
+  if (hint) {
+    hint.textContent = sugerida
+      ? `Sugerida según el puntaje (${pctGlobal}%): ${sugerida.charAt(0) + sugerida.slice(1).toLowerCase()}.` +
+        (clasifManual ? ' Elegida a mano.' : '')
+      : '';
+  }
   const sel = document.querySelector('input[name=clasif]:checked');
   const clasif = sel ? sel.value : '';
   const check = document.getElementById('checkSvg').innerHTML;

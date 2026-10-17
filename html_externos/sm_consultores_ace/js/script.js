@@ -9,6 +9,9 @@ function init() {
   document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); updatePreview(); });
   initTipoGrafico();
 
+  // Antes del listener genérico: un click del usuario fija la clasificación a mano
+  document.querySelectorAll('input[name=clasif]').forEach(r => r.addEventListener('click', () => { clasifManual = true; }));
+
   document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
     el.addEventListener('input', updatePreview);
     el.addEventListener('change', updatePreview);
@@ -35,6 +38,7 @@ function init() {
     ],
     nombreArchivoBase: 'Informe_Psicotecnico_ACE',
     onResetExtra: function () {
+      clasifManual = false;
       compContainer.innerHTML = '';
       updatePreview();
     },
