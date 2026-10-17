@@ -77,13 +77,13 @@ function dibujarGrafico() {
         {
           label: 'Resultado Obtenido',
           data: dataObtenido,
-          backgroundColor: '#3f6b52', // Accent de tu CSS
+          backgroundColor: '#3f6b52', 
           borderWidth: 1
         },
         {
           label: 'Máximo',
           data: dataMaximo,
-          backgroundColor: '#a9c4b3', // Accent soft
+          backgroundColor: '#a9c4b3',
           borderWidth: 1
         }
       ]
@@ -128,38 +128,125 @@ function inicializarBotonera() {
   }
 }
 
-// Contrato de funciones requeridas para exportación
-window.downloadPDF = function() {
-  const btn = document.querySelector('[data-action="pdf"]');
-  if(btn) btn.disabled = true;
-  
-  const statusEl = document.getElementById('status');
-  if(statusEl) statusEl.textContent = 'Generando PDF, por favor espere...';
+// =======================================================
+// CONTRATO: EXPORTACIÓN A PDF Y WORD
+// =======================================================
 
-  const previewEl = document.getElementById('informe-preview');
-  
-  html2canvas(previewEl, { scale: 2, useCORS: true }).then(canvas => {
-    const imgData = canvas.toDataURL('image/png');
+window.downloadPDF = async function() {
+  const btn = document.querySelector('[data-action="pdf"]');
+  const status = document.getElementById('status');
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Generando PDF, por favor espera...';
+
+  try {
+    const previewEl = document.getElementById('informe-preview');
+    const canvas = await html2canvas(previewEl, { scale: 2, useCORS: true });
+    const imgData = canvas.toDataURL('image/jpeg', 0.98);
     
-    // Configuración para el tamaño A4
-    const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
     
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
     
     const nombre = document.getElementById('nombreCandidato').value.trim() || 'Candidato';
     pdf.save(`Informe_ACE_${nombre.replace(/\s+/g, '_')}.pdf`);
     
-    if(statusEl) statusEl.textContent = '✅ PDF descargado con éxito.';
-    if(btn) btn.disabled = false;
-  }).catch(err => {
-    console.error(err);
-    if(statusEl) statusEl.textContent = '❌ Error al generar PDF.';
-    if(btn) btn.disabled = false;
-  });
+    if (status) status.textContent = '✔ PDF descargado con éxito.';
+  } catch (e) {
+    console.error(e);
+    if (status) status.textContent = '⚠ Error al generar el PDF.';
+  } finally {
+    if (btn) btn.disabled = false;
+    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+  }
 };
 
-window.downloadWord = function() {
-  alert("Este reporte utiliza un gráfico Canvas avanzado. Para mantener el esquema de doble barra visual con precisión, se requiere la exportación principal a formato PDF.");
+window.downloadWord = async function() {
+  const btn = document.querySelector('[data-action="word"]');
+  const status = document.getElementById('status');
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Generando Word, por favor espera...';
+
+  try {
+    const nombre = document.getElementById('nombreCandidato').value.trim() || '-';
+    const cargo = document.getElementById('cargoPostula').value.trim() || '-';
+    const fortalezas = document.getElementById('fortalezas').value.trim() || 'Sin registro.';
+    const debilidades = document.getElementById('debilidades').value.trim() || 'Sin registro.';
+
+    // 1. Capturar el Canvas de Chart.js como imagen Base64
+    const canvasGrafico = document.getElementById('graficoCompetencias');
+    const imgDataCompleta = canvasGrafico.toDataURL("image/png");
+    const imgDataB64 = imgDataCompleta.split(',')[1]; 
+
+    // 2. Construir la estructura del documento Word
+    const children = [
+      new docx.Paragraph({ 
+        text: "SM Consultores", 
+        heading: docx.HeadingLevel.HEADING_1,
+        alignment: docx.AlignmentType.CENTER
+      }),
+      new docx.Paragraph({ 
+        text: "Evaluación de Competencias Ejecutivas (A.C.E.)", 
+        heading: docx.HeadingLevel.HEADING_2,
+        alignment: docx.AlignmentType.CENTER
+      }),
+      new docx.Paragraph({ text: "" }), 
+      new docx.Paragraph({
+        children: [
+          new docx.TextRun({ text: "Candidato: ", bold: true }),
+          new docx.TextRun({ text: nombre })
+        ]
+      }),
+      new docx.Paragraph({
+        children: [
+          new docx.TextRun({ text: "Cargo: ", bold: true }),
+          new docx.TextRun({ text: cargo })
+        ]
+      }),
+      new docx.Paragraph({ text: "" }), 
+      new docx.Paragraph({ text: "Fortalezas", heading: docx.HeadingLevel.HEADING_3 }),
+      new docx.Paragraph({ text: fortalezas }),
+      new docx.Paragraph({ text: "" }),
+      new docx.Paragraph({ text: "Debilidades / Áreas de Mejora", heading: docx.HeadingLevel.HEADING_3 }),
+      new docx.Paragraph({ text: debilidades }),
+      new docx.Paragraph({ text: "" }),
+      new docx.Paragraph({ text: "Perfil de Competencias", heading: docx.HeadingLevel.HEADING_3 }),
+      new docx.Paragraph({ text: "" }),
+      
+      // 3. Inyectar la imagen del gráfico nativamente en el Word
+      new docx.Paragraph({
+        alignment: docx.AlignmentType.CENTER,
+        children: [
+          new docx.ImageRun({
+            data: Uint8Array.from(atob(imgDataB64), c => c.charCodeAt(0)),
+            transformation: {
+              width: 550, 
+              height: 300
+            }
+          })
+        ]
+      })
+    ];
+
+    const doc = new docx.Document({
+      sections: [{ properties: {}, children: children }]
+    });
+
+    const blob = await docx.Packer.toBlob(doc);
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `Informe_ACE_${nombre.replace(/\s+/g, '_')}.docx`;
+    link.click();
+
+    if (status) status.textContent = '✔ Documento Word descargado con éxito.';
+  } catch (e) {
+    console.error(e);
+    if (status) status.textContent = '⚠ Error al generar el Word.';
+  } finally {
+    if (btn) btn.disabled = false;
+    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+  }
 };
