@@ -17,14 +17,14 @@ function init() {
     camposGuardables: ['fechaInforme', 'elaboradoPor', 'consultoria', 'logoNombre', 'logoLeyenda',
       'nombre', 'cargoPostulacion', 'ci', 'contacto',
       'fechaEval', 'horaEval', 'solicitante', 'cargoEvaluado', 'objetivoTexto',
-      'enfoqueTexto', 'fortalezasTexto', 'debilidadesTexto', 'perfilTexto', 'conclusionTexto'],
+      'enfoqueTexto', 'fortalezasTexto', 'debilidadesTexto', 'pieGraficoTexto', 'conclusionTexto'],
     camposNoLimpiar: ['logoNombre', 'logoLeyenda'],
     camposOrtografia: [
       { id: 'objetivoTexto', label: 'Objetivo' },
       { id: 'enfoqueTexto', label: 'Enfoque' },
       { id: 'fortalezasTexto', label: 'Fortalezas' },
       { id: 'debilidadesTexto', label: 'Debilidades' },
-      { id: 'perfilTexto', label: 'Perfil' },
+      { id: 'pieGraficoTexto', label: 'Pie de gráfico' },
       { id: 'conclusionTexto', label: 'Conclusión' }
     ],
     nombreArchivoBase: 'Informe_Psicotecnico_ACE',

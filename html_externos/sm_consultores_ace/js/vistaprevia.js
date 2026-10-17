@@ -58,7 +58,6 @@ function updatePreview() {
   setText('out-objetivoTexto', val('objetivoTexto'));
   setText('out-enfoqueTexto', val('enfoqueTexto'));
   setText('out-debilidadesTexto', val('debilidadesTexto'));
-  setText('out-perfilTexto', val('perfilTexto'));
   setText('out-conclusionTexto', val('conclusionTexto'));
 
   const lista = document.getElementById('out-fortalezasTexto');
@@ -82,7 +81,9 @@ function updatePreview() {
     }
   });
   renderGraficoCompetencias(graficables);
-  document.getElementById('out-resultadoFinal').innerHTML = resultadoFinalHtml(graficables);
+  document.getElementById('out-pieGrafico').innerHTML = pieGraficoPartes(val('pieGraficoTexto'), graficables)
+    .map(p => '<div class="body-text">' + p.map(x => x.bold ? '<b>' + escapeHTML(x.t) + '</b>' : escapeHTML(x.t)).join('') + '</div>')
+    .join('');
 }
 
 // Frase de cierre del gráfico: total obtenido / posible y nivel según el %
@@ -92,10 +93,16 @@ function nivelDesempeno(pct) {
   if (pct >= 50) return 'desempeño aceptable con aspectos a desarrollar';
   return 'desempeño por debajo de lo esperado';
 }
-function resultadoFinalHtml(datos) {
-  if (!datos.length) return '';
+// Pie de gráfico: reemplaza {obtenido}, {maximo}, {porcentaje}, {nivel}; devuelve párrafos de partes {t, bold} (**negrita**)
+function pieGraficoPartes(texto, datos) {
   const obtenido = datos.reduce((a, d) => a + d.puntaje, 0);
   const maximo = datos.reduce((a, d) => a + d.maximo, 0);
-  const pct = Math.round(obtenido / maximo * 100);
-  return `El resultado final es <b>${obtenido} sobre ${maximo}</b>, equivalente al ${pct}% del máximo posible, lo que refleja un <b>${nivelDesempeno(pct)}</b>.`;
+  const pct = maximo ? Math.round(obtenido / maximo * 100) : 0;
+  const t = texto
+    .replace(/\{obtenido\}/g, obtenido)
+    .replace(/\{maximo\}/g, maximo)
+    .replace(/\{porcentaje\}/g, pct)
+    .replace(/\{nivel\}/g, nivelDesempeno(pct));
+  return t.split(/\r?\n/).filter(l => l.trim())
+    .map(l => l.split('**').map((s, i) => ({ t: s, bold: i % 2 === 1 })).filter(p => p.t));
 }

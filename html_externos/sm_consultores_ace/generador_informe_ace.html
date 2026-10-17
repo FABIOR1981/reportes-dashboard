@@ -83,8 +83,9 @@ En cuanto a la comunicación, el postulante tendrá la capacidad de adaptar el m
 Fomentará un ambiente de trabajo colaborativo y positivo.</textarea>
     <label>Debilidades</label>
     <textarea id="debilidadesTexto" spellcheck="true">Se observa que, por el momento, la creatividad y la articulación de conceptos se presentan de manera limitada.</textarea>
-    <label>Párrafo del perfil (debajo del gráfico)</label>
-    <textarea id="perfilTexto" spellcheck="true">Se trata de un perfil con capacidades sólidas en comunicación y orientación al cliente.</textarea>
+    <label>Pie de gráfico (usa {obtenido}, {maximo}, {porcentaje}, {nivel}; **negrita**; una línea por párrafo)</label>
+    <textarea id="pieGraficoTexto" spellcheck="true">El resultado final es **{obtenido} sobre {maximo}**, equivalente al {porcentaje}% del máximo posible, lo que refleja un **{nivel}**.
+Se trata de un perfil con capacidades sólidas en comunicación y orientación al cliente.</textarea>
     <label>Conclusión (página 3)</label>
     <textarea id="conclusionTexto" spellcheck="true">Se identificó un perfil orientado al cumplimiento efectivo, caracterizado por su organización y practicidad en el desarrollo de las tareas.</textarea>
   </fieldset>
@@ -184,8 +185,7 @@ Fomentará un ambiente de trabajo colaborativo y positivo.</textarea>
 
     <div class="grafico-titulo">Gráfica Competencias y habilidades</div>
     <div id="graficoCompetenciasContainer" class="grafico-competencias" style="display:none;"></div>
-    <div class="body-text" id="out-resultadoFinal"></div>
-    <div class="body-text" id="out-perfilTexto">-</div>
+    <div id="out-pieGrafico"></div>
   </div>
 
   <!-- PÁGINA 3 -->

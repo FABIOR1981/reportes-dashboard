@@ -203,11 +203,10 @@ window.downloadWord = async function () {
 
     const datosGrafico = competencias.filter(c => c.nombre && parseFloat(c.maximo) > 0)
       .map(c => ({ nombre: c.nombre, puntaje: parseFloat(c.puntaje) || 0, maximo: parseFloat(c.maximo) }));
-    // resultadoFinalHtml marca lo destacado con <b>; al partir por la etiqueta, los índices impares van en negrita
-    const resultadoParrafo = datosGrafico.length ? [new Paragraph({
-      alignment: AlignmentType.JUSTIFIED, spacing: { before: 160, after: 120 },
-      children: resultadoFinalHtml(datosGrafico).split(/<\/?b>/).map((t, i) => run(t, { bold: i % 2 === 1 }))
-    })] : [];
+    const resultadoParrafo = pieGraficoPartes(v('pieGraficoTexto'), datosGrafico).map(partes => new Paragraph({
+      alignment: AlignmentType.JUSTIFIED, spacing: { before: 120, after: 120 },
+      children: partes.map(p => run(p.t, { bold: p.bold }))
+    }));
 
     const imagenGrafico = await generarImagenGraficoParaWord();
     const graficoParrafos = imagenGrafico ? [
@@ -274,7 +273,6 @@ window.downloadWord = async function () {
       [new Paragraph({ spacing: { before: 240, after: 120 }, children: [run('Gráfica Competencias y habilidades', { bold: true, size: 24 })] })],
       graficoParrafos,
       resultadoParrafo,
-      parrafos(v('perfilTexto')),
       [salto(), banner('Conclusión', dianaImg)],
       parrafos(v('conclusionTexto')),
       [new Paragraph({ children: [new TextRun({ text: '' })] }), clasifTable],
