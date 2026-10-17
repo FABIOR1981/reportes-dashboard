@@ -1,6 +1,7 @@
 function init() {
   defaultComps.forEach(addCompBlock);
   document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); updatePreview(); });
+  initTipoGrafico();
 
   document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
     el.addEventListener('input', updatePreview);
@@ -33,9 +34,11 @@ function init() {
         compContainer.innerHTML = '';
         data.competencias.forEach(addCompBlock);
       }
+      aplicarTipoGraficoGuardado(data.tipoGrafico);
       updatePreview();
     },
     onSaveExtra: function (data) {
+      data.tipoGrafico = tipoGraficoActual;
       data.competencias = Array.from(compContainer.querySelectorAll('.comp-block')).map(block => ({
         nombre: block.querySelector('.c-nombre').value,
         puntaje: block.querySelector('.c-puntaje').value,

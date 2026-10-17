@@ -69,14 +69,24 @@ function updatePreview() {
 
   const compOut = document.getElementById('compOutContainer');
   compOut.innerHTML = '';
+  const graficables = []; // solo competencias con nombre y máximo > 0
   compContainer.querySelectorAll('.comp-block').forEach(block => {
+    const nombreRaw = block.querySelector('.c-nombre').value.trim();
+    const puntajeRaw = block.querySelector('.c-puntaje').value.trim();
+    const maximoRaw = block.querySelector('.c-maximo').value.trim();
     const item = document.createElement('div');
     item.className = 'comp-item';
     item.innerHTML = `
-      <div class="comp-name">${escapeHTML(block.querySelector('.c-nombre').value) || '(sin nombre)'}</div>
-      <div class="comp-scores"><b>Puntaje obtenido:</b> ${escapeHTML(block.querySelector('.c-puntaje').value) || '-'} &nbsp; <b>Puntaje máximo:</b> ${escapeHTML(block.querySelector('.c-maximo').value) || '-'}</div>
+      <div class="comp-name">${escapeHTML(nombreRaw) || '(sin nombre)'}</div>
+      <div class="comp-scores"><b>Puntaje obtenido:</b> ${escapeHTML(puntajeRaw) || '-'} &nbsp; <b>Puntaje máximo:</b> ${escapeHTML(maximoRaw) || '-'}</div>
       <div class="comp-desc">${procesarTextoMultilinea(block.querySelector('.c-desc').value)}</div>
     `;
     compOut.appendChild(item);
+
+    const maximoNum = parseFloat(maximoRaw) || 0;
+    if (nombreRaw && maximoNum > 0) {
+      graficables.push({ nombre: nombreRaw, puntaje: parseFloat(puntajeRaw) || 0, maximo: maximoNum });
+    }
   });
+  renderGraficoCompetencias(graficables);
 }

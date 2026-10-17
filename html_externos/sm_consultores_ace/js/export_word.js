@@ -205,6 +205,14 @@ window.downloadWord = async function () {
       if (c.desc) compParrafos.push(new Paragraph({ spacing: { after: 80 }, children: [run(c.desc, { size: 20 })] }));
     });
 
+    const imagenGrafico = await generarImagenGraficoParaWord();
+    const graficoParrafos = imagenGrafico ? [
+      new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: '' })] }),
+      new Paragraph({ alignment: AlignmentType.CENTER, children: [
+        new ImageRun({ data: imagenGrafico.buffer, transformation: { width: imagenGrafico.width, height: imagenGrafico.height } })
+      ] })
+    ] : [];
+
     const oportunidad = v('oportunidadTexto').replace(/^Como oportunidad de mejora[,\s]*/i, '');
     const oportunidadParrafo = oportunidad ? [new Paragraph({
       alignment: AlignmentType.JUSTIFIED, spacing: { before: 160, after: 120 },
@@ -276,6 +284,7 @@ window.downloadWord = async function () {
          children: [run('Escala de Valoración.', { bold: true, color: TEAL })] })],
       escala,
       compParrafos,
+      graficoParrafos,
       [salto(), banner('Evaluación de Competencias', dianaImg)],
       parrafos(v('enfoqueTexto')),
       [banner('Conclusión', dianaImg)],
