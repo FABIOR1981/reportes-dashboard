@@ -126,7 +126,7 @@ input[type="text"], input[type="date"], textarea {
 }
 .info-elaborador p { margin: 0; }
 
-/* ---- DATOS POSTULANTE (COLUMNAS IDÉNTICAS AL PDF) ---- */
+/* ---- DATOS POSTULANTE ---- */
 .datos-postulante {
   border-left: 5px solid #1f4e79;
   padding-left: 15px;

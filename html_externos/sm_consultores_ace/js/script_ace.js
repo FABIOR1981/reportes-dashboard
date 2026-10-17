@@ -1,6 +1,5 @@
 let chartInstance = null;
 
-// Competencias por defecto (A.C.E.)
 const defaultCompetencias = [
   { nombre: "Liderazgo", valor: 3 },
   { nombre: "Capacidad de trabajo en equipo y coordinación", valor: 3 },
@@ -27,7 +26,6 @@ function initPanel() {
     container.appendChild(row);
   });
   
-  // Agregar listeners a todos los inputs
   document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
     el.addEventListener('input', updatePreview);
   });
@@ -45,7 +43,6 @@ function updatePreview() {
   document.getElementById('prevContacto').textContent = document.getElementById('contacto').value;
   document.getElementById('prevFechaEval').textContent = document.getElementById('fechaEval').value;
 
-  // Actualizar inyecciones en el texto
   document.getElementById('prevNombreDoc').textContent = document.getElementById('nombre').value;
   document.getElementById('prevCargoDoc').textContent = document.getElementById('cargoPostulacion').value;
 
@@ -66,7 +63,7 @@ function updatePreview() {
     let val = parseFloat(document.getElementById(`compVal_${i}`).value) || 0;
     nombres.push(name);
     valoresObtenidos.push(val);
-    valoresMaximos.push(3); // El maximo esperado en esta gráfica siempre es 3 visualmente
+    valoresMaximos.push(3); 
     totalPuntos += val;
   }
   
@@ -97,12 +94,12 @@ function renderChart(labels, dataObtenida, dataMax) {
       datasets: [
         {
           label: 'Puntaje Obtenido',
-          backgroundColor: '#00b0ff', // Azul claro (como el PDF original)
+          backgroundColor: '#00b0ff',
           data: dataObtenida
         },
         {
-          label: 'Puntaje Maximo', // Se arregló el error de tipeo original
-          backgroundColor: '#1f4e79', // Azul oscuro (como el PDF original)
+          label: 'Puntaje Maximo',
+          backgroundColor: '#1f4e79',
           data: dataMax
         }
       ]
@@ -128,7 +125,6 @@ function renderChart(labels, dataObtenida, dataMax) {
         x: {
           ticks: {
             callback: function(val, index) {
-              // Corta los labels largos para que queden en varias lineas (como el original)
               const label = this.getLabelForValue(val);
               if (label.length > 20) {
                  const part1 = label.slice(0, label.lastIndexOf(' ', 15));
@@ -144,13 +140,12 @@ function renderChart(labels, dataObtenida, dataMax) {
   });
 }
 
-// Inicialización de la Botonera (guardar/cargar/PDF/Word)
+// Inicialización de la Botonera 
 if (typeof Botonera !== 'undefined') {
   Botonera.init({
     camposGuardables: [
       'fechaInforme', 'elaboradoPor', 'nombre', 'cargoPostulacion', 'ci', 'contacto', 'fechaEval',
       'objetivo', 'fortalezas', 'debilidades', 'conclusion'
-      // Faltaría loopear competencias si quisieras guardarlas en el JSON
     ],
     camposOrtografia: [
       {id:'objetivo', label:'Objetivo'},
@@ -169,7 +164,6 @@ if (typeof Botonera !== 'undefined') {
   });
 }
 
-// Funciones vacías para conectar PDF y Word más adelante (usa dom-to-image o html2pdf si gustas)
 window.downloadPDF = function() {
     alert("Función de PDF pendiente de configurar usando html2canvas/jspdf");
 };
@@ -177,7 +171,6 @@ window.downloadWord = function() {
     alert("Función de Word pendiente de configurar con docx");
 };
 
-// Arrancar al cargar
 document.addEventListener("DOMContentLoaded", () => {
   initPanel();
   updatePreview();
