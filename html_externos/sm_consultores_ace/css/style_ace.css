@@ -916,6 +916,14 @@
   font-size: 16px;
 }
 
+.ace-results-heading {
+  margin: 12px 0 8px;
+}
+
+.ace-results-heading .section-title {
+  font-size: 15px;
+}
+
 .graph-summary {
   margin: 8px 0 12px;
   color: var(--ink);
