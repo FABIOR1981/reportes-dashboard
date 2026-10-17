@@ -220,7 +220,7 @@ textarea{resize:vertical; min-height:140px;}
 .clasif-b{background:#f7f8fc;}
 .checkmark{width:22px; height:22px;}
 .firma-block{text-align:right; margin-top:40px; padding-right:30px;}
-.firma-block img{height:80px; width:auto;}
+.firma-block img{width:150px; height:auto;}
 .lista-fortalezas{font-size:12.5px; line-height:1.6; margin:0 0 14px 0; padding-left:26px;}
 .grafico-titulo{font-size:14px; font-weight:700; margin:22px 0 10px 0;}
 

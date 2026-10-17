@@ -194,7 +194,7 @@ window.downloadWord = async function () {
         if (!r.ok) return null;
         const blob = await r.blob();
         const bmp = await createImageBitmap(blob);
-        const h = 70, w = Math.round(h * bmp.width / bmp.height);
+        const w = 140, h = Math.round(w * bmp.height / bmp.width);
         bmp.close();
         return { buf: await blob.arrayBuffer(), w: w, h: h };
       } catch (e) { return null; }
