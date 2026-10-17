@@ -151,28 +151,21 @@ window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
   const status = document.getElementById('status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Generando PDF...';
+  if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
-  try {
-    const previewEl = document.getElementById('pdfPreview');
-    const canvas = await html2canvas(previewEl, { scale: 2, useCORS: true });
-    const imgData = canvas.toDataURL('image/jpeg', 0.98);
-    
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
-    
-    const nombre = val('nombre').trim() || 'Candidato';
-    pdf.save(`Informe_ACE_${nombre.replace(/\s+/g, '_')}.pdf`);
-    
-    if (status) status.textContent = '✔ PDF descargado.';
-  } catch (e) {
-    console.error(e);
-    if (status) status.textContent = '⚠ Error en PDF.';
-  } finally {
+  const tituloOriginal = document.title;
+  const nombre = val('nombre').trim() || 'Candidato';
+  document.title = `Informe_ACE_${nombre.replace(/\s+/g, '_')}`;
+
+  const restaurar = function() {
+    document.title = tituloOriginal;
     if (btn) btn.disabled = false;
-    setTimeout(() => { if(status) status.textContent = ''; }, 4000);
-  }
+    if (status) status.textContent = '';
+    window.removeEventListener('afterprint', restaurar);
+  };
+
+  window.addEventListener('afterprint', restaurar);
+  setTimeout(function() { window.print(); }, 50);
 };
 
 window.downloadWord = async function() {
