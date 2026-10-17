@@ -1,37 +1,55 @@
 function init() {
-  // 1. Configurar la Botonera Compartida
+  defaultComps.forEach(addCompBlock);
+  document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); updatePreview(); });
+
+  document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
+    el.addEventListener('input', updatePreview);
+    el.addEventListener('change', updatePreview);
+  });
+
+  const cabezalIds = ['consultoria', 'elaboradoPor', 'logoNombre', 'logoLeyenda'];
+  document.getElementById('editCabezal').addEventListener('change', e => {
+    cabezalIds.forEach(id => { document.getElementById(id).readOnly = !e.target.checked; });
+  });
+
   Botonera.init({
-    camposGuardables: ['nombre', 'puesto', 'observaciones'], // IDs exactos del DOM
-    camposNoLimpiar: [],
+    camposGuardables: ['fechaInforme', 'elaboradoPor', 'consultoria', 'logoNombre', 'logoLeyenda',
+      'nombre', 'cargoPostulacion', 'fechaNac', 'edad', 'ci', 'contacto',
+      'fechaEval', 'horaEval', 'solicitante', 'cargoEvaluado',
+      'enfoqueTexto', 'conclusionTexto', 'oportunidadTexto'],
+    camposNoLimpiar: ['logoNombre', 'logoLeyenda'],
     camposOrtografia: [
-      { id: 'observaciones', label: 'Observaciones / Resumen' }
+      { id: 'enfoqueTexto', label: 'Enfoque / Objetivo' },
+      { id: 'conclusionTexto', label: 'Conclusión' },
+      { id: 'oportunidadTexto', label: 'Oportunidad de mejora' }
     ],
-    nombreArchivoBase: 'ACE',
-    onResetExtra: function() {
+    nombreArchivoBase: 'Informe_Psicotecnico_ACE',
+    onResetExtra: function () {
+      compContainer.innerHTML = '';
       updatePreview();
     },
-    onLoadExtra: function(data) {
+    onLoadExtra: function (data) {
+      if (Array.isArray(data.competencias)) {
+        compContainer.innerHTML = '';
+        data.competencias.forEach(addCompBlock);
+      }
       updatePreview();
+    },
+    onSaveExtra: function (data) {
+      data.competencias = Array.from(compContainer.querySelectorAll('.comp-block')).map(block => ({
+        nombre: block.querySelector('.c-nombre').value,
+        puntaje: block.querySelector('.c-puntaje').value,
+        maximo: block.querySelector('.c-maximo').value,
+        desc: block.querySelector('.c-desc').value
+      }));
     }
   });
 
-  // 2. Habilitar la descarga PDF nativa una vez que el DOM está cargado
-  const pdfBtn = document.querySelector('[data-action="pdf"]');
-  if (pdfBtn) {
-    pdfBtn.disabled = false;
-    const tooltip = pdfBtn.querySelector('.tooltip');
-    if (tooltip) tooltip.textContent = 'Descargar PDF';
-  }
-
-  // 3. Vincular los eventos de escritura al sistema de Vista Previa (tiempo real)
-  const inputs = document.querySelectorAll('.form-panel input, .form-panel textarea');
-  inputs.forEach(input => {
-    input.addEventListener('input', updatePreview);
-  });
-
-  // Disparo inicial
   updatePreview();
 }
 
-// Arrancar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}

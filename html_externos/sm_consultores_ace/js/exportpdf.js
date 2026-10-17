@@ -1,20 +1,19 @@
-window.downloadPDF = async function() {
-  const btn = document.querySelector('[data-action="pdf"]');
+window.downloadPDF = function () {
   const status = document.getElementById('status');
-  
-  try {
-    btn.disabled = true;
-    if (status) status.textContent = 'Preparando PDF...';
+  const btn = document.querySelector('[data-action="pdf"]');
+  if (btn) btn.disabled = true;
+  if (status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
 
-    // Disparar diálogo de impresión nativo (Las reglas @media print ocultan el UI)
-    window.print();
-    
-    if (status) status.textContent = '✅ PDF generado exitosamente.';
-  } catch (err) {
-    console.error('Error al generar PDF:', err);
-    if (status) status.textContent = '❌ Error al generar el PDF.';
-  } finally {
-    btn.disabled = false;
-    setTimeout(() => { if(status) status.textContent = ''; }, 3000);
-  }
+  // El título del documento es el nombre sugerido del PDF
+  const tituloOriginal = document.title;
+  document.title = `INFORME_EVALUACION_PSICOTECNICA_${(val('nombre') || 'postulante').trim().replace(/\s+/g, '_')}`;
+
+  const restaurar = function () {
+    document.title = tituloOriginal;
+    if (btn) btn.disabled = false;
+    if (status) status.textContent = '';
+    window.removeEventListener('afterprint', restaurar);
+  };
+  window.addEventListener('afterprint', restaurar);
+  setTimeout(function () { window.print(); }, 50);
 };

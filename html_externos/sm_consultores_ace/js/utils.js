@@ -13,3 +13,19 @@ function escapeHTML(str) {
 function procesarTextoMultilinea(str) {
   return escapeHTML(str).replace(/\r\n|\r|\n/g, '<br>');
 }
+
+function fmtDate(iso) {
+  if (!iso) return '-';
+  const [y, m, d] = iso.split('-');
+  return y ? `${d}/${m}/${y}` : iso;
+}
+function fmtDateLong(iso) {
+  if (!iso) return '-';
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const [y, m, d] = iso.split('-');
+  return y ? `${parseInt(d)} de ${meses[parseInt(m) - 1]} ${y}` : iso;
+}
+function val(id) { return document.getElementById(id).value; }
+function setText(id, text) {
+  document.getElementById(id).textContent = text && text.trim() !== '' ? text : '-';
+}
