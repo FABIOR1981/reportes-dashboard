@@ -36,9 +36,21 @@ function renderGraficoCompetencias(datos) {
   }
 }
 
+// "6.1 - Liderazgo" -> { codigo: '6.1', texto: 'Liderazgo' }; sin código, codigo queda vacío
+function separarCodigo(nombre) {
+  const m = /^\s*(\d+(?:\.\d+)*)\s*[-–:.]\s*(.+)$/.exec(nombre || '');
+  return m ? { codigo: m[1], texto: m[2].trim() } : { codigo: '', texto: (nombre || '').trim() };
+}
+
 // Columnas agrupadas: puntaje obtenido vs. máximo por competencia (como el gráfico del PDF)
 function dibujarColumnas(cont, datos) {
-  const ancho = 640, alto = 300;
+  const partes = datos.map(function (d) { return separarCodigo(d.nombre); });
+  const usaCodigos = partes.every(function (p) { return p.codigo; });
+  const filaLeyenda = 12;
+  const yLeyendaSerie = usaCodigos ? 236 : 283;
+  const yCodigos = yLeyendaSerie + 24;
+  const ancho = 640;
+  const alto = usaCodigos ? yCodigos + datos.length * filaLeyenda + 6 : 300;
   const x0 = 40, x1 = ancho - 10, yTop = 40, yBase = 200;
   const colObtenido = '#1aa7ec', colMaximo = '#0e5c78';
   const maxVal = Math.max.apply(null, datos.map(function (d) { return d.maximo; }));
@@ -63,16 +75,26 @@ function dibujarColumnas(cont, datos) {
         g += `<text x="${(b[2] + anchoBarra / 2).toFixed(1)}" y="${((y + yBase) / 2 + 3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${b[0]}</text>`;
       }
     });
-    g += wrapLabel(d.nombre, 13, 5).map(function (linea, j) {
-      return `<text x="${centro.toFixed(1)}" y="${yBase + 12 + j * 9}" text-anchor="middle" font-size="7.5" ${FUENTE_GRAFICO} fill="#595959">${escapeHTML(linea)}</text>`;
-    }).join('');
+    if (usaCodigos) {
+      g += `<text x="${centro.toFixed(1)}" y="${yBase + 14}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#595959">${escapeHTML(partes[i].codigo)}</text>`;
+    } else {
+      g += wrapLabel(d.nombre, 13, 5).map(function (linea, j) {
+        return `<text x="${centro.toFixed(1)}" y="${yBase + 12 + j * 9}" text-anchor="middle" font-size="7.5" ${FUENTE_GRAFICO} fill="#595959">${escapeHTML(linea)}</text>`;
+      }).join('');
+    }
   });
 
   g += `<line x1="${x0}" y1="${yBase}" x2="${x1}" y2="${yBase}" stroke="#bfbfbf" stroke-width="1"></line>` +
-    `<rect x="${ancho / 2 - 120}" y="283" width="8" height="8" fill="${colObtenido}"></rect>` +
-    `<text x="${ancho / 2 - 108}" y="291" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Obtenido</text>` +
-    `<rect x="${ancho / 2 + 10}" y="283" width="8" height="8" fill="${colMaximo}"></rect>` +
-    `<text x="${ancho / 2 + 22}" y="291" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Máximo</text>`;
+    `<rect x="${ancho / 2 - 120}" y="${yLeyendaSerie}" width="8" height="8" fill="${colObtenido}"></rect>` +
+    `<text x="${ancho / 2 - 108}" y="${yLeyendaSerie + 8}" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Obtenido</text>` +
+    `<rect x="${ancho / 2 + 10}" y="${yLeyendaSerie}" width="8" height="8" fill="${colMaximo}"></rect>` +
+    `<text x="${ancho / 2 + 22}" y="${yLeyendaSerie + 8}" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Máximo</text>`;
+
+  if (usaCodigos) {
+    partes.forEach(function (p, i) {
+      g += `<text x="${x0}" y="${yCodigos + i * filaLeyenda}" font-size="8.5" ${FUENTE_GRAFICO} fill="#404040"><tspan font-weight="700">${escapeHTML(p.codigo)}</tspan> - ${escapeHTML(p.texto)}</text>`;
+    });
+  }
   envolverSvg(cont, ancho, alto, g);
 }
 

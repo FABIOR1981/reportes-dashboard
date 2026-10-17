@@ -1,14 +1,17 @@
 const defaultComps = [
-  { nombre: 'Liderazgo', puntaje: 2, maximo: 3 },
-  { nombre: 'Capacidad de trabajo en equipo y coordinación', puntaje: 3, maximo: 3 },
-  { nombre: 'Resolución de problemas, toma de decisiones y gestión de conflictos', puntaje: 2, maximo: 3 },
-  { nombre: 'Habilidades de comunicación efectiva y percepción de necesidades de los socios', puntaje: 2, maximo: 3 },
-  { nombre: 'Orientación al cliente, al socio y a resultados', puntaje: 2, maximo: 3 },
-  { nombre: 'Capacidad de negociación', puntaje: 2, maximo: 3 },
-  { nombre: 'Organización, planificación y cumplimiento normativo', puntaje: 3, maximo: 3 },
-  { nombre: 'Gestión eficiente y atención al detalle', puntaje: 2, maximo: 3 },
-  { nombre: 'Iniciativa, proactividad y enfoque comercial', puntaje: 2, maximo: 3 },
-  { nombre: 'Adaptabilidad y gestión del cambio', puntaje: 2, maximo: 3 }
+  { nombre: '6.1 - Liderazgo', puntaje: 3, maximo: 5 },
+  { nombre: '6.2 - Capacidad de trabajo en equipo y coordinación', puntaje: 4, maximo: 5 },
+  { nombre: '6.3 - Resolución de problemas, toma de decisiones y gestión de conflictos', puntaje: 4, maximo: 5 },
+  { nombre: '6.4 - Habilidades de comunicación efectiva y percepción de necesidades de los socios', puntaje: 4, maximo: 5 },
+  { nombre: '6.5 - Orientación al cliente, al socio y a resultados', puntaje: 3, maximo: 5 },
+  { nombre: '6.6 - Capacidad de negociación', puntaje: 4, maximo: 5 },
+  { nombre: '6.7 - Organización, planificación y cumplimiento normativo', puntaje: 4, maximo: 5 },
+  { nombre: '6.8 - Gestión eficiente y atención al detalle', puntaje: 3, maximo: 5 },
+  { nombre: '6.9 - Iniciativa, proactividad y enfoque comercial', puntaje: 4, maximo: 5 },
+  { nombre: '6.10 - Adaptabilidad y gestión del cambio', puntaje: 3, maximo: 5 },
+  { nombre: '6.11 - Conocimientos administrativos básicos', puntaje: 4, maximo: 5 },
+  { nombre: '6.12 - Manejo de tecnologías de la información básicos', puntaje: 3, maximo: 5 },
+  { nombre: '6.13 - Conocimiento de la comunidad, interacción y relacionamiento con actores externos', puntaje: 5, maximo: 5 }
 ];
 
 const compContainer = document.getElementById('compContainer');
