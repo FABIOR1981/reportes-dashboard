@@ -1,4 +1,10 @@
 function init() {
+  // Fecha del informe: hoy, si el usuario no la cargó
+  const fechaInf = document.getElementById('fechaInforme');
+  if (!fechaInf.value) {
+    const h = new Date();
+    fechaInf.value = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
+  }
   defaultComps.forEach(addCompBlock);
   document.getElementById('addCompBtn').addEventListener('click', () => { addCompBlock(); updatePreview(); });
   initTipoGrafico();

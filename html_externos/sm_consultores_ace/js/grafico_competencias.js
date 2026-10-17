@@ -48,10 +48,15 @@ function dibujarColumnas(cont, datos) {
   const usaCodigos = partes.every(function (p) { return p.codigo; });
   const filaLeyenda = 20;
   const filasPorColumna = Math.ceil(datos.length / 2);
+  const lineasLeyenda = usaCodigos ? partes.map(function (p) { return wrapLabel(p.codigo + ' - ' + p.texto, 62, 2); }) : [];
+  const altoCol = [0, 1].map(function (c) {
+    return lineasLeyenda.slice(c * filasPorColumna, (c + 1) * filasPorColumna)
+      .reduce(function (a, l) { return a + l.length * 9 + 7; }, 0);
+  });
   const yLeyendaSerie = usaCodigos ? 236 : 283;
   const yCodigos = yLeyendaSerie + 26;
   const ancho = 640;
-  const alto = usaCodigos ? yCodigos + filasPorColumna * filaLeyenda + 4 : 300;
+  const alto = usaCodigos ? yCodigos + Math.max(altoCol[0], altoCol[1]) + 4 : 300;
   const x0 = 40, x1 = ancho - 10, yTop = 40, yBase = 200;
   const colObtenido = '#1aa7ec', colMaximo = '#0e5c78';
   const maxVal = Math.max.apply(null, datos.map(function (d) { return d.maximo; }));
@@ -93,18 +98,18 @@ function dibujarColumnas(cont, datos) {
 
   if (usaCodigos) {
     // Leyenda en 2 columnas (la 1ª lleva la mitad redondeada hacia arriba); cada entrada ocupa hasta 2 líneas
+    const yCol = [yCodigos, yCodigos];
     partes.forEach(function (p, i) {
       const col = i < filasPorColumna ? 0 : 1;
-      const fila = col === 0 ? i : i - filasPorColumna;
       const x = x0 + col * 300;
-      const y = yCodigos + fila * filaLeyenda;
-      const lineas = wrapLabel(p.codigo + ' - ' + p.texto, 62, 2);
-      lineas.forEach(function (linea, j) {
+      const y = yCol[col];
+      lineasLeyenda[i].forEach(function (linea, j) {
         const contenido = j === 0
           ? `<tspan font-weight="700">${escapeHTML(p.codigo)}</tspan>${escapeHTML(linea.slice(p.codigo.length))}`
           : escapeHTML(linea);
         g += `<text x="${x}" y="${y + j * 9}" font-size="7.5" ${FUENTE_GRAFICO} fill="#404040">${contenido}</text>`;
       });
+      yCol[col] += lineasLeyenda[i].length * 9 + 7;
     });
   }
   envolverSvg(cont, ancho, alto, g);

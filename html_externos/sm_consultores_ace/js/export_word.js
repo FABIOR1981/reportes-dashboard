@@ -108,8 +108,8 @@ window.downloadWord = async function () {
     }));
 
     const headerImg = await cabezal();
-    const tablaImg = await icono('img/tabla.png', 60);
-    const dianaImg = await icono('img/diana.png', 60);
+    const tablaImg = await icono('img/tabla.png', 40);
+    const dianaImg = await icono('img/diana.png', 40);
 
     const parrafos = texto => texto.split(/\r?\n/).filter(t => t.trim()).map(t => new Paragraph({
       alignment: AlignmentType.JUSTIFIED, spacing: { before: 120, after: 120 }, children: [run(t.trim())]
@@ -121,7 +121,8 @@ window.downloadWord = async function () {
         rows: [new TableRow({ children: [
           new TableCell({
             width: pct(89), shading: { type: ShadingType.CLEAR, fill: TEAL },
-            margins: { top: 140, bottom: 140, left: 200, right: 160 }, borders: noBorders(),
+            margins: { top: 100, bottom: 100, left: 200, right: 160 }, borders: noBorders(),
+            verticalAlign: VerticalAlign.CENTER,
             children: [new Paragraph({ children: [run(titulo, { color: WHITE, size: 26 })] })]
           }),
           new TableCell({
