@@ -8,8 +8,6 @@ window.downloadWord = async function() {
 
     const nombre = document.getElementById('nombre').value || 'Candidato';
     const observaciones = document.getElementById('observaciones').value || '';
-    const fortalezas = document.getElementById('fortalezas').value || '';
-    const mejoras = document.getElementById('mejoras').value || '';
 
     // Utilizando docx (UMD window.docx)
     const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
@@ -34,23 +32,9 @@ window.downloadWord = async function() {
             heading: HeadingLevel.HEADING_3,
             spacing: { before: 400 }
           }),
-          new Paragraph({ text: observaciones }),
-          
-          new Paragraph({
-            text: "FORTALEZAS",
-            heading: HeadingLevel.HEADING_3,
-            spacing: { before: 400 }
-          }),
-          new Paragraph({ text: fortalezas }),
-          
-          new Paragraph({
-            text: "ÁREAS DE MEJORA",
-            heading: HeadingLevel.HEADING_3,
-            spacing: { before: 400 }
-          }),
-          new Paragraph({ text: mejoras })
-          
-          // Aquí iría el gráfico / perfil de competencias
+          new Paragraph({ text: observaciones })
+          // Aquí se integraría la inserción de cabezal.png o diana.png usando ImageRun 
+          // convirtiendo previamente la imagen a ArrayBuffer mediante fetch() si se requiere.
         ]
       }]
     });
