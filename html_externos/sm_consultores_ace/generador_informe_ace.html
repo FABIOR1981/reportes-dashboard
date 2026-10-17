@@ -2,98 +2,130 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>SM Consultores A.C.E. - Gráfico de Competencias</title>
-  <link rel="stylesheet" href="../_shared/botonera.css">
+  <title>Generador A.C.E. - SM Consultores</title>
+  <!-- CSS 100% Local de esta carpeta -->
   <link rel="stylesheet" href="css/style_ace.css">
-  <!-- Chart.js para el gráfico de doble barra -->
+  <!-- Botonera compartida -->
+  <link rel="stylesheet" href="../_shared/botonera.css">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../_shared/botonera.js"></script>
 </head>
 <body>
-  <!-- Botonera y utilidades compartidas -->
+
+  <!-- ================= FORMULARIO ================= -->
+  <div id="panel">
+    <h1>Informe A.C.E.</h1>
+    <p class="sub">Evaluación de Competencias Ejecutivas con gráfico integrado.</p>
+    
+    <fieldset id="cabezalFieldset">
+      <legend>Cabezal (datos fijos)</legend>
+      <label>Consultoría</label>
+      <input type="text" id="consultoria" value="SM Consultores" readonly>
+      <div class="row2">
+        <div><label>Nombre de marca (logo)</label><input type="text" id="logoNombre" value="Shalon Morales" readonly></div>
+        <div><label>Leyenda bajo logo</label><input type="text" id="logoLeyenda" value="CONSULTORES" readonly></div>
+      </div>
+      <label>Elaborado por</label>
+      <input type="text" id="elaboradoPor" value="Lic. Psic. Rita Morales" readonly>
+    </fieldset>
+
+    <fieldset>
+      <legend>Datos del informe</legend>
+      <div class="row2">
+        <div><label>Fecha</label><input type="date" id="fechaInforme"></div>
+        <div><label>Solicitado por</label><input type="text" id="solicitante" value="Empresa Ejemplo S.A." spellcheck="true"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Datos del postulante</legend>
+      <label>Nombre completo</label>
+      <input type="text" id="nombre" spellcheck="true">
+      <label>Cargo al que postula</label>
+      <input type="text" id="cargoPostulacion" spellcheck="true">
+      <div class="row2">
+        <div><label>Fecha de Nac.</label><input type="date" id="fechaNac"></div>
+        <div><label>Edad</label><input type="number" id="edad"></div>
+      </div>
+      <div class="row2">
+        <div><label>C.I.</label><input type="text" id="ci"></div>
+        <div><label>Contacto</label><input type="text" id="contacto"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Evaluación A.C.E. (13 Competencias)</legend>
+      <div id="compContainer"></div> <!-- Se inyectan las 13 competencias por JS -->
+    </fieldset>
+
+    <fieldset>
+      <legend>Textos del Informe</legend>
+      <label>Fortalezas</label>
+      <textarea id="fortalezasTexto" spellcheck="true"></textarea>
+      <label>Debilidades / Oportunidades de mejora</label>
+      <textarea id="debilidadesTexto" spellcheck="true"></textarea>
+      <label>Conclusión</label>
+      <textarea id="conclusionTexto" spellcheck="true"></textarea>
+    </fieldset>
+  </div>
+
+  <!-- ================= VISTA PREVIA ================= -->
+  <div id="preview">
+    <div class="page" id="pdfPreview">
+      
+      <!-- Cabezal corporativo -->
+      <div class="header">
+        <div class="logo">
+          <h1 id="out-logoNombre"></h1>
+          <h2 id="out-logoSub"></h2>
+        </div>
+        <div class="info-header">
+          <p><strong>Fecha:</strong> <span id="out-fechaInforme"></span></p>
+          <p><strong>Elaborado por:</strong> <span id="out-elaboradoPor"></span></p>
+          <p><strong>Consultoría:</strong> <span id="out-consultoria"></span></p>
+        </div>
+      </div>
+
+      <h2 style="text-align:center; color:#2f5240; margin-top:20px; font-size:18px;">Evaluación de Competencias Ejecutivas (A.C.E.)</h2>
+
+      <div class="caja-datos">
+        <p><strong>Postulante:</strong> <span id="out-nombre"></span></p>
+        <p><strong>C.I.:</strong> <span id="out-ci"></span> &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Edad:</strong> <span id="out-edad"></span> &nbsp;&nbsp;|&nbsp;&nbsp; <strong>Contacto:</strong> <span id="out-contacto"></span></p>
+        <p><strong>Cargo al que postula:</strong> <span id="out-cargoPostulacion"></span></p>
+        <p><strong>Solicitante:</strong> <span id="out-solicitante"></span></p>
+      </div>
+
+      <div class="seccion-texto">
+        <h3>Fortalezas</h3>
+        <p id="out-fortalezasTexto"></p>
+        
+        <h3>Áreas de Mejora</h3>
+        <p id="out-debilidadesTexto"></p>
+      </div>
+
+      <!-- Contenedor del Gráfico -->
+      <div class="seccion-grafico">
+        <canvas id="graficoCompetencias" width="650" height="320"></canvas>
+      </div>
+
+      <div class="seccion-texto">
+        <h3>Conclusión</h3>
+        <p id="out-conclusionTexto"></p>
+      </div>
+      
+    </div>
+  </div>
+
+  <!-- Controles Botonera -->
   <div class="btn-toolbar" id="actions"></div>
   <div id="status"></div>
   <div id="spellPanel"></div>
-  <div id="dicPanel" style="display:none;">
-    <label>Diccionario técnico personalizado...</label>
-    <div id="dicAddRow">
-      <input type="text" id="dicInput" placeholder="Agregar palabra...">
-      <button type="button" id="dicAddBtn">+ Agregar</button>
-    </div>
-    <div id="dicList"></div>
-  </div>
 
-  <div class="dashboard-container">
-    <!-- Panel Izquierdo: Formulario -->
-    <div class="form-panel">
-      <h2>Datos del Informe A.C.E.</h2>
-      
-      <div class="form-group">
-        <label for="nombreCandidato">Nombre del Postulante</label>
-        <input type="text" id="nombreCandidato" placeholder="Ej. Juan Pérez">
-      </div>
-      
-      <div class="form-group">
-        <label for="cargoPostula">Cargo Evaluado</label>
-        <input type="text" id="cargoPostula" placeholder="Ej. Encargado de Sucursal">
-      </div>
-
-      <div class="form-group">
-        <label for="fortalezas">Fortalezas</label>
-        <textarea id="fortalezas" placeholder="Describa las fortalezas detectadas..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="debilidades">Debilidades</label>
-        <textarea id="debilidades" placeholder="Describa las debilidades u oportunidades de mejora..."></textarea>
-      </div>
-
-      <h3 class="section-title">Competencias Evaluadas (13)</h3>
-      <div id="competencias-container">
-        <!-- Los 13 inputs se inyectan dinámicamente desde script_ace.js -->
-      </div>
-    </div>
-
-    <!-- Panel Derecho: Vista Previa y PDF -->
-    <div class="main-content">
-      <div class="preview-wrapper" id="informe-preview">
-        <div class="informe-page">
-           <div class="informe-header">
-             <h1>SM Consultores</h1>
-             <h2>Evaluación de Competencias Ejecutivas (A.C.E.)</h2>
-           </div>
-           
-           <div class="informe-datos">
-             <p><strong>Candidato:</strong> <span id="prev_nombre"></span></p>
-             <p><strong>Cargo:</strong> <span id="prev_cargo"></span></p>
-           </div>
-           
-           <div class="informe-seccion">
-             <h3>Fortalezas</h3>
-             <p id="prev_fortalezas"></p>
-           </div>
-           
-           <div class="informe-seccion">
-             <h3>Debilidades / Áreas de Mejora</h3>
-             <p id="prev_debilidades"></p>
-           </div>
-           
-           <!-- Las competencias no se listan en texto, directo al gráfico -->
-           <div class="informe-seccion grafico-seccion">
-             <h3>Perfil de Competencias</h3>
-             <canvas id="graficoCompetencias" width="650" height="350"></canvas>
-           </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts base del sistema -->
-  <script src="../_shared/vendor/jspdf.umd.min.js"></script>
-  <script src="../_shared/vendor/html2canvas.min.js"></script>
-  <script src="../_shared/vendor/docx.umd.min.js"></script>
-  <script src="../_shared/diccionario-base.js"></script>
-  <script src="../_shared/botonera.js"></script>
-  <!-- Script específico de la vista A.C.E. -->
+  <!-- JS 100% Local de esta carpeta -->
   <script src="js/script_ace.js"></script>
 </body>
 </html>

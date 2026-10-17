@@ -1,52 +1,77 @@
 const TOTAL_COMPETENCIAS = 13;
 let chartInstance = null;
 
-document.addEventListener('DOMContentLoaded', () => {
-  generarInputsCompetencias();
-  vincularEventos();
-  inicializarBotonera();
-  actualizarPreview();
-});
+// ==========================================
+// 1. HELPERS AUTOCONTENIDOS
+// ==========================================
+function fmtDate(iso){
+  if(!iso) return '-';
+  const [y,m,d] = iso.split('-');
+  if(!y) return iso;
+  return `${d}/${m}/${y}`;
+}
 
+function fmtDateLong(iso){
+  if(!iso) return '-';
+  const meses = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const [y,m,d] = iso.split('-');
+  if(!y) return iso;
+  return `${parseInt(d)} de ${meses[parseInt(m)-1]} ${y}`;
+}
+
+function val(id){ 
+  const el = document.getElementById(id);
+  return el ? el.value : ''; 
+}
+
+function setText(id, text){ 
+  const el = document.getElementById(id);
+  if(el) el.textContent = text && text.trim() !== '' ? text : '-'; 
+}
+
+// ==========================================
+// 2. GENERACIÓN DE INPUTS Y RENDER
+// ==========================================
 function generarInputsCompetencias() {
-  const container = document.getElementById('competencias-container');
+  const container = document.getElementById('compContainer');
   let html = '';
   for (let i = 1; i <= TOTAL_COMPETENCIAS; i++) {
     html += `
-      <div class="comp-item">
-        <input type="text" id="comp_nombre_${i}" placeholder="Competencia ${i}" value="Competencia ${i}" class="input-nombre">
-        <div class="comp-scores">
-          <label>Obt:</label>
-          <input type="number" id="comp_obt_${i}" value="0" min="0" step="1">
-          <label>Máx:</label>
-          <input type="number" id="comp_max_${i}" value="10" min="1" step="1">
-        </div>
+      <div class="row2" style="margin-bottom:8px; align-items:center; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+        <input type="text" id="comp_nombre_${i}" value="Competencia ${i}" style="width:50%; margin-bottom:0;" spellcheck="true">
+        <div><label style="display:inline; margin-right:5px;">Obt:</label> <input type="number" id="comp_obt_${i}" value="0" min="0" max="10" style="width:60px; margin-bottom:0;"></div>
+        <div><label style="display:inline; margin-right:5px;">Máx:</label> <input type="number" id="comp_max_${i}" value="10" min="1" max="10" style="width:60px; margin-bottom:0;"></div>
       </div>
     `;
   }
   container.innerHTML = html;
 }
 
-function vincularEventos() {
-  // Disparar redibujo y actualización de texto en cada tecleo
-  const camposGenerales = ['nombreCandidato', 'cargoPostula', 'fortalezas', 'debilidades'];
-  camposGenerales.forEach(id => {
-    document.getElementById(id).addEventListener('input', actualizarPreview);
-  });
+function renderPreview(){
+  // Cabezal y Logo
+  setText('out-fechaInforme', fmtDateLong(val('fechaInforme')));
+  setText('out-elaboradoPor', val('elaboradoPor'));
+  setText('out-consultoria', val('consultoria'));
+  
+  const logoNombreVal = (val('logoNombre') || 'Shalon Morales').trim();
+  const logoWords = logoNombreVal.split(' ');
+  const logoHtml = logoWords.length > 1 ? logoWords.join('<br>') : logoNombreVal;
+  document.getElementById('out-logoNombre').innerHTML = logoHtml;
+  setText('out-logoSub', (val('logoLeyenda') || 'CONSULTORES').toUpperCase());
 
-  for (let i = 1; i <= TOTAL_COMPETENCIAS; i++) {
-    document.getElementById(`comp_nombre_${i}`).addEventListener('input', actualizarPreview);
-    document.getElementById(`comp_obt_${i}`).addEventListener('input', actualizarPreview);
-    document.getElementById(`comp_max_${i}`).addEventListener('input', actualizarPreview);
-  }
-}
+  // Datos postulante
+  setText('out-nombre', val('nombre'));
+  setText('out-cargoPostulacion', val('cargoPostulacion'));
+  setText('out-fechaNac', fmtDate(val('fechaNac')));
+  setText('out-edad', val('edad'));
+  setText('out-ci', val('ci'));
+  setText('out-contacto', val('contacto'));
+  setText('out-solicitante', val('solicitante'));
 
-function actualizarPreview() {
-  // Transponer datos de texto
-  document.getElementById('prev_nombre').textContent = document.getElementById('nombreCandidato').value || '-';
-  document.getElementById('prev_cargo').textContent = document.getElementById('cargoPostula').value || '-';
-  document.getElementById('prev_fortalezas').textContent = document.getElementById('fortalezas').value || 'Sin registro.';
-  document.getElementById('prev_debilidades').textContent = document.getElementById('debilidades').value || 'Sin registro.';
+  // Textos
+  setText('out-fortalezasTexto', val('fortalezasTexto'));
+  setText('out-debilidadesTexto', val('debilidadesTexto'));
+  setText('out-conclusionTexto', val('conclusionTexto'));
 
   dibujarGrafico();
 }
@@ -57,54 +82,46 @@ function dibujarGrafico() {
   const dataMaximo = [];
 
   for (let i = 1; i <= TOTAL_COMPETENCIAS; i++) {
-    labels.push(document.getElementById(`comp_nombre_${i}`).value || `Comp ${i}`);
-    dataObtenido.push(Number(document.getElementById(`comp_obt_${i}`).value) || 0);
-    dataMaximo.push(Number(document.getElementById(`comp_max_${i}`).value) || 0);
+    labels.push(val(`comp_nombre_${i}`) || `Comp ${i}`);
+    dataObtenido.push(Number(val(`comp_obt_${i}`)) || 0);
+    dataMaximo.push(Number(val(`comp_max_${i}`)) || 0);
   }
 
   const ctx = document.getElementById('graficoCompetencias').getContext('2d');
-  
-  if (chartInstance) {
-    chartInstance.destroy();
-  }
+  if (chartInstance) chartInstance.destroy();
 
-  // Gráfico de doble barra
   chartInstance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: labels,
       datasets: [
-        {
-          label: 'Resultado Obtenido',
-          data: dataObtenido,
-          backgroundColor: '#3f6b52', 
-          borderWidth: 1
-        },
-        {
-          label: 'Máximo',
-          data: dataMaximo,
-          backgroundColor: '#a9c4b3',
-          borderWidth: 1
-        }
+        { label: 'Nivel Obtenido', data: dataObtenido, backgroundColor: '#2f5240' },
+        { label: 'Nivel Esperado', data: dataMaximo, backgroundColor: '#a5b5ab' }
       ]
     },
     options: {
-      responsive: false, // Fundamental en false para que html2canvas lo capture correctamente en A4
-      animation: false,  // Desactivado para que en el export esté ya dibujado
-      scales: {
-        y: {
-          beginAtZero: true
-        }
-      },
-      plugins: {
-        legend: { position: 'top' }
+      responsive: false,
+      animation: false, // Fundamental para exportación
+      scales: { 
+        y: { beginAtZero: true, max: 10 } 
       }
     }
   });
 }
 
-function inicializarBotonera() {
-  const camposGuardables = ['nombreCandidato', 'cargoPostula', 'fortalezas', 'debilidades'];
+// ==========================================
+// 3. INICIALIZACIÓN
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  generarInputsCompetencias();
+  
+  // Asignar eventos de input a todo
+  document.querySelectorAll('input, textarea').forEach(el => {
+    el.addEventListener('input', renderPreview);
+  });
+
+  // Configurar Botonera Compartida
+  const camposGuardables = ['fechaInforme','solicitante','nombre','cargoPostulacion','fechaNac','edad','ci','contacto','fortalezasTexto','debilidadesTexto','conclusionTexto'];
   for (let i = 1; i <= TOTAL_COMPETENCIAS; i++) {
     camposGuardables.push(`comp_nombre_${i}`, `comp_obt_${i}`, `comp_max_${i}`);
   }
@@ -112,55 +129,49 @@ function inicializarBotonera() {
   if (window.Botonera) {
     window.Botonera.init({
       camposGuardables: camposGuardables,
-      camposNoLimpiar: [],
+      camposNoLimpiar: ['consultoria','logoNombre','logoLeyenda','elaboradoPor'],
       camposOrtografia: [
-        { id: 'fortalezas', label: 'Fortalezas' },
-        { id: 'debilidades', label: 'Debilidades' }
+        { id: 'fortalezasTexto', label: 'Fortalezas' },
+        { id: 'debilidadesTexto', label: 'Debilidades' },
+        { id: 'conclusionTexto', label: 'Conclusión' }
       ],
       nombreArchivoBase: 'Informe_ACE',
-      onResetExtra: function() {
-        actualizarPreview();
-      },
-      onLoadExtra: function() {
-        actualizarPreview();
-      }
+      onResetExtra: function() { renderPreview(); },
+      onLoadExtra: function() { renderPreview(); }
     });
   }
-}
+  
+  renderPreview();
+});
 
-// =======================================================
-// CONTRATO: EXPORTACIÓN A PDF Y WORD
-// =======================================================
-
+// ==========================================
+// 4. CONTRATO DE EXPORTACIÓN (PDF y WORD)
+// ==========================================
 window.downloadPDF = async function() {
   const btn = document.querySelector('[data-action="pdf"]');
   const status = document.getElementById('status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Generando PDF, por favor espera...';
+  if (status) status.textContent = 'Generando PDF...';
 
   try {
-    const previewEl = document.getElementById('informe-preview');
+    const previewEl = document.getElementById('pdfPreview');
     const canvas = await html2canvas(previewEl, { scale: 2, useCORS: true });
     const imgData = canvas.toDataURL('image/jpeg', 0.98);
     
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
+    pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297);
     
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-    
-    const nombre = document.getElementById('nombreCandidato').value.trim() || 'Candidato';
+    const nombre = val('nombre').trim() || 'Candidato';
     pdf.save(`Informe_ACE_${nombre.replace(/\s+/g, '_')}.pdf`);
     
-    if (status) status.textContent = '✔ PDF descargado con éxito.';
+    if (status) status.textContent = '✔ PDF descargado.';
   } catch (e) {
     console.error(e);
-    if (status) status.textContent = '⚠ Error al generar el PDF.';
+    if (status) status.textContent = '⚠ Error en PDF.';
   } finally {
     if (btn) btn.disabled = false;
-    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+    setTimeout(() => { if(status) status.textContent = ''; }, 4000);
   }
 };
 
@@ -168,85 +179,63 @@ window.downloadWord = async function() {
   const btn = document.querySelector('[data-action="word"]');
   const status = document.getElementById('status');
   if (btn) btn.disabled = true;
-  if (status) status.textContent = 'Generando Word, por favor espera...';
+  if (status) status.textContent = 'Generando Word...';
 
   try {
-    const nombre = document.getElementById('nombreCandidato').value.trim() || '-';
-    const cargo = document.getElementById('cargoPostula').value.trim() || '-';
-    const fortalezas = document.getElementById('fortalezas').value.trim() || 'Sin registro.';
-    const debilidades = document.getElementById('debilidades').value.trim() || 'Sin registro.';
-
-    // 1. Capturar el Canvas de Chart.js como imagen Base64
+    const nombre = val('nombre').trim() || '-';
+    
+    // Capturar Chart.js como Base64 limpio para inyectar en Word
     const canvasGrafico = document.getElementById('graficoCompetencias');
     const imgDataCompleta = canvasGrafico.toDataURL("image/png");
     const imgDataB64 = imgDataCompleta.split(',')[1]; 
 
-    // 2. Construir la estructura del documento Word
     const children = [
-      new docx.Paragraph({ 
-        text: "SM Consultores", 
-        heading: docx.HeadingLevel.HEADING_1,
-        alignment: docx.AlignmentType.CENTER
-      }),
-      new docx.Paragraph({ 
-        text: "Evaluación de Competencias Ejecutivas (A.C.E.)", 
-        heading: docx.HeadingLevel.HEADING_2,
-        alignment: docx.AlignmentType.CENTER
-      }),
-      new docx.Paragraph({ text: "" }), 
-      new docx.Paragraph({
-        children: [
-          new docx.TextRun({ text: "Candidato: ", bold: true }),
-          new docx.TextRun({ text: nombre })
-        ]
-      }),
-      new docx.Paragraph({
-        children: [
-          new docx.TextRun({ text: "Cargo: ", bold: true }),
-          new docx.TextRun({ text: cargo })
-        ]
-      }),
-      new docx.Paragraph({ text: "" }), 
-      new docx.Paragraph({ text: "Fortalezas", heading: docx.HeadingLevel.HEADING_3 }),
-      new docx.Paragraph({ text: fortalezas }),
+      new docx.Paragraph({ text: "Evaluación de Competencias Ejecutivas (A.C.E.)", heading: docx.HeadingLevel.HEADING_1, alignment: docx.AlignmentType.CENTER }),
       new docx.Paragraph({ text: "" }),
-      new docx.Paragraph({ text: "Debilidades / Áreas de Mejora", heading: docx.HeadingLevel.HEADING_3 }),
-      new docx.Paragraph({ text: debilidades }),
-      new docx.Paragraph({ text: "" }),
-      new docx.Paragraph({ text: "Perfil de Competencias", heading: docx.HeadingLevel.HEADING_3 }),
+      new docx.Paragraph({ text: `Candidato: ${nombre}` }),
+      new docx.Paragraph({ text: `Cargo evaluado: ${val('cargoPostulacion')}` }),
+      new docx.Paragraph({ text: `C.I.: ${val('ci')}  |  Edad: ${val('edad')}` }),
       new docx.Paragraph({ text: "" }),
       
-      // 3. Inyectar la imagen del gráfico nativamente en el Word
+      new docx.Paragraph({ text: "Fortalezas", heading: docx.HeadingLevel.HEADING_2 }),
+      new docx.Paragraph({ text: val('fortalezasTexto') || '-' }),
+      new docx.Paragraph({ text: "" }),
+      
+      new docx.Paragraph({ text: "Áreas de Mejora", heading: docx.HeadingLevel.HEADING_2 }),
+      new docx.Paragraph({ text: val('debilidadesTexto') || '-' }),
+      new docx.Paragraph({ text: "" }),
+      
+      new docx.Paragraph({ text: "Perfil de Competencias", heading: docx.HeadingLevel.HEADING_2 }),
+      // Imagen del gráfico inyectada de forma nativa
       new docx.Paragraph({
         alignment: docx.AlignmentType.CENTER,
         children: [
           new docx.ImageRun({
             data: Uint8Array.from(atob(imgDataB64), c => c.charCodeAt(0)),
-            transformation: {
-              width: 550, 
-              height: 300
-            }
+            transformation: { width: 550, height: 280 }
           })
         ]
-      })
+      }),
+      new docx.Paragraph({ text: "" }),
+      
+      new docx.Paragraph({ text: "Conclusión", heading: docx.HeadingLevel.HEADING_2 }),
+      new docx.Paragraph({ text: val('conclusionTexto') || '-' })
     ];
 
-    const doc = new docx.Document({
-      sections: [{ properties: {}, children: children }]
-    });
-
+    const doc = new docx.Document({ sections: [{ properties: {}, children }] });
     const blob = await docx.Packer.toBlob(doc);
+    
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `Informe_ACE_${nombre.replace(/\s+/g, '_')}.docx`;
     link.click();
 
-    if (status) status.textContent = '✔ Documento Word descargado con éxito.';
+    if (status) status.textContent = '✔ Word descargado.';
   } catch (e) {
     console.error(e);
-    if (status) status.textContent = '⚠ Error al generar el Word.';
+    if (status) status.textContent = '⚠ Error en Word.';
   } finally {
     if (btn) btn.disabled = false;
-    if (status) setTimeout(() => { status.textContent = ''; }, 4000);
+    setTimeout(() => { if(status) status.textContent = ''; }, 4000);
   }
 };
