@@ -1,188 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
+/* Layout del editor a pantalla dividida */
+body { margin: 0; padding: 0; background: #eef0ea; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+.app-container { display: flex; flex: 1; overflow: hidden; margin-top: 60px; /* Espacio para botonera */ }
+.form-panel { width: 400px; padding: 20px; background: #fff; overflow-y: auto; border-right: 1px solid #dcddd0; }
+.preview-panel { flex: 1; padding: 20px; overflow-y: auto; display: flex; justify-content: center; }
 
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: #eef2f5;
-  display: flex;
-}
+/* Controles de formulario */
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; font-size: 13px; color: #52616d; margin-bottom: 5px; font-weight: 600; }
+.form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #b8c7d4; border-radius: 6px; box-sizing: border-box; }
 
-/* ---------------- PANEL IZQUIERDO ---------------- */
-#panel {
-  width: 400px;
-  background: #fff;
-  border-right: 1px solid #ccc;
-  padding: 20px;
-  height: 100vh;
-  overflow-y: auto;
-  position: relative;
-}
-#panel h1 {
-  font-size: 20px;
-  color: #1f4e79;
-  margin-top: 0;
-}
-fieldset {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  padding: 10px;
-}
-legend {
-  font-weight: bold;
-  color: #555;
-  font-size: 14px;
-}
-label {
-  display: block;
-  margin-top: 10px;
-  font-size: 12px;
-  color: #666;
-  font-weight: bold;
-}
-input[type="text"], input[type="date"], textarea {
-  width: 100%;
-  padding: 6px;
-  margin-top: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 13px;
-  font-family: inherit;
-}
-.radio-group label {
-  display: inline-block;
-  margin-right: 10px;
-  font-weight: normal;
-}
-.comp-row {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 5px;
-  align-items: center;
-}
-.comp-row input[type="text"] { flex: 1; }
-.comp-row input[type="number"] { width: 60px; text-align: center; }
-
-/* ---------------- VISTA PREVIA (DERECHA) ---------------- */
-#previewWrap {
-  flex: 1;
-  height: 100vh;
-  overflow-y: auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #999;
-}
-.page {
+/* Vista Previa (Simulación A4) */
+.hoja-a4 {
+  background: white;
   width: 210mm;
   min-height: 297mm;
-  background: #fff;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
   padding: 20mm;
-  font-family: 'Calibri', Arial, sans-serif;
-  color: #333;
-  position: relative;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+  font-family: 'Times New Roman', serif;
+  color: #000;
 }
-.firma-footer {
-  position: absolute;
-  bottom: 20mm;
-  right: 20mm;
-  text-align: right;
-}
-.firma-footer img {
-  width: 100px;
-  display: block;
-  margin-left: auto;
-}
-.firma-footer p {
-  font-size: 11px;
-  color: #777;
-  margin-top: 5px;
-}
+.cabezal-img { width: 100%; max-height: 80px; object-fit: contain; margin-bottom: 20px; }
+.titulo-informe { text-align: center; font-size: 18px; margin-bottom: 30px; color: #171c26; }
+.datos-personales { margin-bottom: 20px; }
+.datos-personales p { margin: 5px 0; }
+.grafico-container { text-align: center; margin-top: 30px; }
+.diana-img { max-width: 100%; height: auto; }
 
-/* ---- CABEZAL (FLEX) ---- */
-.cabezal-flex {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  border-bottom: 2px solid #1f4e79;
-  padding-bottom: 15px;
-}
-.titulo-cabezal h2 {
-  color: #1f4e79;
-  font-size: 24px;
-  margin: 0;
-  line-height: 1.2;
-}
-.info-elaborador {
-  text-align: right;
-  font-size: 12px;
-  color: #555;
-  line-height: 1.6;
-}
-.info-elaborador p { margin: 0; }
-
-/* ---- DATOS POSTULANTE ---- */
-.datos-postulante {
-  border-left: 5px solid #1f4e79;
-  padding-left: 15px;
-  margin-bottom: 30px;
-}
-.datos-postulante h3 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 16px;
-  letter-spacing: 1px;
-}
-.datos-postulante .fila {
-  display: flex;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-.datos-postulante .etiqueta {
-  font-weight: bold;
-  width: 200px;
-  color: #1f4e79;
-}
-.datos-postulante .valor {
-  flex: 1;
-  color: #333;
-}
-
-/* ---- TEXTOS GENERALES ---- */
-.seccion-texto {
-  font-size: 14px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-/* ---- GRÁFICA ---- */
-.chart-container {
-  width: 100%;
-  height: 350px;
-  margin-bottom: 30px;
-}
-
-/* ---- TABLA CLASIFICACIÓN ---- */
-.tabla-clasificacion {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-.tabla-clasificacion td {
-  border: 1px solid #1f4e79;
-  padding: 10px;
-  font-size: 14px;
-  font-weight: bold;
-  color: #333;
-}
-.tabla-clasificacion td.celda-marca {
-  width: 60px;
-  text-align: center;
-  font-size: 18px;
-  color: #1f4e79;
+/* ============================================================
+   REGLAS DE IMPRESIÓN (PDF NATIVO)
+   ============================================================ */
+@media print {
+  body { background: white; margin: 0; padding: 0; display: block; }
+  
+  /* Ocultar interfaz de usuario */
+  #actions, .form-panel, #status { display: none !important; }
+  
+  /* Resetear el panel de vista previa para impresión */
+  .app-container { margin: 0; display: block; }
+  .preview-panel { padding: 0; display: block; overflow: visible; }
+  
+  .hoja-a4 {
+    box-shadow: none;
+    width: 100%;
+    min-height: auto;
+    padding: 0;
+    margin: 0;
+  }
 }
