@@ -1,0 +1,162 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: #eef0ea;
+  color: #212a24;
+}
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Panel Formulario */
+.form-panel {
+  width: 400px;
+  background-color: #fbfbf7;
+  border-right: 1px solid #dcddd0;
+  padding: 24px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+.form-panel h2 {
+  font-size: 1.15rem;
+  margin-top: 0;
+  color: #171c26;
+  border-bottom: 2px solid #3f6b52;
+  padding-bottom: 10px;
+}
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #3a4657;
+}
+.form-group input[type="text"],
+.form-group textarea {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #dcddd0;
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+.form-group textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.section-title {
+  font-size: 1.05rem;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  color: #2f5240;
+  border-bottom: 1px solid #dcddd0;
+  padding-bottom: 6px;
+}
+
+/* Inputs de Competencias */
+.comp-item {
+  background: #eef0ea;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #dcddd0;
+}
+.input-nombre {
+  width: 100%;
+  padding: 7px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 0.85rem;
+}
+.comp-scores {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+.comp-scores input {
+  width: 60px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Panel Vista Previa A4 */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+}
+.informe-page {
+  background: white;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 25mm 20mm;
+  box-sizing: border-box;
+  box-shadow: 0 8px 24px rgba(23, 28, 38, 0.15);
+  border-radius: 4px;
+}
+.informe-header {
+  border-bottom: 3px solid #3f6b52;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+}
+.informe-header h1 {
+  margin: 0;
+  font-size: 22px;
+  color: #171c26;
+}
+.informe-header h2 {
+  margin: 5px 0 0 0;
+  font-size: 15px;
+  color: #667169;
+  font-weight: normal;
+}
+.informe-datos {
+  background: #fbfbf7;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 25px;
+  border-left: 4px solid #b6863f;
+}
+.informe-datos p {
+  margin: 5px 0;
+  font-size: 13.5px;
+}
+.informe-seccion {
+  margin-bottom: 25px;
+}
+.informe-seccion h3 {
+  font-size: 15px;
+  color: #2f5240;
+  border-bottom: 1px solid #dcddd0;
+  padding-bottom: 5px;
+  margin-bottom: 12px;
+}
+.informe-seccion p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #212a24;
+  white-space: pre-wrap;
+  margin: 0;
+}
+.grafico-seccion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+#graficoCompetencias {
+  background: white;
+  margin-top: 10px;
+}
