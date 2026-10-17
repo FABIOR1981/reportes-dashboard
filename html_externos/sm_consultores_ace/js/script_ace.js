@@ -1,17 +1,17 @@
 const DEFAULT_COMPETENCIAS = [
-  '6.1 - Liderazgo',
-  '6.2 - Capacidad de trabajo en equipo y coordinación',
-  '6.3 - Resolución de problemas, toma de decisiones y gestión de conflictos',
-  '6.4 - Habilidades de comunicación efectiva y percepción de necesidades de los socios',
-  '6.5 - Orientación al cliente, al socio y a resultados',
-  '6.6 - Capacidad de negociación',
-  '6.7 - Organización, planificación y cumplimiento normativo',
-  '6.8 - Gestión eficiente y atención al detalle',
-  '6.9 - Iniciativa, proactividad y enfoque comercial',
-  '6.10 - Adaptabilidad y gestión del cambio',
-  '6.11 - Conocimientos administrativos básicos',
-  '6.12 - Manejo de tecnologías de la información básicos',
-  '6.13 - Conocimiento de la comunidad, interacción y relacionamiento con actores externos'
+  { codigo: '6.1', nombre: 'Liderazgo' },
+  { codigo: '6.2', nombre: 'Capacidad de trabajo en equipo y coordinación' },
+  { codigo: '6.3', nombre: 'Resolución de problemas, toma de decisiones y gestión de conflictos' },
+  { codigo: '6.4', nombre: 'Habilidades de comunicación efectiva y percepción de necesidades de los socios' },
+  { codigo: '6.5', nombre: 'Orientación al cliente, al socio y a resultados' },
+  { codigo: '6.6', nombre: 'Capacidad de negociación' },
+  { codigo: '6.7', nombre: 'Organización, planificación y cumplimiento normativo' },
+  { codigo: '6.8', nombre: 'Gestión eficiente y atención al detalle' },
+  { codigo: '6.9', nombre: 'Iniciativa, proactividad y enfoque comercial' },
+  { codigo: '6.10', nombre: 'Adaptabilidad y gestión del cambio' },
+  { codigo: '6.11', nombre: 'Conocimientos administrativos básicos' },
+  { codigo: '6.12', nombre: 'Manejo de tecnologías de la información básicos' },
+  { codigo: '6.13', nombre: 'Conocimiento de la comunidad, interacción y relacionamiento con actores externos' }
 ];
 let chartInstance = null;
 let firmaReferenciaPromise;
@@ -41,6 +41,7 @@ function setText(id, text){
 }
 
 function crearInputCompetencia(datos = {}, index = 1){
+  const campos = separarCodigoNombre(datos, index);
   const item = document.createElement('div');
   item.className = 'ace-comp-input';
   item.innerHTML = `
@@ -48,7 +49,10 @@ function crearInputCompetencia(datos = {}, index = 1){
       <label>Competencia ${index}</label>
       <button type="button" class="ace-comp-remove" aria-label="Quitar competencia">Quitar</button>
     </div>
-    <input type="text" class="c-nombre" spellcheck="true">
+    <div class="ace-comp-code-name">
+      <div><label>Código</label><input type="text" class="c-codigo"></div>
+      <div><label>Nombre</label><input type="text" class="c-nombre" spellcheck="true"></div>
+    </div>
     <div class="row2">
       <div><label>Puntaje obtenido</label><input type="number" class="c-obtenido" min="0" max="5" step="1"></div>
       <div><label>Puntaje máximo</label><input type="number" class="c-maximo" min="1" max="5" step="1"></div>
@@ -56,28 +60,43 @@ function crearInputCompetencia(datos = {}, index = 1){
     <label>Descripción de la competencia</label>
     <textarea class="c-descripcion" placeholder="Describe el indicador evaluado" spellcheck="true"></textarea>
   `;
-  item.querySelector('.c-nombre').value = datos.nombre || '';
-  item.querySelector('.c-obtenido').value = datos.obtenido ?? 0;
-  item.querySelector('.c-maximo').value = datos.maximo ?? 3;
-  item.querySelector('.c-descripcion').value = datos.descripcion || '';
+  item.querySelector('.c-codigo').value = campos.codigo;
+  item.querySelector('.c-nombre').value = campos.nombre;
+  item.querySelector('.c-obtenido').value = datos.obtenido ?? datos.puntaje ?? 0;
+  item.querySelector('.c-maximo').value = datos.maximo ?? 5;
+  item.querySelector('.c-descripcion').value = datos.descripcion || datos.desc || '';
   return item;
 }
 
-function generarInputsCompetencias(competencias = DEFAULT_COMPETENCIAS.map(nombre => ({ nombre, obtenido: 0, maximo: 5, descripcion: '' }))){
+function separarCodigoNombre(datos, index){
+  const codigo = datos.codigo == null ? '' : String(datos.codigo).trim();
+  const nombre = String(datos.nombre || '').trim();
+  if(codigo) return { codigo, nombre };
+  const coincidencia = nombre.match(/^((?:\d+\.)?\d+)\s*[-–]\s*(.+)$/);
+  if(coincidencia) return { codigo: coincidencia[1], nombre: coincidencia[2] };
+  const predeterminado = DEFAULT_COMPETENCIAS[index - 1];
+  return predeterminado && nombre === predeterminado.nombre
+    ? predeterminado
+    : { codigo: '', nombre };
+}
+
+function generarInputsCompetencias(competencias = DEFAULT_COMPETENCIAS.map(competencia => ({ ...competencia, obtenido: 0, maximo: 5, descripcion: '' }))){
   const container = document.getElementById('compContainer');
   container.replaceChildren(...competencias.map((datos, index) => crearInputCompetencia(datos, index + 1)));
   actualizarBotonesCompetencias();
 }
 
 function actualizarBotonesCompetencias(){
-  const items = document.querySelectorAll('#compContainer .ace-comp-input');
-  items.forEach(item => {
+  const items = Array.from(document.querySelectorAll('#compContainer .ace-comp-input'));
+  items.forEach((item, index) => {
+    item.querySelector('.ace-comp-heading label').textContent = `Competencia ${index + 1}`;
     item.querySelector('.ace-comp-remove').disabled = items.length === 1;
   });
 }
 
 function obtenerCompetencias(){
   return Array.from(document.querySelectorAll('#compContainer .ace-comp-input')).map((item, index) => ({
+    codigo: item.querySelector('.c-codigo').value.trim(),
     nombre: item.querySelector('.c-nombre').value.trim() || `Competencia ${index + 1}`,
     descripcion: item.querySelector('.c-descripcion').value.trim(),
     obtenido: Number(item.querySelector('.c-obtenido').value) || 0,
@@ -135,26 +154,33 @@ function renderClasificacion(){
 
 function renderCompetencias(competencias){
   const container = document.getElementById('compOutContainer');
-  const fragment = document.createDocumentFragment();
+  const table = document.createElement('table');
+  table.className = 'comp-results-table';
+  table.innerHTML = `
+    <thead><tr>
+      <th>Resultado</th>
+      <th>Competencia (código - nombre)</th>
+      <th>Puntaje obtenido</th>
+      <th>Puntaje máximo</th>
+    </tr></thead>
+    <tbody></tbody>`;
+  const body = table.querySelector('tbody');
   competencias.forEach(competencia => {
-    const row = document.createElement('div');
-    row.className = 'comp-summary';
-    const details = document.createElement('div');
-    details.className = 'comp-summary-details';
-    const name = document.createElement('strong');
-    name.className = 'comp-summary-name';
-    name.textContent = competencia.nombre;
-    const description = document.createElement('span');
-    description.className = 'comp-summary-description';
-    description.textContent = competencia.descripcion || 'Descripción pendiente';
-    const score = document.createElement('strong');
-    score.className = 'comp-summary-score';
-    score.textContent = `${competencia.obtenido} / ${competencia.maximo}`;
-    details.append(name, description);
-    row.append(details, score);
-    fragment.appendChild(row);
+    const row = document.createElement('tr');
+    [
+      competencia.descripcion || 'Descripción pendiente',
+      `${competencia.codigo ? `${competencia.codigo} - ` : ''}${competencia.nombre}`,
+      competencia.obtenido,
+      competencia.maximo
+    ].forEach((value, index) => {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      if(index > 1) cell.className = 'comp-results-score';
+      row.appendChild(cell);
+    });
+    body.appendChild(row);
   });
-  container.replaceChildren(fragment);
+  container.replaceChildren(table);
 }
 
 function dibujarGrafico(competencias){
@@ -168,7 +194,7 @@ function dibujarGrafico(competencias){
   chartInstance = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
-      labels: competencias.map(item => envolverEtiqueta(item.nombre)),
+      labels: competencias.map((item, index) => item.codigo || String(index + 1)),
       datasets: [
         { label: 'Puntaje Obtenido', data: competencias.map(item => item.obtenido), backgroundColor: '#08A8DF', maxBarThickness: 22 },
         { label: 'Puntaje Máximo', data: competencias.map(item => item.maximo), backgroundColor: '#155A78', maxBarThickness: 22 }
@@ -272,7 +298,7 @@ function inicializar(){
   panel.addEventListener('change', renderPreview);
   document.getElementById('addCompBtn').addEventListener('click', () => {
     const number = container.children.length + 1;
-    container.appendChild(crearInputCompetencia({ nombre: `Competencia ${number}`, obtenido: 0, maximo: 5 }, number));
+    container.appendChild(crearInputCompetencia({ codigo: '', nombre: `Competencia ${number}`, obtenido: 0, maximo: 5 }, number));
     actualizarBotonesCompetencias();
     renderPreview();
   });
@@ -303,12 +329,12 @@ function inicializar(){
       onLoadExtra: data => {
         const competencias = Array.isArray(data.competencias)
           ? data.competencias
-          : DEFAULT_COMPETENCIAS.map((nombre, index) => ({
-              nombre: data[`comp_nombre_${index + 1}`] || nombre,
-              obtenido: data[`comp_obt_${index + 1}`] ?? 0,
-              maximo: data[`comp_max_${index + 1}`] ?? 5,
-              descripcion: ''
-            }));
+            : DEFAULT_COMPETENCIAS.map((competencia, index) => ({
+                ...separarCodigoNombre({ nombre: data[`comp_nombre_${index + 1}`] || `${competencia.codigo} - ${competencia.nombre}` }, index + 1),
+                obtenido: data[`comp_obt_${index + 1}`] ?? 0,
+                maximo: data[`comp_max_${index + 1}`] ?? 5,
+                descripcion: ''
+              }));
         generarInputsCompetencias(competencias);
         renderPreview();
       },
@@ -498,23 +524,19 @@ window.downloadWord = async function(){
     const dataTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: dataRows });
 
     const competenceRows = [new TableRow({ children: [
-      makeCell('COMPETENCIA / DESCRIPCIÓN', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 60 }),
-      makeCell('OBTENIDO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 20 }),
-      makeCell('MÁXIMO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 20 })
+      makeCell('RESULTADO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 32 }),
+      makeCell('COMPETENCIA (CÓDIGO - NOMBRE)', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 40 }),
+      makeCell('PUNTAJE OBTENIDO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 14 }),
+      makeCell('PUNTAJE MÁXIMO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 14 })
     ]})];
     competencias.forEach((competencia, index) => {
       const fill = index % 2 ? 'FFFFFF' : light;
-      const detailCell = new TableCell({
-        width: { size: 60, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.CLEAR, fill },
-        margins: { top: 80, bottom: 80, left: 140, right: 140 },
-        borders: bordersThin,
-        children: [
-          new Paragraph({ spacing: { after: 30 }, children: [textRun(competencia.nombre, { bold: true })] }),
-          new Paragraph({ children: [textRun(competencia.descripcion || 'Descripción pendiente', { color: '5B6B70', size: 17 })] })
-        ]
-      });
-      competenceRows.push(new TableRow({ children: [detailCell, makeCell(competencia.obtenido, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 20 }), makeCell(competencia.maximo, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 20 })] }));
+      competenceRows.push(new TableRow({ children: [
+        makeCell(competencia.descripcion || 'Descripción pendiente', { fill, width: 32 }),
+        makeCell(`${competencia.codigo ? `${competencia.codigo} - ` : ''}${competencia.nombre}`, { fill, bold: true, width: 40 }),
+        makeCell(competencia.obtenido, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 14 }),
+        makeCell(competencia.maximo, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 14 })
+      ]}));
     });
     const competenceTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: competenceRows });
 
