@@ -1,10 +1,12 @@
 function init() {
   // 1. Configurar la Botonera Compartida
   Botonera.init({
-    camposGuardables: ['nombre', 'puesto', 'observaciones'], // IDs exactos del DOM
+    camposGuardables: ['nombre', 'puesto', 'observaciones', 'fortalezas', 'mejoras'], 
     camposNoLimpiar: [],
     camposOrtografia: [
-      { id: 'observaciones', label: 'Observaciones / Resumen' }
+      { id: 'observaciones', label: 'Observaciones / Resumen' },
+      { id: 'fortalezas', label: 'Fortalezas' },
+      { id: 'mejoras', label: 'Áreas de mejora' }
     ],
     nombreArchivoBase: 'ACE',
     onResetExtra: function() {
