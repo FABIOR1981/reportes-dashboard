@@ -2,230 +2,204 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Generador A.C.E. - SM Consultores</title>
-  <link rel="stylesheet" href="../sm_consultores/css/style_psicotecnico_Grafico.css">
-  <!-- CSS 100% Local de esta carpeta -->
-  <link rel="stylesheet" href="css/style_ace.css">
-  <!-- Botonera compartida -->
-  <link rel="stylesheet" href="../_shared/botonera.css">
+  <title>Generador de Informe ACE</title>
   
+  <!-- Dependencias -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/style_ace.css">
+  
+  <!-- Estilos y scripts compartidos del dashboard (botonera) -->
+  <link rel="stylesheet" href="../_shared/botonera.css">
   <script src="../_shared/botonera.js"></script>
 </head>
 <body>
 
-  <!-- ================= FORMULARIO ================= -->
-  <div id="panel">
-    <h1>Informe A.C.E.</h1>
-    <p class="sub">Evaluación de Competencias Ejecutivas con gráfico integrado.</p>
+<div id="panel">
+  <h1>Generador Informe ACE</h1>
+  
+  <fieldset>
+    <legend>1. Encabezado</legend>
+    <label>Fecha de emisión (PDF)</label>
+    <input type="text" id="fechaInforme" value="Sep 1, 2025">
+    <label>Elaborado por</label>
+    <input type="text" id="elaboradoPor" value="Lic. Psic. Rita Morales">
+  </fieldset>
+
+  <fieldset>
+    <legend>2. Datos del postulante</legend>
+    <label>Nombre</label>
+    <input type="text" id="nombre" value="Nicolás Galeano">
+    <label>Cargo Postulación</label>
+    <input type="text" id="cargoPostulacion" value="Jefe de Sucursal CANELONES">
+    <label>C.I.</label>
+    <input type="text" id="ci" value="3.452.202-4">
+    <label>Contacto</label>
+    <input type="text" id="contacto" value="099782652">
+    <label>Fecha y hora de evaluación</label>
+    <input type="text" id="fechaEval" value="Viernes 15 de Agosto / Hora 14:00hs">
+  </fieldset>
+
+  <fieldset>
+    <legend>3. Textos</legend>
+    <label>Objetivo</label>
+    <textarea id="objetivo" spellcheck="true" style="height:80px;">El presente informe tiene como objetivo evaluar las competencias que impulsen tanto el liderazgo, como el logro de objetivos, y las habilidades valoradas para el puesto, según bases publicadas.</textarea>
     
-    <fieldset id="cabezalFieldset">
-      <legend>Cabezal (datos fijos)</legend>
-      <label>Consultoría</label>
-      <input type="text" id="consultoria" value="SM Consultores" readonly>
-      <div class="row2">
-        <div><label>Nombre de marca (logo)</label><input type="text" id="logoNombre" value="Shalon Morales" readonly></div>
-        <div><label>Leyenda bajo logo</label><input type="text" id="logoLeyenda" value="CONSULTORES" readonly></div>
-      </div>
-      <label>Elaborado por</label>
-      <input type="text" id="elaboradoPor" value="Lic. Psic. Rita Morales" readonly>
-    </fieldset>
+    <label>Fortalezas</label>
+    <textarea id="fortalezas" spellcheck="true" style="height:80px;">• Presenta un liderazgo carismático actualmente.
+• En cuanto a la comunicación, el postulante tendrá la capacidad de adaptar el mensaje al receptor.
+• Fomentará un ambiente de trabajo colaborativo y positivo.
+• Buscará resultados óptimos, y tratará de identificar riesgos.</textarea>
+    
+    <label>Debilidades</label>
+    <textarea id="debilidades" spellcheck="true" style="height:80px;">Se observa que, por el momento, la creatividad y la articulación de conceptos se presentan de manera limitada, con una tendencia a permanecer en un nivel descriptivo. Aún no logra profundizar en alternativas ni en la secuencia de los procesos, lo que abre una oportunidad de mejora. Sería valioso que el postulante pueda involucrarse de forma más activa y participativa en los procesos, potenciando así su aporte al equipo.</textarea>
+    
+    <label>Conclusión general</label>
+    <textarea id="conclusion" spellcheck="true" style="height:80px;">El liderazgo que presenta el postulante Nicolas Gaelano, refiere a un aspecto de liderazgo carismático. Percibirá las necesidades de las personas y procurará cubrir las expectativas de estas. Valora la conexión social y estará dispuesto a esforzarse para alcanzar sus metas.</textarea>
+  </fieldset>
 
-    <fieldset>
-      <legend>Datos del informe</legend>
-      <div class="row2">
-        <div><label>Fecha</label><input type="date" id="fechaInforme"></div>
-        <div><label>Solicitado por</label><input type="text" id="solicitante" value="Empresa Ejemplo S.A." spellcheck="true"></div>
-      </div>
-    </fieldset>
+  <fieldset>
+    <legend>4. Puntajes de Competencias</legend>
+    <div id="compContainer"></div>
+  </fieldset>
 
-    <fieldset>
-      <legend>Datos del postulante</legend>
-      <label>Nombre completo</label>
-      <input type="text" id="nombre" spellcheck="true">
-      <label>Cargo al que postula</label>
-      <input type="text" id="cargoPostulacion" spellcheck="true">
-      <div class="row2">
-        <div><label>Fecha de Nac.</label><input type="date" id="fechaNac"></div>
-        <div><label>Edad</label><input type="number" id="edad"></div>
-      </div>
-      <div class="row2">
-        <div><label>C.I.</label><input type="text" id="ci"></div>
-        <div><label>Contacto</label><input type="text" id="contacto"></div>
-      </div>
-      <label>Fecha de evaluación</label>
-      <input type="date" id="fechaEval">
-    </fieldset>
+  <fieldset>
+    <legend>5. Clasificación Resultado</legend>
+    <div class="radio-group">
+      <label><input type="radio" name="recom" value="RECOMENDABLE" checked> Recomendable</label>
+      <label><input type="radio" name="recom" value="RECOMENDABLE CON OBSERVACIÓN"> Con Observación</label>
+      <label><input type="radio" name="recom" value="NO RECOMENDABLE"> No Recomendable</label>
+    </div>
+  </fieldset>
 
-    <fieldset>
-      <legend>Evaluación A.C.E. (13 Competencias)</legend>
-      <div id="compContainer"></div> <!-- Se inyectan las 13 competencias por JS -->
-      <button type="button" id="addCompBtn" class="ace-add-comp">+ Agregar competencia</button>
-    </fieldset>
-
-    <fieldset>
-      <legend>Textos del Informe</legend>
-      <label>Fortalezas</label>
-      <textarea id="fortalezasTexto" spellcheck="true"></textarea>
-      <label>Debilidades / Oportunidades de mejora</label>
-      <textarea id="debilidadesTexto" spellcheck="true"></textarea>
-      <label>Conclusión</label>
-      <textarea id="conclusionTexto" spellcheck="true"></textarea>
-    </fieldset>
-
-    <fieldset>
-      <legend>Clasificación final</legend>
-      <div class="radio-row">
-        <label><input type="radio" name="clasif" value="RECOMENDABLE"> Recomendable</label>
-      </div>
-      <div class="radio-row">
-        <label><input type="radio" name="clasif" value="RECOMENDABLE CON OBSERVACIÓN" checked> Recomendable con observación</label>
-      </div>
-      <div class="radio-row">
-        <label><input type="radio" name="clasif" value="NO RECOMENDABLE"> No recomendable</label>
-      </div>
-    </fieldset>
+  <!-- Botonera generada dinámicamente o clonada -->
+  <div class="btn-toolbar" id="actions">
+    <button class="btn btn-primary" data-action="pdf" aria-label="Descargar PDF">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span class="tooltip">Descargar PDF</span>
+    </button>
+    <button class="btn btn-primary" data-action="word" aria-label="Descargar Word">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span class="tooltip">Descargar Word</span>
+    </button>
+    <button class="btn btn-secondary" data-action="save" aria-label="Guardar datos">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span class="tooltip">Guardar datos</span>
+    </button>
+    <button class="btn btn-secondary" data-action="load" aria-label="Cargar datos">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span class="tooltip">Cargar datos</span>
+    </button>
+    <input type="file" id="loadInput" accept="application/json,.json" hidden>
+    <button class="btn btn-tertiary" data-action="spellcheck" aria-label="Revisar ortografía">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      <span class="tooltip">Revisar ortografía</span>
+    </button>
+    <button class="btn btn-danger" data-action="reset" aria-label="Limpiar formulario">
+      <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      <span class="tooltip">Limpiar formulario</span>
+    </button>
   </div>
-
-  <!-- ================= VISTA PREVIA ================= -->
-  <div id="previewWrap">
-    <div class="page" id="page1">
-      <div class="header-banner ace-header-banner">
-        <img class="ace-header-image" src="img/cabezal.png" alt="">
-        <div class="ace-header-title">
-          <div class="tag">Informe:</div>
-          <div class="title">Evaluación de Competencias<br>Ejecutivas (A.C.E.)</div>
-        </div>
-        <div class="ace-header-brand">
-          <div class="logo-name" id="out-logoNombre">Shalon Morales</div>
-          <div class="logo-sub" id="out-logoSub">CONSULTORES</div>
-        </div>
-      </div>
-
-      <div class="meta-row">
-        <div>Fecha: <span class="fecha-val" id="out-fechaInforme">-</span></div>
-      </div>
-      <div class="info-row">
-        <div>Elaborado por: <span id="out-elaboradoPor">-</span></div>
-        <div>Consultoría: <span id="out-consultoria">-</span></div>
-      </div>
-
-      <div class="datos-table">
-        <div class="datos-col">
-          <div class="datos-head">DATOS</div>
-          <div class="datos-body">
-            <div class="label-col">NOMBRE:</div>
-            <div class="label-col">CARGO POSTULACIÓN:</div>
-            <div class="label-col">FECHA DE NACIMIENTO:</div>
-            <div class="label-col">EDAD:</div>
-            <div class="label-col">C.I.:</div>
-            <div class="label-col">CONTACTO:</div>
-            <div class="label-col">FECHA DE EVALUACIÓN:</div>
-          </div>
-        </div>
-        <div class="datos-col">
-          <div class="datos-head">POSTULANTE</div>
-          <div class="datos-body right">
-            <div id="out-nombre">-</div>
-            <div id="out-cargoPostulacion">-</div>
-            <div id="out-fechaNac">-</div>
-            <div id="out-edad">-</div>
-            <div id="out-ci">-</div>
-            <div id="out-contacto">-</div>
-            <div id="out-fechaEval">-</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="intro-text">
-        A solicitud de <b id="out-solicitante">-</b>, se realizó una evaluación de competencias ejecutivas a <b id="out-nombre2">-</b> para el cargo de <b id="out-cargoEvaluado">-</b>.
-      </div>
-      <div class="section-title-row">
-        <div class="section-title">Objetivo</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/tabla.png" alt=""></div>
-      </div>
-      <div class="body-text">
-        El presente informe tiene como objetivo presentar los resultados de la Evaluación de Competencias Ejecutivas (A.C.E.), con los niveles obtenidos y esperados en cada competencia, junto con las fortalezas, áreas de mejora y conclusión del perfil evaluado.
-      </div>
-      <div class="page-number">Página 1/3</div>
-    </div>
-
-    <div class="page" id="page2">
-      <div class="section-title-row">
-        <div class="section-title">Gráfica Competencias y habilidades</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/diana.png" alt=""></div>
-      </div>
-      <div class="seccion-grafico">
-        <canvas id="graficoCompetencias" width="650" height="330"></canvas>
-      </div>
-      <p class="graph-summary" id="out-resumenGrafico"></p>
-      <div class="section-title-row ace-results-heading">
-        <div class="section-title">Resultado por competencia</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/tabla.png" alt=""></div>
-      </div>
-      <div id="compOutContainer" class="comp-list"></div>
-      <div class="page-number">Página 2/3</div>
-    </div>
-
-    <div class="page" id="page3">
-      <div class="section-title-row">
-        <div class="section-title">Fortalezas</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/diana.png" alt=""></div>
-      </div>
-      <div class="body-text" id="out-fortalezasTexto">-</div>
-
-      <div class="section-title-row">
-        <div class="section-title">Áreas de mejora</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/diana.png" alt=""></div>
-      </div>
-      <div class="body-text" id="out-debilidadesTexto">-</div>
-
-      <div class="section-title-row">
-        <div class="section-title">Conclusión</div>
-        <div class="section-icon"><img class="ace-section-icon" src="img/diana.png" alt=""></div>
-      </div>
-      <div class="body-text" id="out-conclusionTexto">-</div>
-
-      <div class="clasif-wrap">
-        <div class="clasif-head">CLASIFICACIÓN</div>
-        <div class="clasif-head">RESULTADO</div>
-        <div class="clasif-row clasif-a">RECOMENDABLE</div>
-        <div class="clasif-row clasif-b" id="chk-REC"></div>
-        <div class="clasif-row clasif-a">RECOMENDABLE CON OBSERVACIÓN</div>
-        <div class="clasif-row clasif-b" id="chk-OBS"></div>
-        <div class="clasif-row clasif-a">NO RECOMENDABLE</div>
-        <div class="clasif-row clasif-b" id="chk-NOREC"></div>
-      </div>
-
-      <div class="firma-block" id="firmaBlock">
-        <img id="out-firmaImg" alt="Firma profesional" hidden>
-        <div class="firma-fallback">
-          <div class="firma-cursive" id="out-firmaNombre">Rita Morales</div>
-          <div class="firma-caps" id="out-firmaElaborado">Lic. Psic. Rita Morales</div>
-          <div class="firma-tiny">SM Consultores</div>
-        </div>
-      </div>
-      <div class="page-number">Página 3/3</div>
-    </div>
-  </div>
-
-  <template id="checkSvg">
-    <svg class="checkmark" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="9.5" fill="none" stroke="#177789" stroke-width="2"/>
-      <path d="M7.5 12.5l3 3 6-7" fill="none" stroke="#177789" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </template>
-
-  <!-- Controles Botonera -->
-  <div class="btn-toolbar" id="actions"></div>
   <div id="status"></div>
   <div id="spellPanel"></div>
+</div>
 
-  <!-- JS 100% Local de esta carpeta -->
-  <script src="js/script_ace.js"></script>
+<div id="previewWrap">
+  <!-- PÁGINA 1 -->
+  <div class="page" id="page1">
+    <div class="cabezal-flex">
+      <div class="titulo-cabezal">
+        <h2>Informe:<br>Resultados de Evaluación<br>Psicotécnica</h2>
+      </div>
+      <div class="info-elaborador">
+        <p>Fecha: <span id="prevFechaInforme"></span></p>
+        <p>Elaborado por: <span id="prevElaboradoPor"></span></p>
+        <p>Consultoría: SM Consultores</p>
+      </div>
+    </div>
+    
+    <div class="datos-postulante">
+      <h3>DATOS POSTULANTE</h3>
+      <div class="fila"><span class="etiqueta">NOMBRE:</span><span id="prevNombre" class="valor"></span></div>
+      <div class="fila"><span class="etiqueta">CARGO POSTULACIÓN:</span><span id="prevCargoPostulacion" class="valor"></span></div>
+      <div class="fila"><span class="etiqueta">C.I.:</span><span id="prevCI" class="valor"></span></div>
+      <div class="fila"><span class="etiqueta">CONTACTO:</span><span id="prevContacto" class="valor"></span></div>
+      <div class="fila"><span class="etiqueta">FECHA DE EVALUACIÓN:</span><span id="prevFechaEval" class="valor"></span></div>
+    </div>
+    
+    <div class="seccion-texto">
+      <p>A solicitud de la empresa A.C.E, (Asociación Cooperativa Electoral), se realizó una evaluación psicotécnica teniendo como objetivo de esta instancia evaluar las competencias y habilidades requeridas para el cargo <span id="prevCargoDoc" style="font-weight:bold;"></span></p>
+      
+      <h4>Objetivo</h4>
+      <p id="prevObjetivo" style="white-space: pre-wrap;"></p>
+      
+      <p>De las técnicas aplicadas, se podría inferir que el funcionario <span id="prevNombreDoc" style="font-weight:bold;"></span> cuenta con las siguientes fortalezas y oportunidades de mejora:</p>
+    </div>
+    <div class="firma-footer">
+       <img src="img/firma.png" alt="" onerror="this.style.display='none'">
+       <p>Página 1/3</p>
+    </div>
+  </div>
+
+  <!-- PÁGINA 2 -->
+  <div class="page" id="page2">
+    <h3 style="text-align: center; color: #1f4e79;">Gráfica Competencias y habilidades</h3>
+    <div class="chart-container">
+      <canvas id="grafica"></canvas>
+    </div>
+    
+    <div class="seccion-texto">
+      <h4 style="color: #1f4e79; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Fortalezas</h4>
+      <p id="prevFortalezas" style="white-space: pre-wrap;"></p>
+      
+      <h4 style="color: #1f4e79; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Debilidades</h4>
+      <p id="prevDebilidades" style="white-space: pre-wrap;"></p>
+    </div>
+    <div class="firma-footer">
+       <img src="img/firma.png" alt="" onerror="this.style.display='none'">
+       <p>Página 2/3</p>
+    </div>
+  </div>
+
+  <!-- PÁGINA 3 -->
+  <div class="page" id="page3">
+    <div class="seccion-texto">
+      <p id="prevResumenPorcentaje" style="font-weight:bold;"></p>
+      <p>Se trata de un perfil con capacidades sólidas, acompañado de un desempeño consistente en las demás dimensiones.</p>
+      
+      <h4 style="color: #1f4e79; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Conclusión</h4>
+      <p id="prevConclusion" style="white-space: pre-wrap;"></p>
+    </div>
+    
+    <div class="seccion-clasificacion" style="margin-top: 40px;">
+      <h3 style="color: #1f4e79;">CLASIFICACIÓN RESULTADO</h3>
+      <table class="tabla-clasificacion">
+        <tr>
+          <td>RECOMENDABLE</td>
+          <td class="celda-marca" id="marcaRec"></td>
+        </tr>
+        <tr>
+          <td>RECOMENDABLE CON OBSERVACIÓN</td>
+          <td class="celda-marca" id="marcaRecObs"></td>
+        </tr>
+        <tr>
+          <td>NO RECOMENDABLE</td>
+          <td class="celda-marca" id="marcaNoRec"></td>
+        </tr>
+      </table>
+    </div>
+    <div class="firma-footer">
+       <img src="img/firma.png" alt="" onerror="this.style.display='none'">
+       <p>Página 3/3</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/script_ace.js"></script>
 </body>
 </html>

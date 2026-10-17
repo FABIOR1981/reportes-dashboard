@@ -1,604 +1,184 @@
-const DEFAULT_COMPETENCIAS = [
-  { codigo: '6.1', nombre: 'Liderazgo' },
-  { codigo: '6.2', nombre: 'Capacidad de trabajo en equipo y coordinación' },
-  { codigo: '6.3', nombre: 'Resolución de problemas, toma de decisiones y gestión de conflictos' },
-  { codigo: '6.4', nombre: 'Habilidades de comunicación efectiva y percepción de necesidades de los socios' },
-  { codigo: '6.5', nombre: 'Orientación al cliente, al socio y a resultados' },
-  { codigo: '6.6', nombre: 'Capacidad de negociación' },
-  { codigo: '6.7', nombre: 'Organización, planificación y cumplimiento normativo' },
-  { codigo: '6.8', nombre: 'Gestión eficiente y atención al detalle' },
-  { codigo: '6.9', nombre: 'Iniciativa, proactividad y enfoque comercial' },
-  { codigo: '6.10', nombre: 'Adaptabilidad y gestión del cambio' },
-  { codigo: '6.11', nombre: 'Conocimientos administrativos básicos' },
-  { codigo: '6.12', nombre: 'Manejo de tecnologías de la información básicos' },
-  { codigo: '6.13', nombre: 'Conocimiento de la comunidad, interacción y relacionamiento con actores externos' }
-];
 let chartInstance = null;
-let firmaReferenciaPromise;
 
-function fmtDate(iso){
-  if(!iso) return '-';
-  const [year, month, day] = iso.split('-');
-  return year ? `${day}/${month}/${year}` : iso;
-}
+// Competencias por defecto (A.C.E.)
+const defaultCompetencias = [
+  { nombre: "Liderazgo", valor: 3 },
+  { nombre: "Capacidad de trabajo en equipo y coordinación", valor: 3 },
+  { nombre: "Resolución de Problemas y toma de decisiones", valor: 3 },
+  { nombre: "Habilidades de comunicación", valor: 3 },
+  { nombre: "Orientación al Cliente y a resultados", valor: 3 },
+  { nombre: "Capacidad de negociación", valor: 3 },
+  { nombre: "Organización y planificación", valor: 3 },
+  { nombre: "Gestión eficiente y atención al detalle", valor: 3 },
+  { nombre: "Iniciativa y proactividad", valor: 3 },
+  { nombre: "Adaptabilidad y gestión del cambio", valor: 3 }
+];
 
-function fmtDateLong(iso){
-  if(!iso) return '-';
-  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  const [year, month, day] = iso.split('-');
-  if(!year) return iso;
-  return `${parseInt(day, 10)} de ${meses[parseInt(month, 10) - 1]} ${year}`;
-}
-
-function val(id){
-  const element = document.getElementById(id);
-  return element ? element.value.trim() : '';
-}
-
-function setText(id, text){
-  const element = document.getElementById(id);
-  if(element) element.textContent = text && text.trim() ? text : '-';
-}
-
-function crearInputCompetencia(datos = {}, index = 1){
-  const campos = separarCodigoNombre(datos, index);
-  const item = document.createElement('div');
-  item.className = 'ace-comp-input';
-  item.innerHTML = `
-    <div class="ace-comp-heading">
-      <label>Competencia ${index}</label>
-      <button type="button" class="ace-comp-remove" aria-label="Quitar competencia">Quitar</button>
-    </div>
-    <div class="ace-comp-code-name">
-      <div><label>Código</label><input type="text" class="c-codigo"></div>
-      <div><label>Nombre</label><input type="text" class="c-nombre" spellcheck="true"></div>
-    </div>
-    <div class="row2">
-      <div><label>Puntaje obtenido</label><input type="number" class="c-obtenido" min="0" max="5" step="1"></div>
-      <div><label>Puntaje máximo</label><input type="number" class="c-maximo" min="1" max="5" step="1"></div>
-    </div>
-    <label>Descripción de la competencia</label>
-    <textarea class="c-descripcion" placeholder="Describe el indicador evaluado" spellcheck="true"></textarea>
-  `;
-  item.querySelector('.c-codigo').value = campos.codigo;
-  item.querySelector('.c-nombre').value = campos.nombre;
-  item.querySelector('.c-obtenido').value = datos.obtenido ?? datos.puntaje ?? 0;
-  item.querySelector('.c-maximo').value = datos.maximo ?? 5;
-  item.querySelector('.c-descripcion').value = datos.descripcion || datos.desc || '';
-  return item;
-}
-
-function separarCodigoNombre(datos, index){
-  const codigo = datos.codigo == null ? '' : String(datos.codigo).trim();
-  const nombre = String(datos.nombre || '').trim();
-  if(codigo) return { codigo, nombre };
-  const coincidencia = nombre.match(/^((?:\d+\.)?\d+)\s*[-–]\s*(.+)$/);
-  if(coincidencia) return { codigo: coincidencia[1], nombre: coincidencia[2] };
-  const predeterminado = DEFAULT_COMPETENCIAS[index - 1];
-  return predeterminado && nombre === predeterminado.nombre
-    ? predeterminado
-    : { codigo: '', nombre };
-}
-
-function generarInputsCompetencias(competencias = DEFAULT_COMPETENCIAS.map(competencia => ({ ...competencia, obtenido: 0, maximo: 5, descripcion: '' }))){
-  const container = document.getElementById('compContainer');
-  container.replaceChildren(...competencias.map((datos, index) => crearInputCompetencia(datos, index + 1)));
-  actualizarBotonesCompetencias();
-}
-
-function actualizarBotonesCompetencias(){
-  const items = Array.from(document.querySelectorAll('#compContainer .ace-comp-input'));
-  items.forEach((item, index) => {
-    item.querySelector('.ace-comp-heading label').textContent = `Competencia ${index + 1}`;
-    item.querySelector('.ace-comp-remove').disabled = items.length === 1;
+function initPanel() {
+  const container = document.getElementById("compContainer");
+  container.innerHTML = "";
+  defaultCompetencias.forEach((comp, i) => {
+    const row = document.createElement("div");
+    row.className = "comp-row";
+    row.innerHTML = `
+      <input type="text" id="compName_${i}" value="${comp.nombre}">
+      <input type="number" id="compVal_${i}" value="${comp.valor}" min="1" max="5">
+    `;
+    container.appendChild(row);
+  });
+  
+  // Agregar listeners a todos los inputs
+  document.querySelectorAll('#panel input, #panel textarea').forEach(el => {
+    el.addEventListener('input', updatePreview);
   });
 }
 
-function obtenerCompetencias(){
-  return Array.from(document.querySelectorAll('#compContainer .ace-comp-input')).map((item, index) => ({
-    codigo: item.querySelector('.c-codigo').value.trim(),
-    nombre: item.querySelector('.c-nombre').value.trim() || `Competencia ${index + 1}`,
-    descripcion: item.querySelector('.c-descripcion').value.trim(),
-    obtenido: Number(item.querySelector('.c-obtenido').value) || 0,
-    maximo: Number(item.querySelector('.c-maximo').value) || 0
-  }));
-}
+function updatePreview() {
+  // 1. Cabezal
+  document.getElementById('prevFechaInforme').textContent = document.getElementById('fechaInforme').value;
+  document.getElementById('prevElaboradoPor').textContent = document.getElementById('elaboradoPor').value;
+  
+  // 2. Datos postulante
+  document.getElementById('prevNombre').textContent = document.getElementById('nombre').value;
+  document.getElementById('prevCargoPostulacion').textContent = document.getElementById('cargoPostulacion').value;
+  document.getElementById('prevCI').textContent = document.getElementById('ci').value;
+  document.getElementById('prevContacto').textContent = document.getElementById('contacto').value;
+  document.getElementById('prevFechaEval').textContent = document.getElementById('fechaEval').value;
 
-function envolverEtiqueta(texto, anchoMaximo = 15){
-  const lineas = [];
-  let linea = '';
-  texto.split(/\s+/).forEach(palabra => {
-    const candidata = linea ? `${linea} ${palabra}` : palabra;
-    if(linea && candidata.length > anchoMaximo){
-      lineas.push(linea);
-      linea = palabra;
-    } else {
-      linea = candidata;
-    }
-  });
-  if(linea) lineas.push(linea);
-  return lineas;
-}
+  // Actualizar inyecciones en el texto
+  document.getElementById('prevNombreDoc').textContent = document.getElementById('nombre').value;
+  document.getElementById('prevCargoDoc').textContent = document.getElementById('cargoPostulacion').value;
 
-function actualizarResumenGrafico(competencias){
-  const destino = document.getElementById('out-resumenGrafico');
-  const obtenido = competencias.reduce((total, item) => total + item.obtenido, 0);
-  const maximo = competencias.reduce((total, item) => total + item.maximo, 0);
-  if(!destino) return { obtenido, maximo, porcentaje: 0 };
-  const porcentaje = maximo ? Math.round(obtenido / maximo * 100) : 0;
-  if(maximo){
-    const resultado = document.createElement('strong');
-    resultado.textContent = `${obtenido} sobre ${maximo}`;
-    destino.replaceChildren(
-      document.createTextNode('El resultado final es '),
-      resultado,
-      document.createTextNode(`, equivalente al ${porcentaje}% del máximo posible.`)
-    );
-  } else {
-    destino.textContent = 'Completa los puntajes máximos para calcular el resultado final.';
+  // 3. Textos
+  document.getElementById('prevObjetivo').textContent = document.getElementById('objetivo').value;
+  document.getElementById('prevFortalezas').textContent = document.getElementById('fortalezas').value;
+  document.getElementById('prevDebilidades').textContent = document.getElementById('debilidades').value;
+  document.getElementById('prevConclusion').textContent = document.getElementById('conclusion').value;
+
+  // 4. Competencias y Gráfica
+  let nombres = [];
+  let valoresObtenidos = [];
+  let valoresMaximos = [];
+  let totalPuntos = 0;
+  
+  for (let i=0; i<defaultCompetencias.length; i++) {
+    let name = document.getElementById(`compName_${i}`).value;
+    let val = parseFloat(document.getElementById(`compVal_${i}`).value) || 0;
+    nombres.push(name);
+    valoresObtenidos.push(val);
+    valoresMaximos.push(3); // El maximo esperado en esta gráfica siempre es 3 visualmente
+    totalPuntos += val;
   }
-  return { obtenido, maximo, porcentaje };
+  
+  let maxPosible = defaultCompetencias.length * 3;
+  let porcentaje = Math.round((totalPuntos / maxPosible) * 100);
+  document.getElementById('prevResumenPorcentaje').textContent = `El resultado final es ${totalPuntos} sobre ${maxPosible}, equivalente al ${porcentaje}% del máximo posible, lo que refleja un desempeño satisfactorio con buen potencial de desarrollo.`;
+
+  renderChart(nombres, valoresObtenidos, valoresMaximos);
+
+  // 5. Tabla de Clasificación Final
+  let recomendacion = document.querySelector('input[name="recom"]:checked').value;
+  document.getElementById('marcaRec').textContent = recomendacion === "RECOMENDABLE" ? "X" : "";
+  document.getElementById('marcaRecObs').textContent = recomendacion === "RECOMENDABLE CON OBSERVACIÓN" ? "X" : "";
+  document.getElementById('marcaNoRec').textContent = recomendacion === "NO RECOMENDABLE" ? "X" : "";
 }
 
-function renderClasificacion(){
-  const seleccion = document.querySelector('input[name="clasif"]:checked');
-  const destinos = {
-    'RECOMENDABLE': 'chk-REC',
-    'RECOMENDABLE CON OBSERVACIÓN': 'chk-OBS',
-    'NO RECOMENDABLE': 'chk-NOREC'
-  };
-  Object.values(destinos).forEach(id => document.getElementById(id).replaceChildren());
-  const target = document.getElementById(destinos[seleccion ? seleccion.value : 'RECOMENDABLE CON OBSERVACIÓN']);
-  target.replaceChildren(document.getElementById('checkSvg').content.cloneNode(true));
-}
-
-function renderCompetencias(competencias){
-  const container = document.getElementById('compOutContainer');
-  const table = document.createElement('table');
-  table.className = 'comp-results-table';
-  table.innerHTML = `
-    <thead><tr>
-      <th>Resultado</th>
-      <th>Competencia (código - nombre)</th>
-      <th>Puntaje obtenido</th>
-      <th>Puntaje máximo</th>
-    </tr></thead>
-    <tbody></tbody>`;
-  const body = table.querySelector('tbody');
-  competencias.forEach(competencia => {
-    const row = document.createElement('tr');
-    [
-      competencia.descripcion || 'Descripción pendiente',
-      `${competencia.codigo ? `${competencia.codigo} - ` : ''}${competencia.nombre}`,
-      competencia.obtenido,
-      competencia.maximo
-    ].forEach((value, index) => {
-      const cell = document.createElement('td');
-      cell.textContent = value;
-      if(index > 1) cell.className = 'comp-results-score';
-      row.appendChild(cell);
-    });
-    body.appendChild(row);
-  });
-  container.replaceChildren(table);
-}
-
-function dibujarGrafico(competencias){
-  if(!window.Chart) return;
-  const canvas = document.getElementById('graficoCompetencias');
-  if(!canvas) return;
-  const maximoPuntaje = Math.max(0.5, ...competencias.map(item => item.maximo));
-  const escalaMaxima = Math.ceil(maximoPuntaje * 2) / 2 + 0.5;
-  if(chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart(canvas.getContext('2d'), {
+function renderChart(labels, dataObtenida, dataMax) {
+  const ctx = document.getElementById('grafica').getContext('2d');
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+  
+  chartInstance = new Chart(ctx, {
     type: 'bar',
+    plugins: [ChartDataLabels],
     data: {
-      labels: competencias.map((item, index) => item.codigo || String(index + 1)),
+      labels: labels,
       datasets: [
-        { label: 'Puntaje Obtenido', data: competencias.map(item => item.obtenido), backgroundColor: '#08A8DF', maxBarThickness: 22 },
-        { label: 'Puntaje Máximo', data: competencias.map(item => item.maximo), backgroundColor: '#155A78', maxBarThickness: 22 }
+        {
+          label: 'Puntaje Obtenido',
+          backgroundColor: '#00b0ff', // Azul claro (como el PDF original)
+          data: dataObtenida
+        },
+        {
+          label: 'Puntaje Maximo', // Se arregló el error de tipeo original
+          backgroundColor: '#1f4e79', // Azul oscuro (como el PDF original)
+          data: dataMax
+        }
       ]
     },
     options: {
-      responsive: false,
-      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
       plugins: {
-        title: { display: true, text: 'Competencias', color: '#666', font: { size: 14, weight: 'normal' }, padding: { bottom: 8 } },
-        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+        legend: { position: 'bottom' },
+        datalabels: {
+          color: '#fff',
+          font: { weight: 'bold' },
+          anchor: 'center',
+          align: 'center'
+        }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 0, minRotation: 0, font: { size: 8 } } },
         y: {
           beginAtZero: true,
-          max: escalaMaxima,
-          ticks: { stepSize: 0.5, font: { size: 9 }, callback: value => String(value).replace('.', ',') }
+          max: 3.5,
+          ticks: { stepSize: 0.5 }
+        },
+        x: {
+          ticks: {
+            callback: function(val, index) {
+              // Corta los labels largos para que queden en varias lineas (como el original)
+              const label = this.getLabelForValue(val);
+              if (label.length > 20) {
+                 const part1 = label.slice(0, label.lastIndexOf(' ', 15));
+                 const part2 = label.slice(part1.length + 1);
+                 return [part1, part2];
+              }
+              return label;
+            }
+          }
         }
       }
+    }
+  });
+}
+
+// Inicialización de la Botonera (guardar/cargar/PDF/Word)
+if (typeof Botonera !== 'undefined') {
+  Botonera.init({
+    camposGuardables: [
+      'fechaInforme', 'elaboradoPor', 'nombre', 'cargoPostulacion', 'ci', 'contacto', 'fechaEval',
+      'objetivo', 'fortalezas', 'debilidades', 'conclusion'
+      // Faltaría loopear competencias si quisieras guardarlas en el JSON
+    ],
+    camposOrtografia: [
+      {id:'objetivo', label:'Objetivo'},
+      {id:'fortalezas', label:'Fortalezas'},
+      {id:'debilidades', label:'Debilidades'},
+      {id:'conclusion', label:'Conclusión'}
+    ],
+    nombreArchivoBase: 'Informe_ACE',
+    onResetExtra: function() {
+      initPanel();
+      updatePreview();
     },
-    plugins: [{
-      id: 'aceDataLabels',
-      afterDatasetsDraw(chart){
-        const { ctx } = chart;
-        ctx.save();
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 10px Segoe UI, Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        chart.data.datasets.forEach((dataset, datasetIndex) => {
-          chart.getDatasetMeta(datasetIndex).data.forEach((bar, index) => {
-            if(Number(dataset.data[index]) <= 0) return;
-            const { x, y, base } = bar.getProps(['x', 'y', 'base'], true);
-            ctx.fillText(String(dataset.data[index]), x, y + (base - y) / 2);
-          });
-        });
-        ctx.restore();
-      }
-    }]
+    onLoadExtra: function() {
+      updatePreview();
+    }
   });
 }
 
-function renderPreview(){
-  setText('out-fechaInforme', fmtDateLong(val('fechaInforme')));
-  setText('out-elaboradoPor', val('elaboradoPor'));
-  setText('out-consultoria', val('consultoria'));
-  const logoNombre = val('logoNombre') || 'Shalon Morales';
-  const logoElement = document.getElementById('out-logoNombre');
-  logoElement.textContent = logoNombre.split(/\s+/).join('\n');
-  setText('out-logoSub', (val('logoLeyenda') || 'CONSULTORES').toUpperCase());
-
-  const nombre = val('nombre');
-  const elaboradoPor = val('elaboradoPor') || 'Lic. Psic. Rita Morales';
-  setText('out-nombre', nombre);
-  setText('out-nombre2', nombre);
-  setText('out-cargoPostulacion', val('cargoPostulacion'));
-  setText('out-cargoEvaluado', val('cargoPostulacion'));
-  setText('out-fechaNac', fmtDate(val('fechaNac')));
-  setText('out-fechaEval', fmtDateLong(val('fechaEval')));
-  setText('out-edad', val('edad'));
-  setText('out-ci', val('ci'));
-  setText('out-contacto', val('contacto'));
-  setText('out-solicitante', val('solicitante'));
-  setText('out-firmaElaborado', elaboradoPor);
-  setText('out-firmaNombre', elaboradoPor.replace(/^(lic\.?\s*)?(psic\.?\s*)?/i, '').trim());
-  setText('out-fortalezasTexto', val('fortalezasTexto'));
-  setText('out-debilidadesTexto', val('debilidadesTexto'));
-  setText('out-conclusionTexto', val('conclusionTexto'));
-
-  renderClasificacion();
-  const competencias = obtenerCompetencias();
-  renderCompetencias(competencias);
-  actualizarResumenGrafico(competencias);
-  dibujarGrafico(competencias);
-}
-
-async function cargarFirmaReferencia(){
-  if(!firmaReferenciaPromise){
-    firmaReferenciaPromise = fetch('../sm_consultores/generador_informe_psicotecnico_Grafico.html')
-      .then(response => response.ok ? response.text() : Promise.reject(new Error('No se encontró la plantilla de firma')))
-      .then(html => {
-        const reference = new DOMParser().parseFromString(html, 'text/html');
-        const source = reference.querySelector('#out-firmaImg');
-        const src = source && source.getAttribute('src');
-        if(!src || !src.startsWith('data:image/')) return;
-        const image = document.getElementById('out-firmaImg');
-        image.src = src;
-        return image.decode().then(() => { image.hidden = false; });
-      })
-      .catch(() => {});
-  }
-  return firmaReferenciaPromise;
-}
-
-function inicializar(){
-  generarInputsCompetencias();
-  const panel = document.getElementById('panel');
-  const container = document.getElementById('compContainer');
-  panel.addEventListener('input', renderPreview);
-  panel.addEventListener('change', renderPreview);
-  document.getElementById('addCompBtn').addEventListener('click', () => {
-    const number = container.children.length + 1;
-    container.appendChild(crearInputCompetencia({ codigo: '', nombre: `Competencia ${number}`, obtenido: 0, maximo: 5 }, number));
-    actualizarBotonesCompetencias();
-    renderPreview();
-  });
-  container.addEventListener('click', event => {
-    if(!event.target.closest('.ace-comp-remove') || container.children.length <= 1) return;
-    event.target.closest('.ace-comp-input').remove();
-    actualizarBotonesCompetencias();
-    renderPreview();
-  });
-  const camposGuardables = [
-    'fechaInforme','solicitante','nombre','cargoPostulacion','fechaNac','fechaEval','edad','ci','contacto',
-    'fortalezasTexto','debilidadesTexto','conclusionTexto'
-  ];
-  if(window.Botonera){
-    window.Botonera.init({
-      camposGuardables,
-      camposNoLimpiar: ['consultoria','logoNombre','logoLeyenda','elaboradoPor'],
-      camposOrtografia: [
-        { id: 'fortalezasTexto', label: 'Fortalezas' },
-        { id: 'debilidadesTexto', label: 'Áreas de mejora' },
-        { id: 'conclusionTexto', label: 'Conclusión' }
-      ],
-      nombreArchivoBase: 'Informe_ACE',
-      onResetExtra: () => {
-        generarInputsCompetencias();
-        renderPreview();
-      },
-      onLoadExtra: data => {
-        const competencias = Array.isArray(data.competencias)
-          ? data.competencias
-            : DEFAULT_COMPETENCIAS.map((competencia, index) => ({
-                ...separarCodigoNombre({ nombre: data[`comp_nombre_${index + 1}`] || `${competencia.codigo} - ${competencia.nombre}` }, index + 1),
-                obtenido: data[`comp_obt_${index + 1}`] ?? 0,
-                maximo: data[`comp_max_${index + 1}`] ?? 5,
-                descripcion: ''
-              }));
-        generarInputsCompetencias(competencias);
-        renderPreview();
-      },
-      onSaveExtra: data => {
-        data.competencias = obtenerCompetencias();
-      }
-    });
-  }
-  cargarFirmaReferencia().then(renderPreview);
-  renderPreview();
-}
-
-document.addEventListener('DOMContentLoaded', inicializar);
-
-window.downloadPDF = async function(){
-  const button = document.querySelector('[data-action="pdf"]');
-  const status = document.getElementById('status');
-  if(button) button.disabled = true;
-  if(status) status.textContent = 'Elegí "Guardar como PDF" en el diálogo de impresión...';
-  await cargarFirmaReferencia();
-  const originalTitle = document.title;
-  const nombre = val('nombre') || 'Candidato';
-  document.title = `Informe_ACE_${nombre.replace(/\s+/g, '_')}`;
-  const restore = function(){
-    document.title = originalTitle;
-    if(button) button.disabled = false;
-    if(status) status.textContent = '';
-    window.removeEventListener('afterprint', restore);
-  };
-  window.addEventListener('afterprint', restore);
-  setTimeout(() => window.print(), 50);
+// Funciones vacías para conectar PDF y Word más adelante (usa dom-to-image o html2pdf si gustas)
+window.downloadPDF = function() {
+    alert("Función de PDF pendiente de configurar usando html2canvas/jspdf");
+};
+window.downloadWord = function() {
+    alert("Función de Word pendiente de configurar con docx");
 };
 
-window.downloadWord = async function(){
-  const button = document.querySelector('[data-action="word"]');
-  const status = document.getElementById('status');
-  if(!button) return;
-  button.disabled = true;
-  if(status) status.textContent = 'Generando Word...';
-
-  try{
-    const docx = window.docx;
-    if(!docx) throw new Error('La librería docx no está cargada.');
-    await cargarFirmaReferencia();
-    const {
-      Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-      WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType, ImageRun, PageBreak
-    } = docx;
-    const teal = '177789';
-    const ink = '26343A';
-    const light = 'E9ECF6';
-    const borderColor = 'D7E2E3';
-    const noBorder = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
-    const bordersNone = { top: noBorder, bottom: noBorder, left: noBorder, right: noBorder };
-    const thinBorder = { style: BorderStyle.SINGLE, size: 4, color: borderColor };
-    const bordersThin = { top: thinBorder, bottom: thinBorder, left: thinBorder, right: thinBorder };
-    const textRun = (text, options = {}) => new TextRun({ text: String(text == null || text === '' ? '-' : text), font: 'Calibri', size: 20, color: ink, ...options });
-    const paragraph = (text, options = {}) => new Paragraph({
-      alignment: AlignmentType.JUSTIFIED,
-      spacing: { after: 120 },
-      children: [textRun(text)],
-      ...options
-    });
-
-    async function loadImage(path, width){
-      const response = await fetch(path);
-      if(!response.ok) throw new Error(`No se pudo cargar ${path}`);
-      const blob = await response.blob();
-      const image = await createImageBitmap(blob);
-      const height = Math.round(width * image.height / image.width);
-      const data = await blob.arrayBuffer();
-      image.close();
-      return { data, width, height };
-    }
-
-    async function loadHeaderImage(){
-      const response = await fetch('img/cabezal.png');
-      if(!response.ok) throw new Error('No se pudo cargar img/cabezal.png');
-      const source = await createImageBitmap(await response.blob());
-      const canvas = document.createElement('canvas');
-      canvas.width = source.width;
-      canvas.height = source.height;
-      const context = canvas.getContext('2d');
-      context.drawImage(source, 0, 0);
-      const scale = source.width / 1505;
-      const textScale = source.width / 605;
-      context.fillStyle = '#FFFFFF';
-      context.textAlign = 'left';
-      context.font = `${14 * textScale}px Segoe UI, Arial, sans-serif`;
-      context.fillText('Informe:', 76 * scale, 125 * scale);
-      context.font = `${25 * textScale}px Segoe UI, Arial, sans-serif`;
-      context.fillText('Evaluación de Competencias', 76 * scale, 185 * scale);
-      context.fillText('Ejecutivas (A.C.E.)', 76 * scale, 235 * scale);
-      context.textAlign = 'right';
-      context.font = `italic ${19 * textScale}px Georgia, Times New Roman, serif`;
-      (val('logoNombre') || 'Shalon Morales').split(/\s+/).forEach((line, index) => {
-        context.fillText(line, 1470 * scale, (337 + index * 42) * scale);
-      });
-      context.fillStyle = '#CFE4E6';
-      context.font = `${7 * textScale}px Segoe UI, Arial, sans-serif`;
-      context.fillText((val('logoLeyenda') || 'CONSULTORES').toUpperCase(), 1470 * scale, 410 * scale);
-      const height = Math.round(560 * source.height / source.width);
-      source.close();
-      const data = await (await fetch(canvas.toDataURL('image/png'))).arrayBuffer();
-      return { data, width: 560, height };
-    }
-
-    function makeCell(text, options = {}){
-      const { fill = 'FFFFFF', align = AlignmentType.LEFT, bold = false, width = 50 } = options;
-      return new TableCell({
-        width: { size: width, type: WidthType.PERCENTAGE },
-        shading: { type: ShadingType.CLEAR, fill },
-        margins: { top: 90, bottom: 90, left: 140, right: 140 },
-        borders: bordersThin,
-        verticalAlign: VerticalAlign.CENTER,
-        children: [new Paragraph({ alignment: align, children: [textRun(text, { bold, color: fill === teal ? 'FFFFFF' : ink })] })]
-      });
-    }
-
-    function sectionBanner(title, icon){
-      return new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [new TableRow({ children: [
-          new TableCell({
-            width: { size: 90, type: WidthType.PERCENTAGE },
-            shading: { type: ShadingType.CLEAR, fill: teal },
-            margins: { top: 130, bottom: 130, left: 180, right: 140 },
-            borders: bordersNone,
-            children: [new Paragraph({ children: [textRun(title, { color: 'FFFFFF', size: 25 })] })]
-          }),
-          new TableCell({
-            width: { size: 10, type: WidthType.PERCENTAGE },
-            shading: { type: ShadingType.CLEAR, fill: teal },
-            margins: { top: 70, bottom: 70, left: 80, right: 80 },
-            borders: bordersNone,
-            verticalAlign: VerticalAlign.CENTER,
-            children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: icon.data, transformation: { width: icon.width, height: icon.height } })] })]
-          })
-        ]})]
-      });
-    }
-
-    const nombre = val('nombre') || 'Candidato';
-    const competencias = obtenerCompetencias();
-    const summary = actualizarResumenGrafico(competencias);
-    const chartCanvas = document.getElementById('graficoCompetencias');
-    const graphBytes = Uint8Array.from(atob(chartCanvas.toDataURL('image/png').split(',')[1]), char => char.charCodeAt(0));
-    const headerImage = await loadHeaderImage();
-    const tableIcon = await loadImage('img/tabla.png', 28);
-    const targetIcon = await loadImage('img/diana.png', 28);
-    const signatureImage = document.getElementById('out-firmaImg');
-    let signatureRun = null;
-    if(!signatureImage.hidden && signatureImage.naturalWidth){
-      const signatureResponse = await fetch(signatureImage.src);
-      const signatureBytes = await signatureResponse.arrayBuffer();
-      signatureRun = new ImageRun({
-        data: signatureBytes,
-        transformation: { width: 130, height: Math.round(130 * signatureImage.naturalHeight / signatureImage.naturalWidth) }
-      });
-    }
-
-    const header = new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 100 },
-      children: [new ImageRun({ data: headerImage.data, transformation: { width: headerImage.width, height: headerImage.height } })]
-    });
-    const metadata = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [new TableRow({ children: [
-        new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, borders: bordersNone, children: [new Paragraph({ children: [textRun('Elaborado por: '), textRun(val('elaboradoPor'), { bold: true })] })] }),
-        new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, borders: bordersNone, children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [textRun('Consultoría: '), textRun(val('consultoria'), { bold: true })] })] })
-      ]})]
-    });
-    const dataRows = [new TableRow({ children: [
-      makeCell('DATOS', { fill: teal, align: AlignmentType.CENTER, bold: true }),
-      makeCell('POSTULANTE', { fill: teal, align: AlignmentType.CENTER, bold: true })
-    ]})];
-    [
-      ['NOMBRE:', val('nombre')],
-      ['CARGO POSTULACIÓN:', val('cargoPostulacion')],
-      ['FECHA DE NACIMIENTO:', fmtDate(val('fechaNac'))],
-      ['EDAD:', val('edad')],
-      ['C.I.:', val('ci')],
-      ['CONTACTO:', val('contacto')],
-      ['FECHA DE EVALUACIÓN:', fmtDateLong(val('fechaEval'))]
-    ].forEach(([label, value]) => dataRows.push(new TableRow({ children: [makeCell(label, { fill: light, bold: true }), makeCell(value, { fill: 'F7F8FC', align: AlignmentType.CENTER })] })));
-    const dataTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: dataRows });
-
-    const competenceRows = [new TableRow({ children: [
-      makeCell('RESULTADO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 32 }),
-      makeCell('COMPETENCIA (CÓDIGO - NOMBRE)', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 40 }),
-      makeCell('PUNTAJE OBTENIDO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 14 }),
-      makeCell('PUNTAJE MÁXIMO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 14 })
-    ]})];
-    competencias.forEach((competencia, index) => {
-      const fill = index % 2 ? 'FFFFFF' : light;
-      competenceRows.push(new TableRow({ children: [
-        makeCell(competencia.descripcion || 'Descripción pendiente', { fill, width: 32 }),
-        makeCell(`${competencia.codigo ? `${competencia.codigo} - ` : ''}${competencia.nombre}`, { fill, bold: true, width: 40 }),
-        makeCell(competencia.obtenido, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 14 }),
-        makeCell(competencia.maximo, { fill: 'F7F8FC', align: AlignmentType.CENTER, width: 14 })
-      ]}));
-    });
-    const competenceTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: competenceRows });
-
-    const selectedClassification = document.querySelector('input[name="clasif"]:checked');
-    const classification = selectedClassification ? selectedClassification.value : 'RECOMENDABLE CON OBSERVACIÓN';
-    const classificationRows = [new TableRow({ children: [
-      makeCell('CLASIFICACIÓN', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 75 }),
-      makeCell('RESULTADO', { fill: teal, align: AlignmentType.CENTER, bold: true, width: 25 })
-    ]})];
-    ['RECOMENDABLE', 'RECOMENDABLE CON OBSERVACIÓN', 'NO RECOMENDABLE'].forEach((label, index) => {
-      classificationRows.push(new TableRow({ children: [
-        makeCell(label, { fill: index % 2 ? 'FFFFFF' : light, bold: true, width: 75 }),
-        makeCell(label === classification ? '✓' : '', { fill: 'F7F8FC', align: AlignmentType.CENTER, bold: true, width: 25 })
-      ]}));
-    });
-    const classificationTable = new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: classificationRows });
-    const graphImage = new ImageRun({ data: graphBytes, transformation: { width: 550, height: 279 } });
-
-    const children = [
-      header,
-      new Paragraph({ spacing: { after: 130 }, children: [textRun('Fecha: '), textRun(fmtDateLong(val('fechaInforme')), { bold: true, color: teal })] }),
-      metadata,
-      dataTable,
-      paragraph(`A solicitud de ${val('solicitante') || 'la empresa'}, se realizó una evaluación de competencias ejecutivas a ${nombre} para el cargo de ${val('cargoPostulacion') || '-'}.`),
-      sectionBanner('Objetivo', tableIcon),
-      paragraph('El presente informe presenta los resultados de la Evaluación de Competencias Ejecutivas (A.C.E.), con los niveles obtenidos y esperados en cada competencia, junto con las fortalezas, áreas de mejora y conclusión del perfil evaluado.'),
-      new Paragraph({ children: [new PageBreak()] }),
-      sectionBanner('Gráfica Competencias y habilidades', targetIcon),
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 60 }, children: [graphImage] }),
-      paragraph(`El resultado final es ${summary.obtenido} sobre ${summary.maximo}, equivalente al ${summary.porcentaje}% del máximo posible.`, { alignment: AlignmentType.LEFT }),
-      sectionBanner('Resultado por competencia', tableIcon),
-      competenceTable,
-      new Paragraph({ children: [new PageBreak()] }),
-      sectionBanner('Fortalezas', targetIcon),
-      paragraph(val('fortalezasTexto')),
-      sectionBanner('Áreas de mejora', targetIcon),
-      paragraph(val('debilidadesTexto')),
-      sectionBanner('Conclusión', targetIcon),
-      paragraph(val('conclusionTexto')),
-      new Paragraph({ spacing: { before: 140 }, children: [textRun(`Informe confidencial para uso exclusivo de ${val('solicitante') || 'la organización solicitante'} y ${val('consultoria') || 'SM Consultores'}.`, { color: '5B6B70', size: 18 })] }),
-      classificationTable,
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 140 }, children: signatureRun ? [signatureRun] : [textRun(val('elaboradoPor'), { bold: true, color: teal, size: 24 })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, children: [textRun(val('elaboradoPor'), { bold: true, color: teal })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, children: [textRun(val('consultoria'), { color: '5B6B70', size: 18 })] })
-    ];
-
-    const documentFile = new Document({ sections: [{
-      properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 720, right: 850, bottom: 720, left: 850 } } },
-      children
-    }] });
-    const blob = await Packer.toBlob(documentFile);
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `Informe_ACE_${nombre.replace(/\s+/g, '_')}.docx`;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-    if(status) status.textContent = 'Word descargado.';
-  } catch(error){
-    console.error(error);
-    if(status) status.textContent = `Error en Word: ${error.message}`;
-  } finally {
-    if(button) button.disabled = false;
-    setTimeout(() => { if(status) status.textContent = ''; }, 4000);
-  }
-};
+// Arrancar al cargar
+document.addEventListener("DOMContentLoaded", () => {
+  initPanel();
+  updatePreview();
+});
