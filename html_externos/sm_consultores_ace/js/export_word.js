@@ -184,7 +184,7 @@ window.downloadWord = async function () {
     });
 
     const fortalezas = v('fortalezasTexto').split(/\r?\n/).filter(t => t.trim()).map(t => new Paragraph({
-      bullet: { level: 0 }, spacing: { after: 60 }, children: [run(t.trim())]
+      bullet: { level: 0 }, alignment: AlignmentType.JUSTIFIED, spacing: { after: 60 }, children: [run(t.trim())]
     }));
 
     // La firma es opcional: img/firma.png
