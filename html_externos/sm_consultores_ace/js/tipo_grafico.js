@@ -11,6 +11,7 @@ const EJEMPLO_COMPETENCIAS_MODAL = [
 ];
 
 const OPCIONES_TIPO_GRAFICO = [
+  { valor: 'columnas', etiqueta: 'Columnas agrupadas', dibujar: dibujarColumnas, minimoCompetencias: 1 },
   { valor: 'aros', etiqueta: 'Aros de progreso', dibujar: dibujarAros, minimoCompetencias: 1 },
   { valor: 'barras', etiqueta: 'Barras horizontales', dibujar: dibujarBarras, minimoCompetencias: 1 },
   { valor: 'lollipop', etiqueta: 'Puntos y línea', dibujar: dibujarLollipop, minimoCompetencias: 1 },

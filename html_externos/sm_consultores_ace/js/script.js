@@ -15,14 +15,17 @@ function init() {
 
   Botonera.init({
     camposGuardables: ['fechaInforme', 'elaboradoPor', 'consultoria', 'logoNombre', 'logoLeyenda',
-      'nombre', 'cargoPostulacion', 'fechaNac', 'edad', 'ci', 'contacto',
-      'fechaEval', 'horaEval', 'solicitante', 'cargoEvaluado',
-      'enfoqueTexto', 'conclusionTexto', 'oportunidadTexto'],
+      'nombre', 'cargoPostulacion', 'ci', 'contacto',
+      'fechaEval', 'horaEval', 'solicitante', 'cargoEvaluado', 'objetivoTexto',
+      'enfoqueTexto', 'fortalezasTexto', 'debilidadesTexto', 'perfilTexto', 'conclusionTexto'],
     camposNoLimpiar: ['logoNombre', 'logoLeyenda'],
     camposOrtografia: [
-      { id: 'enfoqueTexto', label: 'Enfoque / Objetivo' },
-      { id: 'conclusionTexto', label: 'Conclusión' },
-      { id: 'oportunidadTexto', label: 'Oportunidad de mejora' }
+      { id: 'objetivoTexto', label: 'Objetivo' },
+      { id: 'enfoqueTexto', label: 'Enfoque' },
+      { id: 'fortalezasTexto', label: 'Fortalezas' },
+      { id: 'debilidadesTexto', label: 'Debilidades' },
+      { id: 'perfilTexto', label: 'Perfil' },
+      { id: 'conclusionTexto', label: 'Conclusión' }
     ],
     nombreArchivoBase: 'Informe_Psicotecnico_ACE',
     onResetExtra: function () {
@@ -42,8 +45,7 @@ function init() {
       data.competencias = Array.from(compContainer.querySelectorAll('.comp-block')).map(block => ({
         nombre: block.querySelector('.c-nombre').value,
         puntaje: block.querySelector('.c-puntaje').value,
-        maximo: block.querySelector('.c-maximo').value,
-        desc: block.querySelector('.c-desc').value
+        maximo: block.querySelector('.c-maximo').value
       }));
     }
   });

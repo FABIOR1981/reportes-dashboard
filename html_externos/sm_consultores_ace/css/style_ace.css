@@ -11,7 +11,7 @@
 *{box-sizing:border-box;}
 body{
   margin:0;
-  font-family:'Segoe UI', Arial, sans-serif;
+  font-family:Inter, 'Segoe UI', Arial, sans-serif;
   background:#e7ebec;
   color:var(--ink);
   display:flex;
@@ -148,7 +148,7 @@ textarea{resize:vertical; min-height:140px;}
   margin-bottom:8px;
 }
 .cabezal img{display:block; width:100%; height:100%;}
-.cabezal .cab-txt{position:absolute; white-space:nowrap; line-height:1; color:#fff;}
+.cabezal .cab-txt{position:absolute; white-space:nowrap; line-height:1; color:#fff; font-family:'Libre Baskerville', Georgia, 'Times New Roman', serif;}
 .cab-tag{left:5.05%; top:22.8%; font-size:2.31cqw;}
 .cab-title1{left:5.05%; top:31.8%; font-size:4.13cqw;}
 .cab-title2{left:5.05%; top:43.5%; font-size:4.13cqw;}
@@ -177,8 +177,8 @@ textarea{resize:vertical; min-height:140px;}
   background:var(--teal-dark); color:#fff; text-align:center;
   font-size:12.5px; font-weight:600; padding:9px; letter-spacing:0.4px;
 }
-.datos-body div{background:var(--lavender); font-size:12.5px; padding:8px 14px; border-bottom:2px solid #fff;}
-.datos-body.right div{background:#f7f8fc; text-align:center;}
+.datos-body div{background:var(--lavender); font-size:11px; font-weight:600; padding:10px 14px; border-bottom:2px solid #fff;}
+.datos-body.right div{background:#f7f8fc; text-align:center; font-weight:700;}
 .intro-text{font-size:12.5px; margin-bottom:16px;}
 
 /* ---- Título de sección (caja texto + caja icono con imagen) ---- */
@@ -187,6 +187,7 @@ textarea{resize:vertical; min-height:140px;}
   flex:1; display:flex; align-items:center;
   background:var(--teal-dark); color:#fff;
   padding:13px 20px; border-radius:6px; font-size:19px; font-weight:400;
+  font-family:'Libre Baskerville', Georgia, 'Times New Roman', serif;
 }
 .section-icon{
   width:60px; background:var(--teal-dark); border-radius:6px;
@@ -218,16 +219,15 @@ textarea{resize:vertical; min-height:140px;}
 .clasif-a{background:var(--lavender);}
 .clasif-b{background:#f7f8fc;}
 .checkmark{width:22px; height:22px;}
-.reserva{font-size:10.5px; color:#5d6d7e; text-align:justify; margin:26px 0 18px 0;}
-.firma-block{text-align:center; margin-top:14px;}
-.firma-linea{border-top:1px solid #7f8c8d; width:260px; margin:0 auto 6px auto;}
-.firma-nombre{font-size:14px; font-weight:700; color:var(--teal-dark);}
-.firma-consultora{font-size:10.5px; color:#5d6d7e;}
+.firma-block{text-align:right; margin-top:40px; padding-right:30px;}
+.firma-block img{height:80px; width:auto;}
+.lista-fortalezas{font-size:12.5px; line-height:1.6; margin:0 0 14px 0; padding-left:26px;}
+.grafico-titulo{font-size:14px; font-weight:700; margin:22px 0 10px 0;}
 
 /* ---- Gráfico de competencias ---- */
 .grafico-competencias{
-  margin-top:10px; margin-bottom:18px; padding:14px 16px 6px;
-  background:#f7fafa; border:1px solid var(--teal-text); border-radius:6px;
+  margin-top:10px; margin-bottom:18px; padding:8px;
+  background:#fff; border:1px solid #d9d9d9; border-radius:2px;
 }
 .grafico-competencias svg text{user-select:none;}
 

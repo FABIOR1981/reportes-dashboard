@@ -104,8 +104,7 @@ window.downloadWord = async function () {
     const competencias = Array.from(document.querySelectorAll('#compContainer .comp-block')).map(b => ({
       nombre: b.querySelector('.c-nombre').value.trim(),
       puntaje: b.querySelector('.c-puntaje').value.trim(),
-      maximo: b.querySelector('.c-maximo').value.trim(),
-      desc: b.querySelector('.c-desc').value.trim()
+      maximo: b.querySelector('.c-maximo').value.trim()
     }));
 
     const headerImg = await cabezal();
@@ -157,11 +156,9 @@ window.downloadWord = async function () {
     const datos = [
       ['NOMBRE:', nombre],
       ['CARGO POSTULACIÓN:', v('cargoPostulacion')],
-      ['FECHA DE NAC:', fmtDate(v('fechaNac'))],
-      ['EDAD:', v('edad')],
       ['C.I.', v('ci')],
       ['CONTACTO:', v('contacto')],
-      ['FECHA DE EVALUACIÓN:', fmtLong(v('fechaEval')) + (horaEval ? ` / Hora: ${horaEval}` : '')]
+      ['FECHA DE EVALUACIÓN:', fmtEvalLinea(v('fechaEval'), horaEval)]
     ];
     const datosTable = new Table({
       width: pct(100),
@@ -186,24 +183,31 @@ window.downloadWord = async function () {
       ] })]
     });
 
-    const escala = [
-      '1 (Insuficiente): No alcanza los estándares mínimos.',
-      '2 (Bajo): Cumple parcialmente; requiere supervisión.',
-      '3 (Adecuado): Cumple de manera correcta; puede mejorar en algunos aspectos.',
-      '4 (Muy Bueno): Desempeño sólido, cercano al nivel máximo.',
-      '5 (Excelente): Supera los estándares esperados.'
-    ].map(l => new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { after: 60 }, children: [run(l, { size: 19 })] }));
+    const fortalezas = v('fortalezasTexto').split(/\r?\n/).filter(t => t.trim()).map(t => new Paragraph({
+      bullet: { level: 0 }, spacing: { after: 60 }, children: [run(t.trim())]
+    }));
 
-    const compParrafos = [];
-    competencias.forEach((c, i) => {
-      if (i > 0) compParrafos.push(new Paragraph({ spacing: { before: 200 }, children: [new TextRun({ text: '' })] }));
-      compParrafos.push(new Paragraph({ spacing: { after: 40 }, children: [run(c.nombre || '–', { bold: true, color: TEAL, size: 22 })] }));
-      compParrafos.push(new Paragraph({ spacing: { after: 60 }, children: [
-        run('Puntaje obtenido: ', { bold: true, color: TEAL, size: 19 }), run(c.puntaje || '–', { color: TEAL, size: 19 }),
-        run('    Puntaje máximo: ', { bold: true, color: TEAL, size: 19 }), run(c.maximo || '–', { color: TEAL, size: 19 })
-      ] }));
-      if (c.desc) compParrafos.push(new Paragraph({ spacing: { after: 80 }, children: [run(c.desc, { size: 20 })] }));
-    });
+    // La firma es opcional: img/firma.png
+    async function firma() {
+      try {
+        const r = await fetch('img/firma.png');
+        if (!r.ok) return null;
+        const blob = await r.blob();
+        const bmp = await createImageBitmap(blob);
+        const h = 70, w = Math.round(h * bmp.width / bmp.height);
+        bmp.close();
+        return { buf: await blob.arrayBuffer(), w: w, h: h };
+      } catch (e) { return null; }
+    }
+    const firmaImg = await firma();
+
+    const datosGrafico = competencias.filter(c => c.nombre && parseFloat(c.maximo) > 0)
+      .map(c => ({ nombre: c.nombre, puntaje: parseFloat(c.puntaje) || 0, maximo: parseFloat(c.maximo) }));
+    // resultadoFinalHtml marca lo destacado con <b>; al partir por la etiqueta, los índices impares van en negrita
+    const resultadoParrafo = datosGrafico.length ? [new Paragraph({
+      alignment: AlignmentType.JUSTIFIED, spacing: { before: 160, after: 120 },
+      children: resultadoFinalHtml(datosGrafico).split(/<\/?b>/).map((t, i) => run(t, { bold: i % 2 === 1 }))
+    })] : [];
 
     const imagenGrafico = await generarImagenGraficoParaWord();
     const graficoParrafos = imagenGrafico ? [
@@ -212,12 +216,6 @@ window.downloadWord = async function () {
         new ImageRun({ data: imagenGrafico.buffer, transformation: { width: imagenGrafico.width, height: imagenGrafico.height } })
       ] })
     ] : [];
-
-    const oportunidad = v('oportunidadTexto').replace(/^Como oportunidad de mejora[,\s]*/i, '');
-    const oportunidadParrafo = oportunidad ? [new Paragraph({
-      alignment: AlignmentType.JUSTIFIED, spacing: { before: 160, after: 120 },
-      children: [run('Como oportunidad de mejora', { bold: true }), run(', ' + oportunidad)]
-    })] : [];
 
     function clasifRow(label) {
       return new TableRow({ children: [
@@ -240,22 +238,12 @@ window.downloadWord = async function () {
       ] })].concat(['RECOMENDABLE', 'RECOMENDABLE CON OBSERVACIÓN', 'NO RECOMENDABLE'].map(clasifRow))
     });
 
-    const cierre = [
-      new Paragraph({
-        spacing: { before: 300, after: 200 }, alignment: AlignmentType.JUSTIFIED,
-        children: [run('Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de ' +
-          (solicitante || 'la empresa') + ' y de ' + (consultoria || 'SM Consultores') + '.', { color: GRAY, size: 18 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER, spacing: { before: 300 },
-        border: { top: { style: BorderStyle.SINGLE, size: 6, color: '7F8C8D', space: 4 } },
-        children: [new TextRun({ text: '\u00A0' })]
-      }),
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 80 },
-        children: [run(elaboradoPor || '[Nombre del evaluador]', { bold: true, color: TEAL, size: 22 })] }),
-      new Paragraph({ alignment: AlignmentType.CENTER, children: [run(consultoria || '[Consultoría]', { color: GRAY, size: 17 })] }),
+    const cierre = (firmaImg ? [new Paragraph({
+      alignment: AlignmentType.RIGHT, spacing: { before: 400 },
+      children: [new ImageRun({ data: firmaImg.buf, transformation: { width: firmaImg.w, height: firmaImg.h } })]
+    })] : []).concat([
       new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 300 }, children: [run('Página 3/3', { color: GRAY, size: 16 })] })
-    ];
+    ]);
 
     const salto = () => new Paragraph({ children: [new PageBreak()] });
     const children = [].concat(
@@ -271,26 +259,25 @@ window.downloadWord = async function () {
         children: [new TextRun({ text: '\u00A0' })]
       }), metaRow, datosTable],
       [new Paragraph({ spacing: { before: 240, after: 160 }, alignment: AlignmentType.JUSTIFIED, children: [
-        run('A solicitud de '), run(solicitante || 'la empresa', { bold: true }),
-        run(', se realizó una evaluación psicotécnica a la Sra./Sr. '), run(nombre || '–', { bold: true }), run('.')
+        run('A solicitud de la empresa '), run(solicitante || '–', { bold: true }),
+        run(', el día ' + diaSemana(v('fechaEval')) + ' '), run(fmtFechaMayus(v('fechaEval')), { bold: true }),
+        run(' se realizó una evaluación psicotécnica teniendo como objetivo de esta instancia evaluar las competencias y habilidades requeridas para el cargo '),
+        run(v('cargoEvaluado') || '–', { bold: true })
       ] })],
       [banner('Objetivo', tablaImg)],
-      [new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { before: 120, after: 120 }, children: [
-        run('El presente informe tiene como objetivo evaluar las competencias de la/el postulante para el cargo "' +
-          (v('cargoEvaluado') || '-') + '". A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.')
-      ] })],
-      [salto(),
-       new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 200, after: 120 },
-         children: [run('Escala de Valoración.', { bold: true, color: TEAL })] })],
-      escala,
-      compParrafos,
-      graficoParrafos,
-      [salto(), banner('Evaluación de Competencias', dianaImg)],
+      parrafos(v('objetivoTexto')),
       parrafos(v('enfoqueTexto')),
-      [banner('Conclusión', dianaImg)],
+      [salto(), banner('Fortalezas', dianaImg)],
+      fortalezas,
+      [banner('Debilidades', dianaImg)],
+      parrafos(v('debilidadesTexto')),
+      [new Paragraph({ spacing: { before: 240, after: 120 }, children: [run('Gráfica Competencias y habilidades', { bold: true, size: 24 })] })],
+      graficoParrafos,
+      resultadoParrafo,
+      parrafos(v('perfilTexto')),
+      [salto(), banner('Conclusión', dianaImg)],
       parrafos(v('conclusionTexto')),
-      oportunidadParrafo,
-      [clasifTable],
+      [new Paragraph({ children: [new TextRun({ text: '' })] }), clasifTable],
       cierre
     );
 

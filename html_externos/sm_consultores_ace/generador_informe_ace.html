@@ -49,10 +49,6 @@
     <label>Cargo al que postula</label>
     <input type="text" id="cargoPostulacion" value="Auxiliar Administrativo" spellcheck="true">
     <div class="row2">
-      <div><label>Fecha de nacimiento</label><input type="date" id="fechaNac"></div>
-      <div><label>Edad</label><input type="number" id="edad" min="0" value="30"></div>
-    </div>
-    <div class="row2">
       <div><label>C.I.</label><input type="text" id="ci" placeholder="0.000.000-0"></div>
       <div><label>Contacto</label><input type="text" id="contacto" value="099 123 456"></div>
     </div>
@@ -66,6 +62,8 @@
     <legend>Objetivo</legend>
     <label>Cargo evaluado (nombre exacto del puesto)</label>
     <input type="text" id="cargoEvaluado" value="Auxiliar Administrativo" spellcheck="true">
+    <label>Texto del objetivo</label>
+    <textarea id="objetivoTexto" spellcheck="true">El presente informe tiene como objetivo evaluar las competencias del postulante, según las bases publicadas para el puesto.</textarea>
   </fieldset>
 
   <fieldset>
@@ -76,13 +74,19 @@
   </fieldset>
 
   <fieldset>
-    <legend>Evaluación de competencias (texto libre)</legend>
-    <label>Párrafo introductorio (enfoque del análisis)</label>
-    <textarea id="enfoqueTexto" spellcheck="true">Del análisis de las técnicas aplicadas, se puede inferir que la postulante presenta un enfoque práctico. Los resultados obtenidos permiten concluir lo siguiente:</textarea>
-    <label>Conclusión</label>
+    <legend>Textos del informe</legend>
+    <label>Enfoque (párrafo al final de la página 1)</label>
+    <textarea id="enfoqueTexto" spellcheck="true">De las técnicas aplicadas, se podría inferir que el funcionario cuenta con las siguientes fortalezas y oportunidades de mejora:</textarea>
+    <label>Fortalezas (una por línea)</label>
+    <textarea id="fortalezasTexto" spellcheck="true">Presenta un liderazgo carismático actualmente.
+En cuanto a la comunicación, el postulante tendrá la capacidad de adaptar el mensaje al receptor.
+Fomentará un ambiente de trabajo colaborativo y positivo.</textarea>
+    <label>Debilidades</label>
+    <textarea id="debilidadesTexto" spellcheck="true">Se observa que, por el momento, la creatividad y la articulación de conceptos se presentan de manera limitada.</textarea>
+    <label>Párrafo del perfil (debajo del gráfico)</label>
+    <textarea id="perfilTexto" spellcheck="true">Se trata de un perfil con capacidades sólidas en comunicación y orientación al cliente.</textarea>
+    <label>Conclusión (página 3)</label>
     <textarea id="conclusionTexto" spellcheck="true">Se identificó un perfil orientado al cumplimiento efectivo, caracterizado por su organización y practicidad en el desarrollo de las tareas.</textarea>
-    <label>Oportunidad de mejora</label>
-    <textarea id="oportunidadTexto" spellcheck="true">se sugiere que la postulante cuide sus aspectos ansiógenos a fin de obtener resultados que impliquen detenimiento y análisis previo a la toma de decisiones.</textarea>
   </fieldset>
 
   <fieldset>
@@ -135,8 +139,6 @@
         <div class="datos-body">
           <div>NOMBRE:</div>
           <div>CARGO POSTULACIÓN:</div>
-          <div>FECHA DE NAC:</div>
-          <div>EDAD:</div>
           <div>C.I.</div>
           <div>CONTACTO:</div>
           <div>FECHA DE EVALUACIÓN:</div>
@@ -147,8 +149,6 @@
         <div class="datos-body right">
           <div id="out-nombre">-</div>
           <div id="out-cargoPostulacion">-</div>
-          <div id="out-fechaNac">-</div>
-          <div id="out-edad">-</div>
           <div id="out-ci">-</div>
           <div id="out-contacto">-</div>
           <div id="out-fechaHoraEval">-</div>
@@ -157,44 +157,44 @@
     </div>
 
     <div class="intro-text">
-      A solicitud de <b id="out-solicitante">-</b>, se realizó una evaluación psicotécnica a la Sra./Sr. <b id="out-nombre2">-</b>.
+      A solicitud de la empresa <b id="out-solicitante">-</b>, el día <span id="out-diaSemana">-</span> <b id="out-fechaEvalIntro">-</b> se realizó una evaluación psicotécnica teniendo como objetivo de esta instancia evaluar las competencias y habilidades requeridas para el cargo <b id="out-cargoEvaluado">-</b>
     </div>
 
     <div class="section-title-row">
       <div class="section-title">Objetivo</div>
       <div class="section-icon"><img src="img/tabla.png" alt=""></div>
     </div>
-    <div class="body-text">El presente informe tiene como objetivo evaluar las competencias de la/el postulante para el cargo <b id="out-cargoEvaluado">-</b>. A continuación, se presentan los resultados obtenidos y el puntaje alcanzado en cada una de las competencias evaluadas.</div>
+    <div class="body-text" id="out-objetivoTexto">-</div>
+    <div class="body-text" id="out-enfoqueTexto">-</div>
   </div>
 
   <!-- PÁGINA 2 -->
   <div class="page" id="page2">
-    <div class="escala-box">
-      <b>Escala de Valoración.</b><br>
-      1 (Insuficiente): No alcanza los estándares mínimos.<br>
-      2 (Bajo): Cumple parcialmente; requiere supervisión.<br>
-      3 (Adecuado): Cumple de manera correcta; puede mejorar en algunos aspectos.<br>
-      4 (Muy Bueno): Desempeño sólido, cercano al nivel máximo.<br>
-      5 (Excelente): Supera los estándares esperados.
+    <div class="section-title-row">
+      <div class="section-title">Fortalezas</div>
+      <div class="section-icon"><img src="img/diana.png" alt=""></div>
     </div>
-    <div id="compOutContainer"></div>
+    <ul class="lista-fortalezas" id="out-fortalezasTexto"></ul>
+
+    <div class="section-title-row">
+      <div class="section-title">Debilidades</div>
+      <div class="section-icon"><img src="img/diana.png" alt=""></div>
+    </div>
+    <div class="body-text" id="out-debilidadesTexto">-</div>
+
+    <div class="grafico-titulo">Gráfica Competencias y habilidades</div>
     <div id="graficoCompetenciasContainer" class="grafico-competencias" style="display:none;"></div>
+    <div class="body-text" id="out-resultadoFinal"></div>
+    <div class="body-text" id="out-perfilTexto">-</div>
   </div>
 
   <!-- PÁGINA 3 -->
   <div class="page" id="page3">
     <div class="section-title-row">
-      <div class="section-title">Evaluación de Competencias</div>
-      <div class="section-icon"><img src="img/diana.png" alt=""></div>
-    </div>
-    <div class="body-text" id="out-enfoqueTexto">-</div>
-
-    <div class="section-title-row">
       <div class="section-title">Conclusión</div>
       <div class="section-icon"><img src="img/diana.png" alt=""></div>
     </div>
     <div class="body-text" id="out-conclusionTexto">-</div>
-    <div class="oport"><b>Como oportunidad de mejora</b>, <span id="out-oportunidadTexto">-</span></div>
 
     <div class="clasif-wrap">
       <div class="clasif-head">CLASIFICACIÓN</div>
@@ -207,12 +207,8 @@
       <div class="clasif-row clasif-b" id="chk-NOREC"></div>
     </div>
 
-    <div class="reserva">Dicho informe debe mantener la reserva confidencial como es habitual, siendo de uso exclusivo del directorio de <span id="out-solicitante2">-</span> y de <span id="out-consultoria2">-</span>.</div>
-
     <div class="firma-block">
-      <div class="firma-linea"></div>
-      <div class="firma-nombre" id="out-firmaNombre">-</div>
-      <div class="firma-consultora" id="out-firmaConsultora">-</div>
+      <img src="img/firma.png" alt="" onerror="this.style.display='none'">
     </div>
     <div class="page-number">Página 3/3</div>
   </div>
