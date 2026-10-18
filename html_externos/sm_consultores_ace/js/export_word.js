@@ -13,7 +13,7 @@ window.downloadWord = async function () {
     if (!docx) { alert('La librería docx no está cargada.'); return; }
     const {
       Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-      WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType, ImageRun, PageBreak
+      WidthType, BorderStyle, AlignmentType, VerticalAlign, ShadingType, ImageRun, Footer, PageNumber
     } = docx;
 
     const TEAL = '177789', WHITE = 'FFFFFF', INK = '2C3E50', GRAY = '5D6D7E', GRAY_BG = 'F0F4F8', BORDER = 'D0D7DE';
@@ -241,11 +241,12 @@ window.downloadWord = async function () {
     const cierre = (firmaImg ? [new Paragraph({
       alignment: AlignmentType.RIGHT, spacing: { before: 400 },
       children: [new ImageRun({ data: firmaImg.buf, transformation: { width: firmaImg.w, height: firmaImg.h } })]
-    })] : []).concat([
-      new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 300 }, children: [run('Página 3/3', { color: GRAY, size: 16 })] })
-    ]);
+    })] : []);
 
-    const salto = () => new Paragraph({ children: [new PageBreak()] });
+    // Numeración automática (Página X/Y) en el pie de cada hoja
+    const pie = new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [
+      new TextRun({ children: ['Página ', PageNumber.CURRENT, '/', PageNumber.TOTAL_PAGES], color: GRAY, size: 16 })
+    ] })] });
     const children = [].concat(
       [new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 80 }, children: [
         new ImageRun({ data: headerImg.buf, transformation: { width: headerImg.w, height: headerImg.h } })
@@ -267,14 +268,14 @@ window.downloadWord = async function () {
       [banner('Objetivo', tablaImg)],
       parrafos(v('objetivoTexto')),
       parrafos(v('enfoqueTexto')),
-      [salto(), banner('Fortalezas', dianaImg)],
+      [banner('Fortalezas', dianaImg)],
       fortalezas,
       [banner('Debilidades', dianaImg)],
       parrafos(v('debilidadesTexto')),
       [new Paragraph({ spacing: { before: 240, after: 120 }, children: [run('Gráfica Competencias y habilidades', { bold: true, size: 24 })] })],
       graficoParrafos,
       resultadoParrafo,
-      [salto(), banner('Conclusión', dianaImg)],
+      [banner('Conclusión', dianaImg)],
       parrafos(v('conclusionTexto')),
       [new Paragraph({ children: [new TextRun({ text: '' })] }), clasifTable],
       cierre
@@ -282,6 +283,7 @@ window.downloadWord = async function () {
 
     const blob = await Packer.toBlob(new Document({ sections: [{
       properties: { page: { margin: { top: 700, right: 700, bottom: 700, left: 700 } } },
+      footers: { default: pie },
       children: children
     }] }));
     await Botonera.guardarBlob(blob, 'Informe_Psicotecnico_ACE_' + (nombre || 'postulante').replace(/\s+/g, '_') + '.docx');

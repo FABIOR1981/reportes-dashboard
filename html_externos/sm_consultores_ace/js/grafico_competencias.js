@@ -78,7 +78,7 @@ function dibujarColumnas(cont, datos) {
       const y = escalaY(b[0]);
       g += `<rect x="${b[2].toFixed(1)}" y="${y.toFixed(1)}" width="${anchoBarra.toFixed(1)}" height="${(yBase - y).toFixed(1)}" fill="${b[1]}"></rect>`;
       if (b[0] > 0) {
-        g += `<text x="${(b[2] + anchoBarra / 2).toFixed(1)}" y="${((y + yBase) / 2 + 3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${b[0]}</text>`;
+        g += `<text x="${(b[2] + anchoBarra / 2).toFixed(1)}" y="${((y + yBase) / 2 + 3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${redondear2(b[0])}</text>`;
       }
     });
     if (usaCodigos) {
@@ -332,7 +332,7 @@ function dibujarAnillo(cont, datos) {
   }
 
   const centro = `
-    <text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="22" ${FUENTE_GRAFICO} fill="#333">${totalPuntos}/${totalMaximo}</text>
+    <text x="${cx}" y="${cy + 4}" text-anchor="middle" font-size="22" ${FUENTE_GRAFICO} fill="#333">${redondear2(totalPuntos)}/${redondear2(totalMaximo)}</text>
     <text x="${cx}" y="${cy + 20}" text-anchor="middle" font-size="11" ${FUENTE_GRAFICO} fill="#555">puntos</text>
   `;
 
@@ -346,7 +346,7 @@ function dibujarAnillo(cont, datos) {
     leyenda += `
       <rect x="${xLeyenda}" y="${y + 3}" width="12" height="12" rx="2" fill="${colorPorcentaje(pct)}"></rect>
       <text x="${xLeyenda + 20}" y="${y + 13}" font-size="12" ${FUENTE_GRAFICO} fill="#333">${i + 1}. ${escapeHTML(nombre)}</text>
-      <text x="${anchoTotal - 4}" y="${y + 13}" text-anchor="end" font-size="12" font-weight="600" ${FUENTE_GRAFICO} fill="#333">${d.puntaje}/${d.maximo} (${Math.round(pct)}%)</text>
+      <text x="${anchoTotal - 4}" y="${y + 13}" text-anchor="end" font-size="12" font-weight="600" ${FUENTE_GRAFICO} fill="#333">${redondear2(d.puntaje)}/${redondear2(d.maximo)} (${Math.round(pct)}%)</text>
     `;
   });
   envolverSvg(cont, anchoTotal, altoTotal, porciones + centro + leyenda);

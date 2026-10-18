@@ -27,6 +27,9 @@ function fmtDateLong(iso) {
 }
 function val(id) { return document.getElementById(id).value; }
 
+// Evita colas como 7.300000000000001 al sumar decimales
+function redondear2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+
 // "15 de Agosto de 2025" (mes con mayúscula, como en el PDF)
 function fmtFechaMayus(iso) {
   if (!iso) return '-';

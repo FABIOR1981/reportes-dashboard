@@ -129,8 +129,8 @@ function nivelDesempeno(pct) {
 }
 // Pie de gráfico: reemplaza {obtenido}, {maximo}, {porcentaje}, {nivel}; devuelve párrafos de partes {t, bold} (**negrita**)
 function pieGraficoPartes(texto, datos) {
-  const obtenido = datos.reduce((a, d) => a + d.puntaje, 0);
-  const maximo = datos.reduce((a, d) => a + d.maximo, 0);
+  const obtenido = redondear2(datos.reduce((a, d) => a + d.puntaje, 0));
+  const maximo = redondear2(datos.reduce((a, d) => a + d.maximo, 0));
   const pct = maximo ? Math.round(obtenido / maximo * 100) : 0;
   const t = texto
     .replace(/\{obtenido\}/g, obtenido)
