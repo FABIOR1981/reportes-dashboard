@@ -24,7 +24,7 @@ function escapeHTML(str) {
  * cuando la persona elige una opción en el modal (o al cargar un JSON
  * guardado). Vive acá porque este archivo es el dueño de todo lo
  * relacionado al dibujo — tipoGrafico.js solo la lee/escribe.
- * Valores posibles: 'aros' | 'barras' | 'lollipop' | 'radar' | 'waffle' | 'torta' | 'anillo'
+ * Valores posibles: 'columnas' | 'aros' | 'barras' | 'lollipop' | 'radar' | 'waffle' | 'torta' | 'anillo'
  * Por defecto 'aros' (el estilo que tenía este informe antes de poder elegir).
  */
 let tipoGraficoActual = 'aros';
@@ -55,6 +55,9 @@ function renderGraficoCompetencias(datos) {
   }
 
   switch (tipoGraficoActual) {
+    case 'columnas':
+      dibujarColumnas(cont, datos);
+      break;
     case 'barras':
       dibujarBarras(cont, datos);
       break;
@@ -571,4 +574,86 @@ async function generarImagenGraficoParaWord() {
   }
 
   return { buffer: buffer, width: anchoWord, height: altoWord };
+}
+
+// Columnas agrupadas (puntaje obtenido vs. máximo). Portado de ACE.
+
+function redondear2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+
+function separarCodigo(nombre) {
+  const m = /^\s*(\d+(?:\.\d+)*)\s*[-–:.]\s*(.+)$/.exec(nombre || '');
+  return m ? { codigo: m[1], texto: m[2].trim() } : { codigo: '', texto: (nombre || '').trim() };
+}
+
+// Columnas agrupadas: puntaje obtenido vs. máximo por competencia (como el gráfico del PDF)
+function dibujarColumnas(cont, datos) {
+  const partes = datos.map(function (d) { return separarCodigo(d.nombre); });
+  const usaCodigos = partes.every(function (p) { return p.codigo; });
+  const filaLeyenda = 20;
+  const filasPorColumna = Math.ceil(datos.length / 2);
+  const lineasLeyenda = usaCodigos ? partes.map(function (p) { return wrapLabel(p.codigo + ' - ' + p.texto, 62, 2); }) : [];
+  const altoCol = [0, 1].map(function (c) {
+    return lineasLeyenda.slice(c * filasPorColumna, (c + 1) * filasPorColumna)
+      .reduce(function (a, l) { return a + l.length * 9 + 7; }, 0);
+  });
+  const yLeyendaSerie = usaCodigos ? 236 : 283;
+  const yCodigos = yLeyendaSerie + 26;
+  const ancho = 640;
+  const alto = usaCodigos ? yCodigos + Math.max(altoCol[0], altoCol[1]) + 4 : 300;
+  const x0 = 40, x1 = ancho - 10, yTop = 40, yBase = 200;
+  const colObtenido = '#1aa7ec', colMaximo = '#0e5c78';
+  const maxVal = Math.max.apply(null, datos.map(function (d) { return d.maximo; }));
+  const yMax = Math.ceil(maxVal * 2) / 2 + 0.5;
+  const escalaY = function (v) { return yBase - (v / yMax) * (yBase - yTop); };
+
+  let g = `<text x="${ancho / 2}" y="20" text-anchor="middle" font-size="14" ${FUENTE_GRAFICO} fill="#595959">Competencias</text>`;
+  for (let v = 0; v <= yMax + 0.001; v += 0.5) {
+    const y = escalaY(v);
+    g += `<line x1="${x0}" y1="${y.toFixed(1)}" x2="${x1}" y2="${y.toFixed(1)}" stroke="#d9d9d9" stroke-width="0.7"></line>` +
+      `<text x="${x0 - 6}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" ${FUENTE_GRAFICO} fill="#595959">${v.toFixed(1)}</text>`;
+  }
+
+  const anchoGrupo = (x1 - x0) / datos.length;
+  const anchoBarra = Math.min(22, anchoGrupo * 0.36);
+  datos.forEach(function (d, i) {
+    const centro = x0 + anchoGrupo * (i + 0.5);
+    [[d.puntaje, colObtenido, centro - anchoBarra], [d.maximo, colMaximo, centro]].forEach(function (b) {
+      const y = escalaY(b[0]);
+      g += `<rect x="${b[2].toFixed(1)}" y="${y.toFixed(1)}" width="${anchoBarra.toFixed(1)}" height="${(yBase - y).toFixed(1)}" fill="${b[1]}"></rect>`;
+      if (b[0] > 0) {
+        g += `<text x="${(b[2] + anchoBarra / 2).toFixed(1)}" y="${((y + yBase) / 2 + 3).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#fff">${redondear2(b[0])}</text>`;
+      }
+    });
+    if (usaCodigos) {
+      g += `<text x="${centro.toFixed(1)}" y="${yBase + 14}" text-anchor="middle" font-size="9" font-weight="600" ${FUENTE_GRAFICO} fill="#595959">${escapeHTML(partes[i].codigo)}</text>`;
+    } else {
+      g += wrapLabel(d.nombre, 13, 5).map(function (linea, j) {
+        return `<text x="${centro.toFixed(1)}" y="${yBase + 12 + j * 9}" text-anchor="middle" font-size="7.5" ${FUENTE_GRAFICO} fill="#595959">${escapeHTML(linea)}</text>`;
+      }).join('');
+    }
+  });
+
+  g += `<line x1="${x0}" y1="${yBase}" x2="${x1}" y2="${yBase}" stroke="#bfbfbf" stroke-width="1"></line>` +
+    `<rect x="${ancho / 2 - 120}" y="${yLeyendaSerie}" width="8" height="8" fill="${colObtenido}"></rect>` +
+    `<text x="${ancho / 2 - 108}" y="${yLeyendaSerie + 8}" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Obtenido</text>` +
+    `<rect x="${ancho / 2 + 10}" y="${yLeyendaSerie}" width="8" height="8" fill="${colMaximo}"></rect>` +
+    `<text x="${ancho / 2 + 22}" y="${yLeyendaSerie + 8}" font-size="9" ${FUENTE_GRAFICO} fill="#595959">Puntaje Máximo</text>`;
+
+  if (usaCodigos) {
+    // Leyenda en 2 columnas (la 1ª lleva la mitad redondeada hacia arriba); cada entrada ocupa hasta 2 líneas
+    const yCol = [yCodigos, yCodigos];
+    partes.forEach(function (p, i) {
+      const col = i < filasPorColumna ? 0 : 1;
+      const x = x0 + col * 300;
+      const y = yCol[col];
+      lineasLeyenda[i].forEach(function (linea, j) {
+        const contenido = j === 0
+          ? `<tspan font-weight="700">${escapeHTML(p.codigo)}</tspan>${escapeHTML(linea.slice(p.codigo.length))}`
+          : escapeHTML(linea);
+        g += `<text x="${x}" y="${y + j * 9}" font-size="7.5" ${FUENTE_GRAFICO} fill="#404040">${contenido}</text>`;
+      });
+      yCol[col] += lineasLeyenda[i].length * 9 + 7;
+    });
+  }
+  envolverSvg(cont, ancho, alto, g);
 }

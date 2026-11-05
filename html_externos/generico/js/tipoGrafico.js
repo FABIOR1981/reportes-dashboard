@@ -28,11 +28,14 @@ const EJEMPLO_ASPECTOS_MODAL = [
 // colores o espaciados en grafico_Grafico.js, las miniaturas se actualizan
 // solas, sin tocar nada acá.
 const OPCIONES_TIPO_GRAFICO = [
+  { valor: 'columnas', etiqueta: 'Columnas agrupadas', dibujar: dibujarColumnas, minimoAspectos: 1 },
   { valor: 'barras', etiqueta: 'Barras horizontales', dibujar: dibujarBarras, minimoAspectos: 1 },
   { valor: 'aros', etiqueta: 'Aros de progreso', dibujar: dibujarAros, minimoAspectos: 1 },
   { valor: 'lollipop', etiqueta: 'Puntos y línea', dibujar: dibujarLollipop, minimoAspectos: 1 },
   { valor: 'radar', etiqueta: 'Radar (telaraña)', dibujar: dibujarRadar, minimoAspectos: 3 },
-  { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoAspectos: 1 }
+  { valor: 'waffle', etiqueta: 'Pictograma (waffle)', dibujar: dibujarWaffle, minimoAspectos: 1 },
+  { valor: 'torta', etiqueta: 'Torta por nivel', dibujar: dibujarTorta, minimoAspectos: 1 },
+  { valor: 'anillo', etiqueta: 'Anillo por competencia', dibujar: dibujarAnillo, minimoAspectos: 1 }
 ];
 
 function initTipoGrafico() {
